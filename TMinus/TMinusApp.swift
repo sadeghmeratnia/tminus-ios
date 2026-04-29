@@ -9,6 +9,8 @@ import SwiftUI
 
 @main
 struct TMinusApp: App {
+    private let container = DIContainer()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
