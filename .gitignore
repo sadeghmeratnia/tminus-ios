@@ -48,3 +48,5 @@ fastlane/test_output
 
 # Xcode Indexing
 IndexStoreDB/
+
+*.xcuserstate

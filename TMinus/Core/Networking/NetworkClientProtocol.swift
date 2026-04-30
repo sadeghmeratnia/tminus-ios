@@ -9,5 +9,5 @@ import Foundation
 
 protocol NetworkClientProtocol {
     func requestData(endpoint: Endpoint) async throws -> Data
-    func request<T: Decodable & Sendable>(_ type: T.Type, endpoint: Endpoint) async throws -> T
+    func request<T: Decodable>(_ type: T.Type, endpoint: Endpoint) async throws -> T
 }
