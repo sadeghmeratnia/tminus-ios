@@ -11,13 +11,13 @@ import Foundation
 
 final class URLSessionNetworkClient: NetworkClientProtocol {
     private let baseURL: URL
-    private let session: URLSession
+    private let session: NetworkSession
     private let decoder: JSONDecoder
     private let retryPolicy: RetryPolicy
     private let logger: NetworkLogger
 
     init(baseURL: URL,
-         session: URLSession,
+         session: NetworkSession,
          decoder: JSONDecoder,
          retryPolicy: RetryPolicy,
          logger: NetworkLogger) {
@@ -54,7 +54,11 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
             }
 
             guard (200...299).contains(httpResponse.statusCode) else {
-                return try await retryOrThrow(NetworkError.statusCode(httpResponse.statusCode), request: request, attempt: attempt)
+                return try await retryOrThrow(
+                    NetworkError.statusCode(httpResponse.statusCode),
+                    request: request,
+                    attempt: attempt
+                )
             }
 
             logger.log("← \(httpResponse.statusCode)", level: .info)
@@ -65,7 +69,14 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
             throw CancellationError()
 
         } catch let urlError as URLError {
-            return try await retryOrThrow(NetworkError.transport(urlError), request: request, attempt: attempt)
+            return try await retryOrThrow(
+                NetworkError.transport(urlError),
+                request: request,
+                attempt: attempt
+            )
+
+        } catch let networkError as NetworkError {
+            throw networkError
 
         } catch {
             logger.log("✖ Unknown error: \(error)", level: .error)
@@ -73,7 +84,11 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
         }
     }
 
-    private func retryOrThrow(_ error: NetworkError, request: URLRequest, attempt: Int) async throws -> Data {
+    private func retryOrThrow(
+        _ error: NetworkError,
+        request: URLRequest,
+        attempt: Int
+    ) async throws -> Data {
         if retryPolicy.shouldRetry(error: error, attempt: attempt) {
             logger.log("⚠️ Retrying attempt \(attempt + 1): \(error)", level: .warning)
             try await Task.sleep(nanoseconds: retryPolicy.delay(for: attempt))

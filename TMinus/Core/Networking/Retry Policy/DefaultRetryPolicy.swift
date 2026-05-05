@@ -8,15 +8,15 @@
 import Foundation
 
 struct DefaultRetryPolicy: RetryPolicy {
-    let maxAttempts: Int
+    let maxRetries: Int
 
-    init(maxAttempts: Int = 3) {
-        precondition(maxAttempts >= 1, "maxAttempts must be at least 1")
-        self.maxAttempts = maxAttempts
+    init(maxRetries: Int = 3) {
+        precondition(maxRetries >= 1, "maxRetries must be at least 1")
+        self.maxRetries = maxRetries
     }
 
     func shouldRetry(error: Error, attempt: Int) -> Bool {
-        guard attempt < maxAttempts else { return false }
+        guard attempt < maxRetries else { return false }
 
         switch error {
         case let networkError as NetworkError:

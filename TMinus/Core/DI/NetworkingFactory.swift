@@ -17,7 +17,7 @@ final class NetworkingFactory {
 
         self.networkClient = URLSessionNetworkClient(
             baseURL: apiEnvironment.launchLibraryBaseURL,
-            session: .shared,
+            session: URLSession.shared,
             decoder: decoder,
             retryPolicy: DefaultRetryPolicy(),
             logger: OSNetworkLogger()

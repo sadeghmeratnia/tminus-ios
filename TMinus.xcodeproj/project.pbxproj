@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		720CF0382FA9C76D00723E83 /* TMinus.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 720CF0372FA9C76D00723E83 /* TMinus.xctestplan */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		7263B1E92F98B4AB00726F7E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		720CF0372FA9C76D00723E83 /* TMinus.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TMinus.xctestplan; sourceTree = "<group>"; };
 		7263B1DB2F98B4A900726F7E /* TMinus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TMinus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7263B1E82F98B4AB00726F7E /* TMinusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TMinusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7263B1F22F98B4AB00726F7E /* TMinusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TMinusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +80,7 @@
 		7263B1D22F98B4A900726F7E = {
 			isa = PBXGroup;
 			children = (
+				720CF0372FA9C76D00723E83 /* TMinus.xctestplan */,
 				7263B1DD2F98B4A900726F7E /* TMinus */,
 				7263B1EB2F98B4AB00726F7E /* TMinusTests */,
 				7263B1F52F98B4AB00726F7E /* TMinusUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				720CF0382FA9C76D00723E83 /* TMinus.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -512,6 +519,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sadegh.tminus.TMinusUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -532,6 +540,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sadegh.tminus.TMinusUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;

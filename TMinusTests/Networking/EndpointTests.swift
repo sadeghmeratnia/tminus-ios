@@ -19,29 +19,32 @@ struct EndpointTests {
 
         @Test("Builds correct URL from base and path")
         func buildsCorrectURL() throws {
-            let endpoint = Endpoint(path: "launches")
-            let baseURL = URL(string: "https://ll.thespacedevs.com/2.3.0/")!
-
-            let request = try endpoint.urlRequest(baseURL: baseURL)
-
+            let request = try makeRequest(
+                path: "launches",
+                baseURL: EndpointTests.launchLibraryBaseURL
+            )
             #expect(request.url?.absoluteString == "https://ll.thespacedevs.com/2.3.0/launches")
         }
 
         @Test("Strips leading slash from path")
         func stripsLeadingSlash() throws {
-            let endpoint = Endpoint(path: "/launches")
-            let baseURL = URL(string: "https://ll.thespacedevs.com/2.3.0/")!
-
-            let request = try endpoint.urlRequest(baseURL: baseURL)
-
+            let request = try makeRequest(
+                path: "/launches",
+                baseURL: EndpointTests.launchLibraryBaseURL
+            )
             #expect(request.url?.absoluteString == "https://ll.thespacedevs.com/2.3.0/launches")
         }
 
         @Test("Path without leading slash and path with leading slash produce same URL")
         func leadingSlashIsNormalized() throws {
-            let baseURL = URL(string: "https://ll.thespacedevs.com/2.3.0/")!
-            let withSlash = try Endpoint(path: "/launches").urlRequest(baseURL: baseURL)
-            let withoutSlash = try Endpoint(path: "launches").urlRequest(baseURL: baseURL)
+            let withSlash = try makeRequest(
+                path: "/launches",
+                baseURL: EndpointTests.launchLibraryBaseURL
+            )
+            let withoutSlash = try makeRequest(
+                path: "launches",
+                baseURL: EndpointTests.launchLibraryBaseURL
+            )
 
             #expect(withSlash.url == withoutSlash.url)
         }
@@ -57,8 +60,7 @@ struct EndpointTests {
             ("articles", "GET")
         ])
         func defaultsToGET(path: String, expectedMethod: String) throws {
-            let endpoint = Endpoint(path: path)
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
+            let request = try makeRequest(path: path)
 
             #expect(request.httpMethod == expectedMethod)
         }
@@ -69,8 +71,7 @@ struct EndpointTests {
             HTTPMethod.put
         ])
         func setsHTTPMethod(method: HTTPMethod) throws {
-            let endpoint = Endpoint(path: "launches", method: method)
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
+            let request = try makeRequest(path: "launches", method: method)
 
             #expect(request.httpMethod == method.rawValue)
         }
@@ -83,35 +84,32 @@ struct EndpointTests {
 
         @Test("Appends query items to URL")
         func appendsQueryItems() throws {
-            let endpoint = Endpoint(
+            let request = try makeRequest(
                 path: "launches",
                 queryItems: [URLQueryItem(name: "limit", value: "10")]
             )
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
-            let components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)
+            let components = URLComponents(url: try #require(request.url), resolvingAgainstBaseURL: false)
 
             #expect(components?.queryItems?.contains(URLQueryItem(name: "limit", value: "10")) == true)
         }
 
         @Test("Appends multiple query items")
         func appendsMultipleQueryItems() throws {
-            let endpoint = Endpoint(
+            let request = try makeRequest(
                 path: "launches",
                 queryItems: [
                     URLQueryItem(name: "limit", value: "10"),
                     URLQueryItem(name: "offset", value: "20")
                 ]
             )
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
-            let components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)
+            let components = URLComponents(url: try #require(request.url), resolvingAgainstBaseURL: false)
 
             #expect(components?.queryItems?.count == 2)
         }
 
         @Test("Empty query items produces no query string")
         func emptyQueryItems() throws {
-            let endpoint = Endpoint(path: "launches", queryItems: [])
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
+            let request = try makeRequest(path: "launches", queryItems: [])
 
             #expect(request.url?.query == nil)
         }
@@ -124,24 +122,23 @@ struct EndpointTests {
 
         @Test("Sets custom headers on request")
         func setsHeaders() throws {
-            let endpoint = Endpoint(
+            let request = try makeRequest(
                 path: "launches",
                 headers: ["Authorization": "Bearer token123"]
             )
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
 
             #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token123")
         }
 
         @Test("Sets multiple headers")
         func setsMultipleHeaders() throws {
-            let endpoint = Endpoint(
+            let request = try makeRequest(
                 path: "launches",
                 headers: [
                     "Authorization": "Bearer token123",
                     "Accept": "application/json"
-                ]            )
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
+                ]
+            )
 
             #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token123")
             #expect(request.value(forHTTPHeaderField: "Accept") == "application/json")
@@ -149,8 +146,7 @@ struct EndpointTests {
 
         @Test("No headers produces empty header fields")
         func noHeaders() throws {
-            let endpoint = Endpoint(path: "launches")
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
+            let request = try makeRequest(path: "launches")
 
             #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
         }
@@ -163,18 +159,39 @@ struct EndpointTests {
 
         @Test("Defaults to 30 seconds")
         func defaultTimeout() throws {
-            let endpoint = Endpoint(path: "launches")
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
+            let request = try makeRequest(path: "launches")
 
             #expect(request.timeoutInterval == 30)
         }
 
         @Test("Sets custom timeout interval")
         func customTimeout() throws {
-            let endpoint = Endpoint(path: "launches", timeoutInterval: 60)
-            let request = try endpoint.urlRequest(baseURL: URL(string: "https://example.com/")!)
+            let request = try makeRequest(path: "launches", timeoutInterval: 60)
 
             #expect(request.timeoutInterval == 60)
         }
+    }
+}
+
+private extension EndpointTests {
+    static let defaultBaseURL = URL(string: "https://example.com/")!
+    static let launchLibraryBaseURL = URL(string: "https://ll.thespacedevs.com/2.3.0/")!
+
+    static func makeRequest(
+        path: String,
+        method: HTTPMethod = .get,
+        queryItems: [URLQueryItem] = [],
+        headers: [String: String] = [:],
+        timeoutInterval: TimeInterval = 30,
+        baseURL: URL = defaultBaseURL
+    ) throws -> URLRequest {
+        try Endpoint(
+            path: path,
+            method: method,
+            queryItems: queryItems,
+            headers: headers,
+            timeoutInterval: timeoutInterval
+        )
+        .urlRequest(baseURL: baseURL)
     }
 }

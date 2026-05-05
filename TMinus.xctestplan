@@ -1,0 +1,32 @@
+{
+  "configurations" : [
+    {
+      "id" : "DFBAFDB0-1410-4F85-9587-D5201A1AB580",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:TMinus.xcodeproj",
+        "identifier" : "7263B1E72F98B4AB00726F7E",
+        "name" : "TMinusTests"
+      }
+    },
+    {
+      "enabled" : false,
+      "target" : {
+        "containerPath" : "container:TMinus.xcodeproj",
+        "identifier" : "7263B1F12F98B4AB00726F7E",
+        "name" : "TMinusUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

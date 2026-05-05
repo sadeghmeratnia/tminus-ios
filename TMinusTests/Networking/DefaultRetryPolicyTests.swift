@@ -21,21 +21,21 @@ struct DefaultRetryPolicyTests {
         @Test("Accepts minimum valid maxAttempts of 1")
         func acceptsMinimumValidMaxAttempts() {
             #expect(throws: Never.self) {
-                _ = DefaultRetryPolicy(maxAttempts: 1)
+                _ = makePolicy(maxRetries: 1)
             }
         }
 
         @Test("Accepts valid maxAttempts", arguments: [1, 2, 3, 10])
         func acceptsValidMaxAttempts(maxAttempts: Int) {
             #expect(throws: Never.self) {
-                _ = DefaultRetryPolicy(maxAttempts: maxAttempts)
+                _ = makePolicy(maxRetries: maxAttempts)
             }
         }
 
         @Test("Default maxAttempts is 3")
         func defaultMaxAttempts() {
-            let policy = DefaultRetryPolicy()
-            #expect(policy.maxAttempts == 3)
+            let policy = makePolicy()
+            #expect(policy.maxRetries == 3)
         }
     }
 
@@ -46,25 +46,19 @@ struct DefaultRetryPolicyTests {
 
         @Test("Retries on 429", arguments: [0, 1, 2])
         func retriesOn429(attempt: Int) {
-            let policy = DefaultRetryPolicy()
-            let error = NetworkError.statusCode(429)
-            #expect(policy.shouldRetry(error: error, attempt: attempt) == true)
+            assertShouldRetry(true, error: NetworkError.statusCode(429), attempt: attempt)
         }
 
         @Test("Retries on 503", arguments: [0, 1, 2])
         func retriesOn503(attempt: Int) {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            let error = NetworkError.statusCode(503)
-            #expect(policy.shouldRetry(error: error, attempt: attempt) == true)
+            assertShouldRetry(true, error: NetworkError.statusCode(503), attempt: attempt)
         }
 
         @Test("Does not retry on non-retryable status codes", arguments: [
             400, 401, 403, 404, 500, 502
         ])
         func doesNotRetryOnNonRetryableStatusCodes(statusCode: Int) {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            let error = NetworkError.statusCode(statusCode)
-            #expect(policy.shouldRetry(error: error, attempt: 0) == false)
+            assertShouldRetry(false, error: NetworkError.statusCode(statusCode), attempt: 0)
         }
 
         @Test("Does not retry when attempts exhausted on retryable status codes", arguments: [
@@ -72,8 +66,7 @@ struct DefaultRetryPolicyTests {
             NetworkError.statusCode(503)
         ])
         func doesNotRetryWhenAttemptsExhausted(error: NetworkError) {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            #expect(policy.shouldRetry(error: error, attempt: 3) == false)
+            assertShouldRetry(false, error: error, attempt: 3)
         }
     }
 
@@ -84,16 +77,12 @@ struct DefaultRetryPolicyTests {
 
         @Test("Retries on timed out error", arguments: [0, 1, 2])
         func retriesOnTimedOut(attempt: Int) {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            let error = NetworkError.transport(URLError(.timedOut))
-            #expect(policy.shouldRetry(error: error, attempt: attempt) == true)
+            assertShouldRetry(true, error: NetworkError.transport(URLError(.timedOut)), attempt: attempt)
         }
 
         @Test("Retries on network connection lost", arguments: [0, 1, 2])
         func retriesOnNetworkConnectionLost(attempt: Int) {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            let error = NetworkError.transport(URLError(.networkConnectionLost))
-            #expect(policy.shouldRetry(error: error, attempt: attempt) == true)
+            assertShouldRetry(true, error: NetworkError.transport(URLError(.networkConnectionLost)), attempt: attempt)
         }
 
         @Test("Does not retry on non-retryable URLErrors", arguments: [
@@ -103,16 +92,12 @@ struct DefaultRetryPolicyTests {
             URLError.Code.notConnectedToInternet
         ])
         func doesNotRetryOnNonRetryableURLErrors(code: URLError.Code) {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            let error = NetworkError.transport(URLError(code))
-            #expect(policy.shouldRetry(error: error, attempt: 0) == false)
+            DefaultRetryPolicyTests.assertShouldRetry(false, error: NetworkError.transport(URLError(code)), attempt: 0)
         }
 
         @Test("Does not retry transport error when attempts exhausted")
         func doesNotRetryTransportWhenAttemptsExhausted() {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            let error = NetworkError.transport(URLError(.timedOut))
-            #expect(policy.shouldRetry(error: error, attempt: 3) == false)
+            assertShouldRetry(false, error: NetworkError.transport(URLError(.timedOut)), attempt: 3)
         }
     }
 
@@ -123,29 +108,24 @@ struct DefaultRetryPolicyTests {
 
         @Test("Does not retry on decoding error")
         func doesNotRetryOnDecodingError() {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
             let error = NetworkError.decoding(DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "")))
-            #expect(policy.shouldRetry(error: error, attempt: 0) == false)
+            assertShouldRetry(false, error: error, attempt: 0)
         }
 
         @Test("Does not retry on invalid response")
         func doesNotRetryOnInvalidResponse() {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            #expect(policy.shouldRetry(error: NetworkError.invalidResponse, attempt: 0) == false)
+            assertShouldRetry(false, error: NetworkError.invalidResponse, attempt: 0)
         }
 
         @Test("Does not retry on unknown error")
         func doesNotRetryOnUnknownError() {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
-            let error = NetworkError.unknown(underlying: URLError(.unknown))
-            #expect(policy.shouldRetry(error: error, attempt: 0) == false)
+            assertShouldRetry(false, error: NetworkError.unknown(underlying: URLError(.unknown)), attempt: 0)
         }
 
         @Test("Does not retry on non-NetworkError types")
         func doesNotRetryOnNonNetworkError() {
-            let policy = DefaultRetryPolicy(maxAttempts: 3)
             let error = NSError(domain: "test", code: 0)
-            #expect(policy.shouldRetry(error: error, attempt: 0) == false)
+            assertShouldRetry(false, error: error, attempt: 0)
         }
     }
 
@@ -156,7 +136,7 @@ struct DefaultRetryPolicyTests {
 
         @Test("Delay increases with attempt number")
         func delayIncreasesWithAttempt() {
-            let policy = DefaultRetryPolicy()
+            let policy = DefaultRetryPolicyTests.makePolicy()
             let delay0 = policy.delay(for: 0)
             let delay1 = policy.delay(for: 1)
             let delay2 = policy.delay(for: 2)
@@ -167,7 +147,7 @@ struct DefaultRetryPolicyTests {
 
         @Test("Delay is within expected range for attempt 0")
         func delayRangeForAttempt0() {
-            let policy = DefaultRetryPolicy()
+            let policy = DefaultRetryPolicyTests.makePolicy()
             let delay = policy.delay(for: 0)
 
             // base = 1.0, jitter = 0...1.0, range is 1.0...2.0 seconds
@@ -179,7 +159,7 @@ struct DefaultRetryPolicyTests {
 
         @Test("Delay is within expected range for attempt 1")
         func delayRangeForAttempt1() {
-            let policy = DefaultRetryPolicy()
+            let policy = DefaultRetryPolicyTests.makePolicy()
             let delay = policy.delay(for: 1)
 
             // base = 2.0, jitter = 0...1.0, range is 2.0...3.0 seconds
@@ -191,7 +171,7 @@ struct DefaultRetryPolicyTests {
 
         @Test("Delay is within expected range for attempt 2")
         func delayRangeForAttempt2() {
-            let policy = DefaultRetryPolicy()
+            let policy = DefaultRetryPolicyTests.makePolicy()
             let delay = policy.delay(for: 2)
 
             // base = 4.0, jitter = 0...1.0, range is 4.0...5.0 seconds
@@ -200,5 +180,21 @@ struct DefaultRetryPolicyTests {
             #expect(delay >= minDelay)
             #expect(delay <= maxDelay)
         }
+    }
+}
+
+private extension DefaultRetryPolicyTests {
+    static func makePolicy(maxRetries: Int = 3) -> DefaultRetryPolicy {
+        DefaultRetryPolicy(maxRetries: maxRetries)
+    }
+
+    static func assertShouldRetry(
+        _ expected: Bool,
+        error: Error,
+        attempt: Int,
+        maxRetries: Int = 3
+    ) {
+        let policy = makePolicy(maxRetries: maxRetries)
+        #expect(policy.shouldRetry(error: error, attempt: attempt) == expected)
     }
 }
