@@ -5,24 +5,23 @@
 //  Created by Sadegh on 22/04/2026.
 //
 
+@testable import TMinus
 import Testing
 import Foundation
-@testable import TMinus
+
+// MARK: - EndpointTests
 
 @Suite("Endpoint")
-struct EndpointTests {
-
+enum EndpointTests {
     // MARK: - URL Construction
 
     @Suite("URL Construction")
     struct URLConstruction {
-
         @Test("Builds correct URL from base and path")
         func buildsCorrectURL() throws {
             let request = try makeRequest(
                 path: "launches",
-                baseURL: EndpointTests.launchLibraryBaseURL
-            )
+                baseURL: EndpointTests.launchLibraryBaseURL)
             #expect(request.url?.absoluteString == "https://ll.thespacedevs.com/2.3.0/launches")
         }
 
@@ -30,8 +29,7 @@ struct EndpointTests {
         func stripsLeadingSlash() throws {
             let request = try makeRequest(
                 path: "/launches",
-                baseURL: EndpointTests.launchLibraryBaseURL
-            )
+                baseURL: EndpointTests.launchLibraryBaseURL)
             #expect(request.url?.absoluteString == "https://ll.thespacedevs.com/2.3.0/launches")
         }
 
@@ -39,12 +37,10 @@ struct EndpointTests {
         func leadingSlashIsNormalized() throws {
             let withSlash = try makeRequest(
                 path: "/launches",
-                baseURL: EndpointTests.launchLibraryBaseURL
-            )
+                baseURL: EndpointTests.launchLibraryBaseURL)
             let withoutSlash = try makeRequest(
                 path: "launches",
-                baseURL: EndpointTests.launchLibraryBaseURL
-            )
+                baseURL: EndpointTests.launchLibraryBaseURL)
 
             #expect(withSlash.url == withoutSlash.url)
         }
@@ -54,10 +50,9 @@ struct EndpointTests {
 
     @Suite("HTTP Method")
     struct HTTPMethodTests {
-
         @Test("Defaults to GET", arguments: [
             ("launches", "GET"),
-            ("articles", "GET")
+            ("articles", "GET"),
         ])
         func defaultsToGET(path: String, expectedMethod: String) throws {
             let request = try makeRequest(path: path)
@@ -68,7 +63,7 @@ struct EndpointTests {
         @Test("Sets correct HTTP method", arguments: [
             HTTPMethod.get,
             HTTPMethod.post,
-            HTTPMethod.put
+            HTTPMethod.put,
         ])
         func setsHTTPMethod(method: HTTPMethod) throws {
             let request = try makeRequest(path: "launches", method: method)
@@ -81,14 +76,12 @@ struct EndpointTests {
 
     @Suite("Query Items")
     struct QueryItemTests {
-
         @Test("Appends query items to URL")
         func appendsQueryItems() throws {
             let request = try makeRequest(
                 path: "launches",
-                queryItems: [URLQueryItem(name: "limit", value: "10")]
-            )
-            let components = URLComponents(url: try #require(request.url), resolvingAgainstBaseURL: false)
+                queryItems: [URLQueryItem(name: "limit", value: "10")])
+            let components = try URLComponents(url: #require(request.url), resolvingAgainstBaseURL: false)
 
             #expect(components?.queryItems?.contains(URLQueryItem(name: "limit", value: "10")) == true)
         }
@@ -99,10 +92,9 @@ struct EndpointTests {
                 path: "launches",
                 queryItems: [
                     URLQueryItem(name: "limit", value: "10"),
-                    URLQueryItem(name: "offset", value: "20")
-                ]
-            )
-            let components = URLComponents(url: try #require(request.url), resolvingAgainstBaseURL: false)
+                    URLQueryItem(name: "offset", value: "20"),
+                ])
+            let components = try URLComponents(url: #require(request.url), resolvingAgainstBaseURL: false)
 
             #expect(components?.queryItems?.count == 2)
         }
@@ -119,13 +111,11 @@ struct EndpointTests {
 
     @Suite("Headers")
     struct HeaderTests {
-
         @Test("Sets custom headers on request")
         func setsHeaders() throws {
             let request = try makeRequest(
                 path: "launches",
-                headers: ["Authorization": "Bearer token123"]
-            )
+                headers: ["Authorization": "Bearer token123"])
 
             #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token123")
         }
@@ -136,9 +126,8 @@ struct EndpointTests {
                 path: "launches",
                 headers: [
                     "Authorization": "Bearer token123",
-                    "Accept": "application/json"
-                ]
-            )
+                    "Accept": "application/json",
+                ])
 
             #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token123")
             #expect(request.value(forHTTPHeaderField: "Accept") == "application/json")
@@ -156,7 +145,6 @@ struct EndpointTests {
 
     @Suite("Timeout")
     struct TimeoutTests {
-
         @Test("Defaults to 30 seconds")
         func defaultTimeout() throws {
             let request = try makeRequest(path: "launches")
@@ -173,25 +161,22 @@ struct EndpointTests {
     }
 }
 
-private extension EndpointTests {
-    static let defaultBaseURL = URL(string: "https://example.com/")!
-    static let launchLibraryBaseURL = URL(string: "https://ll.thespacedevs.com/2.3.0/")!
+extension EndpointTests {
+    fileprivate static let defaultBaseURL = URL(string: "https://example.com/")!
+    fileprivate static let launchLibraryBaseURL = URL(string: "https://ll.thespacedevs.com/2.3.0/")!
 
-    static func makeRequest(
-        path: String,
-        method: HTTPMethod = .get,
-        queryItems: [URLQueryItem] = [],
-        headers: [String: String] = [:],
-        timeoutInterval: TimeInterval = 30,
-        baseURL: URL = defaultBaseURL
-    ) throws -> URLRequest {
+    fileprivate static func makeRequest(path: String,
+                                        method: HTTPMethod = .get,
+                                        queryItems: [URLQueryItem] = [],
+                                        headers: [String: String] = [:],
+                                        timeoutInterval: TimeInterval = 30,
+                                        baseURL: URL = defaultBaseURL) throws -> URLRequest {
         try Endpoint(
             path: path,
             method: method,
             queryItems: queryItems,
             headers: headers,
-            timeoutInterval: timeoutInterval
-        )
-        .urlRequest(baseURL: baseURL)
+            timeoutInterval: timeoutInterval)
+            .urlRequest(baseURL: baseURL)
     }
 }

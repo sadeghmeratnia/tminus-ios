@@ -24,13 +24,11 @@ struct Endpoint {
     let headers: [String: String]
     let timeoutInterval: TimeInterval
 
-    init(
-        path: String,
-        method: HTTPMethod = .get,
-        queryItems: [URLQueryItem] = [],
-        headers: [String: String] = [:],
-        timeoutInterval: TimeInterval = 30
-    ) {
+    init(path: String,
+         method: HTTPMethod = .get,
+         queryItems: [URLQueryItem] = [],
+         headers: [String: String] = [:],
+         timeoutInterval: TimeInterval = 30) {
         self.path = path
         self.method = method
         self.queryItems = queryItems

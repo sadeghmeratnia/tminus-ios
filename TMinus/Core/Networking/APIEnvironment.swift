@@ -19,19 +19,17 @@ struct APIEnvironment {
 extension APIEnvironment {
     static let production = APIEnvironment(
         launchLibraryBaseURL: URL(string: "https://ll.thespacedevs.com/2.3.0/")!,
-        spaceflightNewsBaseURL: URL(string: "https://api.spaceflightnewsapi.net/v4/")!
-    )
+        spaceflightNewsBaseURL: URL(string: "https://api.spaceflightnewsapi.net/v4/")!)
 
     static let development = APIEnvironment(
         launchLibraryBaseURL: URL(string: "https://lldev.thespacedevs.com/2.3.0/")!,
-        spaceflightNewsBaseURL: URL(string: "https://api.spaceflightnewsapi.net/v4/")!
-    )
+        spaceflightNewsBaseURL: URL(string: "https://api.spaceflightnewsapi.net/v4/")!)
 
     static let current: APIEnvironment = {
         #if DEBUG
-        return .development
+            return .development
         #else
-        return .production
+            return .production
         #endif
     }()
 }

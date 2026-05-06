@@ -17,7 +17,6 @@ enum URLSessionNetworkClientTests {
 
     @Suite("Success")
     struct Success {
-
         @Test("Returns decoded model on 200")
         func returnsDecodedModelOn200() async throws {
             let expected = MockModel(id: 1, name: "Falcon 9")
@@ -53,9 +52,8 @@ enum URLSessionNetworkClientTests {
 
     @Suite("Status Code Errors")
     struct StatusCodeErrors {
-
         @Test("Throws statusCode error on non-2xx response", arguments: [400, 401, 403, 404, 500])
-        func throwsStatusCodeError(statusCode: Int) async throws {
+        func throwsStatusCodeError(statusCode: Int) async {
             let client = make { _ in response(statusCode: statusCode) }
 
             await assertThrowsStatusCode(statusCode) {
@@ -68,9 +66,8 @@ enum URLSessionNetworkClientTests {
 
     @Suite("Decoding Errors")
     struct DecodingErrors {
-
         @Test("Throws decoding error on invalid JSON")
-        func throwsDecodingErrorOnInvalidJSON() async throws {
+        func throwsDecodingErrorOnInvalidJSON() async {
             let client = make { _ in
                 response(statusCode: 200, data: Data("invalid json".utf8))
             }
@@ -85,7 +82,6 @@ enum URLSessionNetworkClientTests {
 
     @Suite("Retry")
     struct Retry {
-
         @Test("Retries on 503 and succeeds on second attempt")
         func retriesOn503AndSucceeds() async throws {
             let expected = MockModel(id: 1, name: "Falcon 9")
@@ -109,7 +105,7 @@ enum URLSessionNetworkClientTests {
         }
 
         @Test("Exhausts retries and throws after max attempts")
-        func exhaustsRetriesAndThrows() async throws {
+        func exhaustsRetriesAndThrows() async {
             var attemptCount = 0
 
             let retryPolicy = retryOnStatusCode(503, maxAttempts: 3)
@@ -152,9 +148,8 @@ enum URLSessionNetworkClientTests {
 
     @Suite("Invalid Response")
     struct InvalidResponse {
-
         @Test("Throws invalidResponse when response is not HTTPURLResponse")
-        func throwsInvalidResponse() async throws {
+        func throwsInvalidResponse() async {
             let client = make { request in
                 nonHTTPResponse(for: request)
             }

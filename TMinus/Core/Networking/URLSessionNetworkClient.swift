@@ -53,12 +53,11 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
                 throw NetworkError.invalidResponse
             }
 
-            guard (200...299).contains(httpResponse.statusCode) else {
+            guard (200 ... 299).contains(httpResponse.statusCode) else {
                 return try await retryOrThrow(
                     NetworkError.statusCode(httpResponse.statusCode),
                     request: request,
-                    attempt: attempt
-                )
+                    attempt: attempt)
             }
 
             logger.log("← \(httpResponse.statusCode)", level: .info)
@@ -72,8 +71,7 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
             return try await retryOrThrow(
                 NetworkError.transport(urlError),
                 request: request,
-                attempt: attempt
-            )
+                attempt: attempt)
 
         } catch let networkError as NetworkError {
             throw networkError
@@ -84,11 +82,9 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
         }
     }
 
-    private func retryOrThrow(
-        _ error: NetworkError,
-        request: URLRequest,
-        attempt: Int
-    ) async throws -> Data {
+    private func retryOrThrow(_ error: NetworkError,
+                              request: URLRequest,
+                              attempt: Int) async throws -> Data {
         if retryPolicy.shouldRetry(error: error, attempt: attempt) {
             logger.log("⚠️ Retrying attempt \(attempt + 1): \(error)", level: .warning)
             try await Task.sleep(nanoseconds: retryPolicy.delay(for: attempt))

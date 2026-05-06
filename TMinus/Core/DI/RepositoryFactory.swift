@@ -9,6 +9,8 @@ import Foundation
 
 final class RepositoryFactory {
     private let networkingFactory: NetworkingFactory
+    lazy var launchRepository: LaunchRepositoryProtocol = LaunchRepository(
+        networkClient: networkingFactory.networkClient)
 
     init(networkingFactory: NetworkingFactory) {
         self.networkingFactory = networkingFactory

@@ -5,10 +5,10 @@
 //  Created by Sadegh on 05/05/2026.
 //
 
-import Foundation
 @testable import TMinus
+import Foundation
 
-struct MockModel: Codable, Sendable, Equatable {
+struct MockModel: Codable, Equatable {
     let id: Int
     let name: String
 }

@@ -5,19 +5,18 @@
 //  Created by Sadegh on 30/04/2026.
 //
 
-
+@testable import TMinus
 import Testing
 import Foundation
-@testable import TMinus
+
+// MARK: - DefaultRetryPolicyTests
 
 @Suite("DefaultRetryPolicy")
-struct DefaultRetryPolicyTests {
-
+enum DefaultRetryPolicyTests {
     // MARK: - Initialization
 
     @Suite("Initialization")
     struct Initialization {
-
         @Test("Accepts minimum valid maxAttempts of 1")
         func acceptsMinimumValidMaxAttempts() {
             #expect(throws: Never.self) {
@@ -43,7 +42,6 @@ struct DefaultRetryPolicyTests {
 
     @Suite("Status Code Retries")
     struct StatusCodeRetries {
-
         @Test("Retries on 429", arguments: [0, 1, 2])
         func retriesOn429(attempt: Int) {
             assertShouldRetry(true, error: NetworkError.statusCode(429), attempt: attempt)
@@ -74,7 +72,6 @@ struct DefaultRetryPolicyTests {
 
     @Suite("URLError Retries")
     struct URLErrorRetries {
-
         @Test("Retries on timed out error", arguments: [0, 1, 2])
         func retriesOnTimedOut(attempt: Int) {
             assertShouldRetry(true, error: NetworkError.transport(URLError(.timedOut)), attempt: attempt)
@@ -105,7 +102,6 @@ struct DefaultRetryPolicyTests {
 
     @Suite("Non-Retryable Error Types")
     struct NonRetryableErrorTypes {
-
         @Test("Does not retry on decoding error")
         func doesNotRetryOnDecodingError() {
             let error = NetworkError.decoding(DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "")))
@@ -133,7 +129,6 @@ struct DefaultRetryPolicyTests {
 
     @Suite("Delay")
     struct DelayTests {
-
         @Test("Delay increases with attempt number")
         func delayIncreasesWithAttempt() {
             let policy = DefaultRetryPolicyTests.makePolicy()
@@ -183,17 +178,15 @@ struct DefaultRetryPolicyTests {
     }
 }
 
-private extension DefaultRetryPolicyTests {
-    static func makePolicy(maxRetries: Int = 3) -> DefaultRetryPolicy {
+extension DefaultRetryPolicyTests {
+    fileprivate static func makePolicy(maxRetries: Int = 3) -> DefaultRetryPolicy {
         DefaultRetryPolicy(maxRetries: maxRetries)
     }
 
-    static func assertShouldRetry(
-        _ expected: Bool,
-        error: Error,
-        attempt: Int,
-        maxRetries: Int = 3
-    ) {
+    fileprivate static func assertShouldRetry(_ expected: Bool,
+                                              error: Error,
+                                              attempt: Int,
+                                              maxRetries: Int = 3) {
         let policy = makePolicy(maxRetries: maxRetries)
         #expect(policy.shouldRetry(error: error, attempt: attempt) == expected)
     }

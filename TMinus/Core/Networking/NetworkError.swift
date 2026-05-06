@@ -26,7 +26,7 @@ extension NetworkError {
             return "We could not create the request."
         case .invalidResponse:
             return "The server returned an invalid response."
-        case .statusCode(let code):
+        case let .statusCode(code):
             if code == 401 || code == 403 {
                 return "You are not authorised to perform this action."
             }

@@ -5,9 +5,9 @@
 //  Created by Sadegh on 05/05/2026.
 //
 
-import Foundation
 @testable import TMinus
+import Foundation
 
 struct MockLogger: NetworkLogger {
-    func log(_ message: String, level: LogLevel) {}
+    func log(_: String, level _: LogLevel) { }
 }

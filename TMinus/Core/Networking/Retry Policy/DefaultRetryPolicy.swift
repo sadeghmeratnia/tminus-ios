@@ -21,9 +21,9 @@ struct DefaultRetryPolicy: RetryPolicy {
         switch error {
         case let networkError as NetworkError:
             switch networkError {
-            case .statusCode(let code):
+            case let .statusCode(code):
                 return code == 429 || code == 503
-            case .transport(let urlError):
+            case let .transport(urlError):
                 return urlError.code == .timedOut || urlError.code == .networkConnectionLost
             default:
                 return false
@@ -32,10 +32,10 @@ struct DefaultRetryPolicy: RetryPolicy {
             return false
         }
     }
-    
+
     func delay(for attempt: Int) -> UInt64 {
         let base = pow(2.0, Double(attempt))
-        let jitter = Double.random(in: 0...1.0)
+        let jitter = Double.random(in: 0 ... 1.0)
         return UInt64((base + jitter) * 1_000_000_000)
     }
 }

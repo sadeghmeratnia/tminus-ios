@@ -20,7 +20,6 @@ final class NetworkingFactory {
             session: URLSession.shared,
             decoder: decoder,
             retryPolicy: DefaultRetryPolicy(),
-            logger: OSNetworkLogger()
-        )
+            logger: OSNetworkLogger())
     }
 }
