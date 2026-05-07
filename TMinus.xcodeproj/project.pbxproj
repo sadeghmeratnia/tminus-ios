@@ -105,7 +105,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7263B1FC2F98B4AB00726F7E /* Build configuration list for PBXNativeTarget "TMinus" */;
 			buildPhases = (
-				720C593B2FABB09700A288CC /* Swift Format */,
 				7263B1D72F98B4A900726F7E /* Sources */,
 				7263B1D82F98B4A900726F7E /* Frameworks */,
 				7263B1D92F98B4A900726F7E /* Resources */,
@@ -238,27 +237,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		720C593B2FABB09700A288CC /* Swift Format */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Swift Format";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if which swiftformat >/dev/null; then\n  swiftformat \"$SRCROOT\"\nelse\n  echo \"warning: SwiftFormat not installed, run: brew install swiftformat\"\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		7263B1D72F98B4A900726F7E /* Sources */ = {

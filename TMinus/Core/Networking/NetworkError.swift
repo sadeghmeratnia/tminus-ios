@@ -23,26 +23,26 @@ extension NetworkError {
     var userMessage: String {
         switch self {
         case .invalidURL, .requestEncoding:
-            return "We could not create the request."
+            return L10n.Error.Network.requestCreation
         case .invalidResponse:
-            return "The server returned an invalid response."
+            return L10n.Error.Network.invalidResponse
         case let .statusCode(code):
             if code == 401 || code == 403 {
-                return "You are not authorised to perform this action."
+                return L10n.Error.Network.unauthorized
             }
             if code == 429 {
-                return "Too many requests. Please try again in a moment."
+                return L10n.Error.Network.rateLimited
             }
             if code >= 500 {
-                return "The server is currently unavailable. Please try again shortly."
+                return L10n.Error.Network.serverUnavailable
             }
-            return "Something went wrong while loading data."
+            return L10n.Error.Network.genericLoad
         case .transport:
-            return "Please check your internet connection and try again."
+            return L10n.Error.Network.transport
         case .decoding:
-            return "We could not read the server response."
+            return L10n.Error.Network.decoding
         case .unknown:
-            return "Something unexpected happened. Please try again."
+            return L10n.Error.Network.unknown
         }
     }
 }

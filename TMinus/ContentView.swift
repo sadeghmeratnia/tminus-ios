@@ -8,17 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var viewModel: LaunchListViewModel
+
+    init(container: DIContainer) {
+        _viewModel = State(
+            initialValue: LaunchListViewModel(
+                fetchUpcomingLaunchesUseCase: container.fetchUpcomingLaunchesUseCase,
+                fetchPreviousLaunchesUseCase: container.fetchPreviousLaunchesUseCase))
+    }
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        LaunchListView(viewModel: viewModel)
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(container: DIContainer())
 }

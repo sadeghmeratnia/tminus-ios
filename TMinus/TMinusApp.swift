@@ -13,7 +13,7 @@ struct TMinusApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(container: container)
         }
     }
 }

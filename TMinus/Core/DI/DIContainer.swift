@@ -25,4 +25,12 @@ final class DIContainer {
         self.useCaseFactory = useCases
         self.coordinatorFactory = CoordinatorFactory(useCaseFactory: useCases)
     }
+
+    var fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase {
+        useCaseFactory.fetchUpcomingLaunchesUseCase
+    }
+
+    var fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase {
+        useCaseFactory.fetchPreviousLaunchesUseCase
+    }
 }

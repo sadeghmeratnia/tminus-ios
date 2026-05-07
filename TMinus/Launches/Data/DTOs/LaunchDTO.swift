@@ -21,12 +21,42 @@ struct LaunchDTO: Decodable {
     let status: LaunchStatusDTO?
     let windowStart: Date
     let windowEnd: Date?
-    let image: URL?
+    let imageURL: String?
     let videoURLs: [LaunchVideoURLDTO]?
     let rocket: LaunchRocketDTO?
     let pad: LaunchPadDTO?
     let mission: LaunchMissionDTO?
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.status = try container.decodeIfPresent(LaunchStatusDTO.self, forKey: .status)
+        self.windowStart = try container.decode(Date.self, forKey: .windowStart)
+        self.windowEnd = try container.decodeIfPresent(Date.self, forKey: .windowEnd)
+        self.imageURL = try Self.decodeImageURL(from: container)
+        self.videoURLs = try container.decodeIfPresent([LaunchVideoURLDTO].self, forKey: .videoURLs)
+        self.rocket = try container.decodeIfPresent(LaunchRocketDTO.self, forKey: .rocket)
+        self.pad = try container.decodeIfPresent(LaunchPadDTO.self, forKey: .pad)
+        self.mission = try container.decodeIfPresent(LaunchMissionDTO.self, forKey: .mission)
+    }
+
+    private static func decodeImageURL(from container: KeyedDecodingContainer<CodingKeys>) throws -> String? {
+        guard container.contains(.image), try !container.decodeNil(forKey: .image) else {
+            return nil
+        }
+
+        guard let imageContainer = try? container.nestedContainer(keyedBy: ImageCodingKeys.self, forKey: .image) else {
+            return nil
+        }
+
+        return try imageContainer.decode(String.self, forKey: .thumbnailUrl)
+    }
+}
+
+// MARK: - CodingKeys
+
+extension LaunchDTO {
     private enum CodingKeys: String, CodingKey {
         case id
         case name
@@ -39,63 +69,8 @@ struct LaunchDTO: Decodable {
         case pad
         case mission
     }
-}
 
-// MARK: - LaunchStatusDTO
-
-struct LaunchStatusDTO: Decodable {
-    let name: String?
-    let abbrev: String?
-}
-
-// MARK: - LaunchVideoURLDTO
-
-struct LaunchVideoURLDTO: Decodable {
-    let url: URL?
-    let priority: Int?
-}
-
-// MARK: - LaunchRocketDTO
-
-struct LaunchRocketDTO: Decodable {
-    let configuration: LaunchRocketConfigurationDTO?
-}
-
-// MARK: - LaunchRocketConfigurationDTO
-
-struct LaunchRocketConfigurationDTO: Decodable {
-    let id: String
-    let name: String
-}
-
-// MARK: - LaunchPadDTO
-
-struct LaunchPadDTO: Decodable {
-    let id: Int?
-    let name: String?
-    let latitude: String?
-    let longitude: String?
-    let location: LaunchPadLocationDTO?
-}
-
-// MARK: - LaunchPadLocationDTO
-
-struct LaunchPadLocationDTO: Decodable {
-    let name: String?
-}
-
-// MARK: - LaunchMissionDTO
-
-struct LaunchMissionDTO: Decodable {
-    let id: Int?
-    let name: String?
-    let description: String?
-    let type: String?
-    let orbit: LaunchMissionOrbitDTO?
-}
-
-// MARK: - LaunchMissionOrbitDTO
-
-struct LaunchMissionOrbitDTO: Decodable {
-    let name: String?
+    private enum ImageCodingKeys: String, CodingKey {
+        case thumbnailUrl
+    }
 }

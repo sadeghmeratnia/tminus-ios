@@ -10,8 +10,7 @@ import OSLog
 struct OSNetworkLogger: NetworkLogger {
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "app",
-        category: "Network"
-    )
+        category: "Network")
 
     func log(_ message: String, level: LogLevel) {
         switch level {

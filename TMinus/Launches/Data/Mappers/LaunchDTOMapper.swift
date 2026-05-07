@@ -18,8 +18,19 @@ enum LaunchDTOMapper {
             rocket: mapRocket(dto.rocket),
             launchPad: mapPad(dto.pad),
             mission: mapMission(dto.mission),
-            imageURL: dto.image,
+            imageURL: mapImageURL(dto.imageURL),
             webcastURL: dto.videoURLs?.sorted(by: { ($0.priority ?? .max) < ($1.priority ?? .max) }).first?.url)
+    }
+
+    private static func mapImageURL(_ imageURLString: String?) -> URL? {
+        guard let imageURLString else { return nil }
+        let trimmed = imageURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else { return nil }
+        if let url = URL(string: trimmed) {
+            return url
+        }
+        let escaped = trimmed.replacingOccurrences(of: " ", with: "%20")
+        return URL(string: escaped)
     }
 
     private static func mapStatus(_ status: LaunchStatusDTO?) -> LaunchStatus {
@@ -44,15 +55,15 @@ enum LaunchDTOMapper {
 
     private static func mapRocket(_ rocket: LaunchRocketDTO?) -> LaunchRocket {
         guard let configuration = rocket?.configuration else {
-            return LaunchRocket(id: "unknown", name: "Unknown Rocket")
+            return LaunchRocket(id: 0, name: "Unknown Rocket")
         }
 
         return LaunchRocket(id: configuration.id, name: configuration.name)
     }
 
     private static func mapPad(_ pad: LaunchPadDTO?) -> LaunchPad {
-        let latitude = Double(pad?.latitude ?? "") ?? 0
-        let longitude = Double(pad?.longitude ?? "") ?? 0
+        let latitude = pad?.latitude ?? 0
+        let longitude = pad?.longitude ?? 0
 
         return LaunchPad(
             id: String(pad?.id ?? -1),
