@@ -8,14 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var viewModel: LaunchListViewModel
-
-    init(container: DIContainer) {
-        _viewModel = State(
-            initialValue: LaunchListViewModel(
-                fetchUpcomingLaunchesUseCase: container.fetchUpcomingLaunchesUseCase,
-                fetchPreviousLaunchesUseCase: container.fetchPreviousLaunchesUseCase))
-    }
+    @ObservedObject var viewModel: LaunchListViewModel
 
     var body: some View {
         LaunchListView(viewModel: viewModel)
@@ -23,5 +16,10 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(container: DIContainer())
+    let container = DIContainer()
+    let viewModel = LaunchListViewModel(
+        fetchUpcomingLaunchesUseCase: container.fetchUpcomingLaunchesUseCase,
+        fetchPreviousLaunchesUseCase: container.fetchPreviousLaunchesUseCase
+    )
+    ContentView(viewModel: viewModel)
 }

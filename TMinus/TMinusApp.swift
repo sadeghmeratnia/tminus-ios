@@ -9,11 +9,16 @@ import SwiftUI
 
 @main
 struct TMinusApp: App {
-    private let container = DIContainer()
+    private let appCoordinator: AppCoordinator
+
+    init() {
+        let container = DIContainer()
+        appCoordinator = container.coordinatorFactory.makeAppCoordinator()
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView(container: container)
+            appCoordinator.makeRootView()
         }
     }
 }

@@ -13,4 +13,17 @@ final class CoordinatorFactory {
     init(useCaseFactory: UseCaseFactory) {
         self.useCaseFactory = useCaseFactory
     }
+
+    @MainActor
+    func makeAppCoordinator() -> AppCoordinator {
+        AppCoordinator(launchesCoordinator: makeLaunchesCoordinator())
+    }
+
+    @MainActor
+    func makeLaunchesCoordinator() -> LaunchesCoordinator {
+        let viewModel = LaunchListViewModel(
+            fetchUpcomingLaunchesUseCase: useCaseFactory.fetchUpcomingLaunchesUseCase,
+            fetchPreviousLaunchesUseCase: useCaseFactory.fetchPreviousLaunchesUseCase)
+        return LaunchesCoordinator(viewModel: viewModel)
+    }
 }
