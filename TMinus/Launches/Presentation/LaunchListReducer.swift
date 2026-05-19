@@ -23,7 +23,7 @@ enum LaunchListAction {
 // MARK: - LaunchListEffect
 
 enum LaunchListEffect {
-    case load(mode: LaunchListMode, previousLaunches: [Launch], cachePolicy: CachePolicy)
+    case load(mode: LaunchListMode, previousLaunches: [Launch], fetchPolicy: LaunchFetchPolicy)
 }
 
 // MARK: - LaunchListReducer
@@ -37,14 +37,14 @@ enum LaunchListReducer {
             let previousLaunches: [Launch] = []
             return (
                 .loading(mode: mode, launches: previousLaunches),
-                .load(mode: mode, previousLaunches: previousLaunches, cachePolicy: .useCache))
+                .load(mode: mode, previousLaunches: previousLaunches, fetchPolicy: .useCache))
 
         case .refresh:
             let mode = state.mode
             let previousLaunches = state.launches
             return (
                 .loading(mode: mode, launches: previousLaunches),
-                .load(mode: mode, previousLaunches: previousLaunches, cachePolicy: .networkOnly))
+                .load(mode: mode, previousLaunches: previousLaunches, fetchPolicy: .networkOnly))
 
         case let .modeChanged(newMode):
             guard newMode != state.mode else {
@@ -53,7 +53,7 @@ enum LaunchListReducer {
             let previousLaunches: [Launch] = []
             return (
                 .loading(mode: newMode, launches: previousLaunches),
-                .load(mode: newMode, previousLaunches: previousLaunches, cachePolicy: .useCache))
+                .load(mode: newMode, previousLaunches: previousLaunches, fetchPolicy: .useCache))
 
         case let .loadResponse(mode, previousLaunches, launches, errorMessage):
             if let errorMessage {

@@ -7,6 +7,11 @@
 
 import Foundation
 
+enum LaunchFetchPolicy: Equatable, Sendable {
+    case useCache
+    case networkOnly
+}
+
 // MARK: - LaunchRepositoryProtocol
 
 protocol LaunchRepositoryProtocol {
@@ -17,19 +22,19 @@ protocol LaunchRepositoryProtocol {
 
 // MARK: - LaunchListQuery
 
-struct LaunchListQuery: Equatable {
+struct LaunchListQuery: Equatable, Sendable {
     let page: Int
     let limit: Int
     let searchText: String?
-    let cachePolicy: CachePolicy
+    let fetchPolicy: LaunchFetchPolicy
 
     init(page: Int = 1,
          limit: Int = 20,
          searchText: String? = nil,
-         cachePolicy: CachePolicy = .useCache) {
+         fetchPolicy: LaunchFetchPolicy = .useCache) {
         self.page = page
         self.limit = limit
         self.searchText = searchText?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.cachePolicy = cachePolicy
+        self.fetchPolicy = fetchPolicy
     }
 }

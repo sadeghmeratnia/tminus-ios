@@ -19,13 +19,13 @@ enum LaunchListReducerTests {
 
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches.isEmpty)
-        guard case let .load(mode, previousLaunches, cachePolicy) = result.effect else {
+        guard case let .load(mode, previousLaunches, fetchPolicy) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
         #expect(mode == .upcoming)
         #expect(previousLaunches.isEmpty)
-        #expect(cachePolicy == .useCache)
+        #expect(fetchPolicy == .useCache)
     }
 
     @Test("Refresh keeps previous launches and reloads ignoring cache")
@@ -37,13 +37,13 @@ enum LaunchListReducerTests {
 
         #expect(result.state.mode == .previous)
         #expect(result.state.launches == previousLaunches)
-        guard case let .load(mode, launches, cachePolicy) = result.effect else {
+        guard case let .load(mode, launches, fetchPolicy) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
         #expect(mode == .previous)
         #expect(launches == previousLaunches)
-        #expect(cachePolicy == .networkOnly)
+        #expect(fetchPolicy == .networkOnly)
     }
 
     @Test("Mode change to same mode has no effect")

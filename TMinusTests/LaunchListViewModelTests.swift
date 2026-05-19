@@ -33,14 +33,14 @@ struct LaunchListViewModelTests {
 
         let upcomingQueries = await repository.upcomingQueries
         #expect(upcomingQueries.count == 1)
-        #expect(upcomingQueries.first?.cachePolicy == .useCache)
+        #expect(upcomingQueries.first?.fetchPolicy == .useCache)
     }
 
     @Test("refresh bypasses cache and keeps previous launches while loading")
     func refreshBypassesCache() async throws {
         let repository = MockLaunchRepository()
         await repository.setUpcomingHandler { query, _ in
-            if query.cachePolicy == .networkOnly {
+            if query.fetchPolicy == .networkOnly {
                 return [Self.makeLaunch(id: "fresh")]
             }
             return [Self.makeLaunch(id: "cached")]
@@ -71,7 +71,7 @@ struct LaunchListViewModelTests {
 
         let upcomingQueries = await repository.upcomingQueries
         #expect(upcomingQueries.count == 2)
-        #expect(upcomingQueries.map(\.cachePolicy) == [.useCache, .networkOnly])
+        #expect(upcomingQueries.map(\.fetchPolicy) == [.useCache, .networkOnly])
     }
 
     @Test("mode change loads previous launches without bypassing cache")
@@ -106,7 +106,7 @@ struct LaunchListViewModelTests {
 
         let previousQueries = await repository.previousQueries
         #expect(previousQueries.count == 1)
-        #expect(previousQueries.first?.cachePolicy == .useCache)
+        #expect(previousQueries.first?.fetchPolicy == .useCache)
     }
 
     @Test("newest request wins when previous load gets cancelled")
@@ -117,7 +117,7 @@ struct LaunchListViewModelTests {
                 try await Task.sleep(nanoseconds: 500_000_000)
                 return [Self.makeLaunch(id: "stale")]
             }
-            if query.cachePolicy == .networkOnly {
+            if query.fetchPolicy == .networkOnly {
                 return [Self.makeLaunch(id: "fresh")]
             }
             return [Self.makeLaunch(id: "fallback")]
@@ -136,7 +136,7 @@ struct LaunchListViewModelTests {
 
         let upcomingQueries = await repository.upcomingQueries
         #expect(upcomingQueries.count == 2)
-        #expect(upcomingQueries.map(\.cachePolicy) == [.useCache, .networkOnly])
+        #expect(upcomingQueries.map(\.fetchPolicy) == [.useCache, .networkOnly])
     }
 }
 

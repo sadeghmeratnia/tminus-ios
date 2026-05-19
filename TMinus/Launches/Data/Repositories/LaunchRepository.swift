@@ -18,7 +18,7 @@ final class LaunchRepository: LaunchRepositoryProtocol {
         let response = try await networkClient.request(
             LaunchesResponseDTO.self,
             endpoint: LaunchesEndpoint.upcoming(query: query),
-            cachePolicy: query.cachePolicy)
+            cachePolicy: query.fetchPolicy.networkCachePolicy)
         return response.results.map(LaunchDTOMapper.map(_:))
     }
 
@@ -26,7 +26,7 @@ final class LaunchRepository: LaunchRepositoryProtocol {
         let response = try await networkClient.request(
             LaunchesResponseDTO.self,
             endpoint: LaunchesEndpoint.previous(query: query),
-            cachePolicy: query.cachePolicy)
+            cachePolicy: query.fetchPolicy.networkCachePolicy)
         return response.results.map(LaunchDTOMapper.map(_:))
     }
 
@@ -35,5 +35,16 @@ final class LaunchRepository: LaunchRepositoryProtocol {
             LaunchDTO.self,
             endpoint: LaunchesEndpoint.detail(id: id))
         return LaunchDTOMapper.map(dto)
+    }
+}
+
+private extension LaunchFetchPolicy {
+    var networkCachePolicy: CachePolicy {
+        switch self {
+        case .useCache:
+            return .useCache
+        case .networkOnly:
+            return .networkOnly
+        }
     }
 }

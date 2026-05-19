@@ -61,7 +61,7 @@ final class LaunchListViewModel: ReducingStoreProtocol {
 
     func run(_ effect: LaunchListEffect) {
         switch effect {
-        case let .load(mode, previousLaunches, cachePolicy):
+        case let .load(mode, previousLaunches, fetchPolicy):
             loadTask?.cancel()
             loadTask = Task { [weak self] in
                 guard let self else { return }
@@ -69,7 +69,7 @@ final class LaunchListViewModel: ReducingStoreProtocol {
                 let launches: [Launch]
                 let errorMessage: String?
                 do {
-                    let query = LaunchListQuery(page: 1, limit: 20, cachePolicy: cachePolicy)
+                    let query = LaunchListQuery(page: 1, limit: 20, fetchPolicy: fetchPolicy)
                     launches = try await {
                         switch mode {
                         case .upcoming:

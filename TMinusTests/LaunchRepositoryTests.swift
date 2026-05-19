@@ -47,7 +47,7 @@ enum LaunchRepositoryTests {
         let client = MockLaunchNetworkClient()
         client.typedResponse = responseDTO
         let repository = LaunchRepository(networkClient: client)
-        let query = LaunchListQuery(page: 2, limit: 20, searchText: "star", cachePolicy: .networkOnly)
+        let query = LaunchListQuery(page: 2, limit: 20, searchText: "star", fetchPolicy: .networkOnly)
 
         let launches = try await repository.fetchUpcomingLaunches(query: query)
 
@@ -69,7 +69,7 @@ enum LaunchRepositoryTests {
         let client = MockLaunchNetworkClient()
         client.typedResponse = responseDTO
         let repository = LaunchRepository(networkClient: client)
-        let query = LaunchListQuery(page: 1, limit: 20, cachePolicy: .useCache)
+        let query = LaunchListQuery(page: 1, limit: 20, fetchPolicy: .useCache)
 
         _ = try await repository.fetchPreviousLaunches(query: query)
 
