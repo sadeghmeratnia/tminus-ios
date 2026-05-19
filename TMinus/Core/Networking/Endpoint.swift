@@ -23,17 +23,23 @@ struct Endpoint {
     let queryItems: [URLQueryItem]
     let headers: [String: String]
     let timeoutInterval: TimeInterval
+    let cacheable: Bool
+    let cacheTTL: TimeInterval?
 
     init(path: String,
          method: HTTPMethod = .get,
          queryItems: [URLQueryItem] = [],
          headers: [String: String] = [:],
-         timeoutInterval: TimeInterval = 30) {
+         timeoutInterval: TimeInterval = 30,
+         cacheable: Bool = true,
+         cacheTTL: TimeInterval? = nil) {
         self.path = path
         self.method = method
         self.queryItems = queryItems
         self.headers = headers
         self.timeoutInterval = timeoutInterval
+        self.cacheable = cacheable
+        self.cacheTTL = cacheTTL
     }
 
     func urlRequest(baseURL: URL) throws -> URLRequest {

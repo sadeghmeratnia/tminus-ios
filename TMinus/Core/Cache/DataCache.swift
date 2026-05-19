@@ -25,8 +25,9 @@ actor DataCache {
         self.ttl = ttl
     }
 
-    func set(_ data: Data, for key: String) {
-        let expiryDate = Date().addingTimeInterval(ttl)
+    func set(_ data: Data, for key: String, ttl: TimeInterval? = nil) {
+        let effectiveTTL = ttl ?? self.ttl
+        let expiryDate = Date().addingTimeInterval(effectiveTTL)
         cache.setObject(CacheEntry(data: data, expiryDate: expiryDate), forKey: key as NSString)
     }
 

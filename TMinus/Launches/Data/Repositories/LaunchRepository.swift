@@ -17,14 +17,16 @@ final class LaunchRepository: LaunchRepositoryProtocol {
     func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> [Launch] {
         let response = try await networkClient.request(
             LaunchesResponseDTO.self,
-            endpoint: LaunchesEndpoint.upcoming(query: query))
+            endpoint: LaunchesEndpoint.upcoming(query: query),
+            cachePolicy: query.cachePolicy)
         return response.results.map(LaunchDTOMapper.map(_:))
     }
 
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> [Launch] {
         let response = try await networkClient.request(
             LaunchesResponseDTO.self,
-            endpoint: LaunchesEndpoint.previous(query: query))
+            endpoint: LaunchesEndpoint.previous(query: query),
+            cachePolicy: query.cachePolicy)
         return response.results.map(LaunchDTOMapper.map(_:))
     }
 

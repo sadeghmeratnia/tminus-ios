@@ -159,6 +159,65 @@ enum URLSessionNetworkClientTests {
             }
         }
     }
+
+    // MARK: - Caching
+
+    @Suite("Caching")
+    struct Caching {
+        @Test("Returns cached data for repeated GET requests")
+        func returnsCachedDataForRepeatedGETRequests() async throws {
+            let expected = Data("cached-response".utf8)
+            var requestCount = 0
+            let cache = DataCache(ttl: 60)
+
+            let client = make(cache: cache) { _ in
+                requestCount += 1
+                return response(statusCode: 200, data: expected)
+            }
+
+            let first = try await client.requestData(endpoint: .mock)
+            let second = try await client.requestData(endpoint: .mock)
+
+            #expect(first == expected)
+            #expect(second == expected)
+            #expect(requestCount == 1)
+        }
+
+        @Test("Does not use cache for non-GET requests")
+        func doesNotUseCacheForNonGETRequests() async throws {
+            let expected = Data("post-response".utf8)
+            var requestCount = 0
+            let cache = DataCache(ttl: 60)
+            let endpoint = Endpoint(path: "mock-post", method: .post)
+
+            let client = make(cache: cache) { _ in
+                requestCount += 1
+                return response(statusCode: 200, data: expected)
+            }
+
+            _ = try await client.requestData(endpoint: endpoint)
+            _ = try await client.requestData(endpoint: endpoint)
+
+            #expect(requestCount == 2)
+        }
+
+        @Test("Network-only policy bypasses cached value")
+        func networkOnlyBypassesCachedValue() async throws {
+            let expected = Data("fresh-response".utf8)
+            var requestCount = 0
+            let cache = DataCache(ttl: 60)
+
+            let client = make(cache: cache) { _ in
+                requestCount += 1
+                return response(statusCode: 200, data: expected)
+            }
+
+            _ = try await client.requestData(endpoint: .mock)
+            _ = try await client.requestData(endpoint: .mock, cachePolicy: .networkOnly)
+
+            #expect(requestCount == 2)
+        }
+    }
 }
 
 // MARK: - Helpers
@@ -168,13 +227,15 @@ extension URLSessionNetworkClientTests {
 
     static func make(retryPolicy: RetryPolicy = MockRetryPolicy(),
                      logger: NetworkLogger = MockLogger(),
+                     cache: DataCache? = nil,
                      handler: @escaping MockNetworkSession.Handler) -> URLSessionNetworkClient {
         URLSessionNetworkClient(
             baseURL: URL(string: "https://example.com")!,
             session: MockNetworkSession(handler: handler),
             decoder: JSONDecoder(),
             retryPolicy: retryPolicy,
-            logger: logger)
+            logger: logger,
+            cache: cache)
     }
 
     static func response(statusCode: Int, data: Data = Data()) -> (Data, URLResponse) {

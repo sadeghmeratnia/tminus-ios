@@ -7,7 +7,26 @@
 
 import Foundation
 
+// MARK: - CachePolicy
+
+enum CachePolicy: Equatable {
+    case useCache
+    case networkOnly
+}
+
+// MARK: - NetworkClientProtocol
+
 protocol NetworkClientProtocol {
-    func requestData(endpoint: Endpoint) async throws -> Data
-    func request<T: Decodable>(_ type: T.Type, endpoint: Endpoint) async throws -> T
+    func requestData(endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> Data
+    func request<T: Decodable>(_ type: T.Type, endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> T
+}
+
+extension NetworkClientProtocol {
+    func requestData(endpoint: Endpoint) async throws -> Data {
+        try await requestData(endpoint: endpoint, cachePolicy: .useCache)
+    }
+
+    func request<T: Decodable>(_ type: T.Type, endpoint: Endpoint) async throws -> T {
+        try await request(type, endpoint: endpoint, cachePolicy: .useCache)
+    }
 }

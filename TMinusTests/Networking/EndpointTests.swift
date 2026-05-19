@@ -159,6 +159,25 @@ enum EndpointTests {
             #expect(request.timeoutInterval == 60)
         }
     }
+
+    // MARK: - Cache Policy
+
+    @Suite("Cache Policy")
+    struct CachePolicyTests {
+        @Test("Defaults endpoint cache policy")
+        func defaultsCachePolicy() {
+            let endpoint = Endpoint(path: "launches")
+            #expect(endpoint.cacheable == true)
+            #expect(endpoint.cacheTTL == nil)
+        }
+
+        @Test("Sets custom endpoint cache policy")
+        func setsCustomCachePolicy() {
+            let endpoint = Endpoint(path: "launches", cacheable: false, cacheTTL: 120)
+            #expect(endpoint.cacheable == false)
+            #expect(endpoint.cacheTTL == 120)
+        }
+    }
 }
 
 extension EndpointTests {

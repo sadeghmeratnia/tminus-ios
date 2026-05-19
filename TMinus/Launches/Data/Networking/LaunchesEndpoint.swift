@@ -8,20 +8,28 @@
 import Foundation
 
 enum LaunchesEndpoint {
+    private enum CacheTTL {
+        static let upcoming: TimeInterval = 120
+        static let previous: TimeInterval = 900
+        static let detail: TimeInterval = 1800
+    }
+
     static func upcoming(query: LaunchListQuery) -> Endpoint {
         Endpoint(
             path: "launches/upcoming/",
-            queryItems: makeQueryItems(query: query, ordering: "window_start"))
+            queryItems: makeQueryItems(query: query, ordering: "window_start"),
+            cacheTTL: CacheTTL.upcoming)
     }
 
     static func previous(query: LaunchListQuery) -> Endpoint {
         Endpoint(
             path: "launches/previous/",
-            queryItems: makeQueryItems(query: query, ordering: "-window_start"))
+            queryItems: makeQueryItems(query: query, ordering: "-window_start"),
+            cacheTTL: CacheTTL.previous)
     }
 
     static func detail(id: String) -> Endpoint {
-        Endpoint(path: "launches/\(id)/")
+        Endpoint(path: "launches/\(id)/", cacheTTL: CacheTTL.detail)
     }
 
     private static func makeQueryItems(query: LaunchListQuery, ordering: String) -> [URLQueryItem] {

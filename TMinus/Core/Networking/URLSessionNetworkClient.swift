@@ -15,27 +15,42 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
     private let decoder: JSONDecoder
     private let retryPolicy: RetryPolicy
     private let logger: NetworkLogger
+    private let cache: DataCache?
 
     init(baseURL: URL,
          session: NetworkSession,
          decoder: JSONDecoder,
          retryPolicy: RetryPolicy,
-         logger: NetworkLogger) {
+         logger: NetworkLogger,
+         cache: DataCache? = nil) {
         self.baseURL = baseURL
         self.session = session
         self.decoder = decoder
         self.retryPolicy = retryPolicy
         self.logger = logger
+        self.cache = cache
     }
 
-    func requestData(endpoint: Endpoint) async throws -> Data {
+    func requestData(endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> Data {
         let request = try endpoint.urlRequest(baseURL: baseURL)
         logger.log("→ \(request.httpMethod ?? "") \(request.url?.absoluteString ?? "")", level: .info)
-        return try await execute(request: request)
+
+        if cachePolicy == .useCache,
+           let cacheKey = cacheKey(for: request, endpoint: endpoint),
+           let cachedData = await cache?.value(for: cacheKey) {
+            logger.log("↻ Cache hit \(cacheKey)", level: .debug)
+            return cachedData
+        }
+
+        let data = try await execute(request: request)
+        if let cacheKey = cacheKey(for: request, endpoint: endpoint) {
+            await cache?.set(data, for: cacheKey, ttl: endpoint.cacheTTL)
+        }
+        return data
     }
 
-    func request<T: Decodable>(_ type: T.Type, endpoint: Endpoint) async throws -> T {
-        let data = try await requestData(endpoint: endpoint)
+    func request<T: Decodable>(_ type: T.Type, endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> T {
+        let data = try await requestData(endpoint: endpoint, cachePolicy: cachePolicy)
         do {
             return try decoder.decode(type, from: data)
         } catch {
@@ -92,5 +107,13 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
         }
         logger.log("✖ Non-retryable: \(error)", level: .error)
         throw error
+    }
+
+    private func cacheKey(for request: URLRequest, endpoint: Endpoint) -> String? {
+        guard endpoint.cacheable,
+              request.httpMethod == HTTPMethod.get.rawValue,
+              let urlString = request.url?.absoluteString
+        else { return nil }
+        return "\(HTTPMethod.get.rawValue)|\(urlString)"
     }
 }

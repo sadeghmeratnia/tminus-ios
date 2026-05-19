@@ -21,12 +21,15 @@ struct LaunchListQuery: Equatable {
     let page: Int
     let limit: Int
     let searchText: String?
+    let cachePolicy: CachePolicy
 
     init(page: Int = 1,
          limit: Int = 20,
-         searchText: String? = nil) {
+         searchText: String? = nil,
+         cachePolicy: CachePolicy = .useCache) {
         self.page = page
         self.limit = limit
         self.searchText = searchText?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.cachePolicy = cachePolicy
     }
 }
