@@ -122,8 +122,8 @@ enum LaunchDTOMapperTests {
 
         let mapped = LaunchDTOMapper.map(dto)
 
-        #expect(mapped.rocket == LaunchRocket(id: 0, name: "Unknown Rocket"))
-        #expect(mapped.launchPad == LaunchPad(id: "-1", name: "Unknown Launch Pad", latitude: 0, longitude: 0, locationName: nil))
+        #expect(mapped.rocket == nil)
+        #expect(mapped.launchPad == nil)
         #expect(mapped.mission == nil)
     }
 }

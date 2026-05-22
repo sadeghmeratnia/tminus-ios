@@ -74,18 +74,24 @@ struct LaunchCardView: View {
         }
     }
 
+    @ViewBuilder
     private var rocketView: some View {
-        Text(launch.rocket.name)
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .lineLimit(Constants.Layout.metadataLineLimit)
+        if let rocketName = launch.rocket?.name {
+            Text(rocketName)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(Constants.Layout.metadataLineLimit)
+        }
     }
 
+    @ViewBuilder
     private var launchPadView: some View {
-        Label(launch.launchPad.name, systemImage: Constants.Icon.launchPad)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(Constants.Layout.metadataLineLimit)
+        if let padName = launch.launchPad?.name {
+            Label(padName, systemImage: Constants.Icon.launchPad)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(Constants.Layout.metadataLineLimit)
+        }
     }
 
     private var launchDateView: some View {

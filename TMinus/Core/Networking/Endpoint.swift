@@ -18,6 +18,7 @@ enum HTTPMethod: String {
 // MARK: - Endpoint
 
 struct Endpoint {
+    let baseURL: URL
     let path: String
     let method: HTTPMethod
     let queryItems: [URLQueryItem]
@@ -26,13 +27,15 @@ struct Endpoint {
     let cacheable: Bool
     let cacheTTL: TimeInterval?
 
-    init(path: String,
+    init(baseURL: URL,
+         path: String,
          method: HTTPMethod = .get,
          queryItems: [URLQueryItem] = [],
          headers: [String: String] = [:],
          timeoutInterval: TimeInterval = 30,
          cacheable: Bool = true,
          cacheTTL: TimeInterval? = nil) {
+        self.baseURL = baseURL
         self.path = path
         self.method = method
         self.queryItems = queryItems
@@ -42,7 +45,7 @@ struct Endpoint {
         self.cacheTTL = cacheTTL
     }
 
-    func urlRequest(baseURL: URL) throws -> URLRequest {
+    func urlRequest() throws -> URLRequest {
         let relativePath = path.hasPrefix("/") ? String(path.dropFirst()) : path
         let endpointURL = baseURL.appending(path: relativePath)
 

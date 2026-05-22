@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LaunchRocket: Equatable {
+struct LaunchRocket: Equatable, Sendable {
     let id: Int
     let name: String
 }

@@ -21,6 +21,6 @@ extension HTTPURLResponse {
 
 extension Endpoint {
     static var mock: Endpoint {
-        Endpoint(path: "mock")
+        Endpoint(baseURL: URL(string: "https://example.com")!, path: "mock")
     }
 }

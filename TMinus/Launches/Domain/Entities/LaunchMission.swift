@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LaunchMission: Equatable {
+struct LaunchMission: Equatable, Sendable {
     let id: String
     let name: String
     let description: String?

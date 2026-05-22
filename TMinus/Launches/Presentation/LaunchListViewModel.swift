@@ -81,22 +81,20 @@ final class LaunchListViewModel: ReducingStoreProtocol {
                     errorMessage = nil
                 } catch is CancellationError {
                     return
-                } catch let networkError as NetworkError {
+                } catch let launchError as LaunchError {
                     launches = []
-                    errorMessage = networkError.userMessage
+                    errorMessage = launchError.userMessage
                 } catch {
                     launches = []
-                    errorMessage = L10n.Error.Network.unknown
+                    errorMessage = LaunchError.unknown(underlying: error).userMessage
                 }
 
-                await MainActor.run {
-                    self.send(
-                        .loadResponse(
-                            mode: mode,
-                            previousLaunches: previousLaunches,
-                            launches: launches,
-                            errorMessage: errorMessage))
-                }
+                self.send(
+                    .loadResponse(
+                        mode: mode,
+                        previousLaunches: previousLaunches,
+                        launches: launches,
+                        errorMessage: errorMessage))
             }
         }
     }

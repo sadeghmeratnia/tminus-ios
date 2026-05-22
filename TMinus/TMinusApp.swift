@@ -31,7 +31,7 @@ struct TMinusApp: App {
 }
 
 extension TMinusApp {
-    fileprivate static func bootstrap(apiEnvironment: APIEnvironment = .current) throws -> AppContainer {
+    fileprivate static func bootstrap() throws -> AppContainer {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
@@ -40,7 +40,6 @@ extension TMinusApp {
         let cache = DataCache()
 
         let networkClient = URLSessionNetworkClient(
-            baseURL: apiEnvironment.launchLibraryBaseURL,
             session: URLSession.shared,
             decoder: decoder,
             retryPolicy: DefaultRetryPolicy(),

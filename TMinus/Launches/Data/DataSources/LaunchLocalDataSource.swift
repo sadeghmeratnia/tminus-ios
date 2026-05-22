@@ -29,30 +29,62 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
 
     func fetchUpcomingLaunches(query: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {
         let now = Date()
+        let cutoff = cutoffDate(maxAge: maxAge)
+        let searchText = query.searchText?.localizedLowercase
+
+        let predicate: Predicate<LaunchLocalModel>
+        if let searchText, !searchText.isEmpty {
+            predicate = #Predicate<LaunchLocalModel> {
+                $0.windowStart >= now
+                && $0.fetchedAt >= cutoff
+                && $0.name.localizedStandardContains(searchText)
+            }
+        } else {
+            predicate = #Predicate<LaunchLocalModel> {
+                $0.windowStart >= now
+                && $0.fetchedAt >= cutoff
+            }
+        }
+
         return try fetchLaunches(
             query: query,
-            maxAge: maxAge,
-            predicate: #Predicate<LaunchLocalModel> { $0.windowStart >= now },
+            predicate: predicate,
             sortBy: [SortDescriptor(\LaunchLocalModel.windowStart, order: .forward)])
     }
 
     func fetchPreviousLaunches(query: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {
         let now = Date()
+        let cutoff = cutoffDate(maxAge: maxAge)
+        let searchText = query.searchText?.localizedLowercase
+
+        let predicate: Predicate<LaunchLocalModel>
+        if let searchText, !searchText.isEmpty {
+            predicate = #Predicate<LaunchLocalModel> {
+                $0.windowStart < now
+                && $0.fetchedAt >= cutoff
+                && $0.name.localizedStandardContains(searchText)
+            }
+        } else {
+            predicate = #Predicate<LaunchLocalModel> {
+                $0.windowStart < now
+                && $0.fetchedAt >= cutoff
+            }
+        }
+
         return try fetchLaunches(
             query: query,
-            maxAge: maxAge,
-            predicate: #Predicate<LaunchLocalModel> { $0.windowStart < now },
+            predicate: predicate,
             sortBy: [SortDescriptor(\LaunchLocalModel.windowStart, order: .reverse)])
     }
 
     func fetchLaunchDetail(id: String, maxAge: TimeInterval?) async throws -> Launch? {
+        let cutoff = cutoffDate(maxAge: maxAge)
         var descriptor = FetchDescriptor<LaunchLocalModel>(
-            predicate: #Predicate<LaunchLocalModel> { $0.id == id })
+            predicate: #Predicate<LaunchLocalModel> {
+                $0.id == id && $0.fetchedAt >= cutoff
+            })
         descriptor.fetchLimit = 1
         guard let model = try context.fetch(descriptor).first else {
-            return nil
-        }
-        guard isFresh(model: model, maxAge: maxAge, referenceDate: Date()) else {
             return nil
         }
         return LaunchLocalModelMapper.map(model)
@@ -73,30 +105,18 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
 
 extension SwiftDataLaunchLocalDataSource {
     private func fetchLaunches(query: LaunchListQuery,
-                               maxAge: TimeInterval?,
                                predicate: Predicate<LaunchLocalModel>,
                                sortBy: [SortDescriptor<LaunchLocalModel>]) throws -> [Launch] {
         var descriptor = FetchDescriptor<LaunchLocalModel>(predicate: predicate, sortBy: sortBy)
         descriptor.fetchOffset = max((query.page - 1) * query.limit, 0)
         descriptor.fetchLimit = max(query.limit, 1)
-        let referenceDate = Date()
 
-        let allModels = try context.fetch(descriptor)
-        let freshModels = allModels.filter { self.isFresh(model: $0, maxAge: maxAge, referenceDate: referenceDate) }
-
-        if let searchText = query.searchText, searchText.isEmpty == false {
-            let normalizedSearch = searchText.localizedLowercase
-            return freshModels
-                .filter { $0.name.localizedLowercase.contains(normalizedSearch) }
-                .map(LaunchLocalModelMapper.map(_:))
-        }
-
-        return freshModels.map(LaunchLocalModelMapper.map(_:))
+        return try context.fetch(descriptor).map(LaunchLocalModelMapper.map(_:))
     }
 
-    private func isFresh(model: LaunchLocalModel, maxAge: TimeInterval?, referenceDate: Date) -> Bool {
-        guard let maxAge else { return true }
-        return model.fetchedAt.addingTimeInterval(maxAge) > referenceDate
+    private func cutoffDate(maxAge: TimeInterval?) -> Date {
+        guard let maxAge else { return .distantPast }
+        return Date().addingTimeInterval(-maxAge)
     }
 
     private func upsert(_ launch: Launch, fetchedAt: Date) throws {

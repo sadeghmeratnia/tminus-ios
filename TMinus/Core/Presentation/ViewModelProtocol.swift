@@ -7,7 +7,7 @@
 
 import Combine
 
-public protocol ViewModelProtocol: ObservableObject {
+protocol ViewModelProtocol: ObservableObject {
     associatedtype State
     associatedtype Trigger
 

@@ -9,14 +9,14 @@ import Foundation
 
 // MARK: - Launch
 
-struct Launch: Equatable, Identifiable {
+struct Launch: Equatable, Identifiable, Sendable {
     let id: String
     let name: String
     let status: LaunchStatus
     let windowStart: Date
     let windowEnd: Date?
-    let rocket: LaunchRocket
-    let launchPad: LaunchPad
+    let rocket: LaunchRocket?
+    let launchPad: LaunchPad?
     let mission: LaunchMission?
     let imageURL: URL?
     let webcastURL: URL?

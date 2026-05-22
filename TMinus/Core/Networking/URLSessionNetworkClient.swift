@@ -10,20 +10,17 @@ import Foundation
 // MARK: - URLSessionNetworkClient
 
 final class URLSessionNetworkClient: NetworkClientProtocol {
-    private let baseURL: URL
     private let session: NetworkSession
     private let decoder: JSONDecoder
     private let retryPolicy: RetryPolicy
     private let logger: NetworkLogger
-    private let cache: DataCache?
+    private let cache: DataCache
 
-    init(baseURL: URL,
-         session: NetworkSession,
+    init(session: NetworkSession,
          decoder: JSONDecoder,
          retryPolicy: RetryPolicy,
          logger: NetworkLogger,
-         cache: DataCache? = nil) {
-        self.baseURL = baseURL
+         cache: DataCache) {
         self.session = session
         self.decoder = decoder
         self.retryPolicy = retryPolicy
@@ -32,26 +29,26 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
     }
 
     func requestData(endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> Data {
-        let request = try endpoint.urlRequest(baseURL: baseURL)
+        let request = try endpoint.urlRequest()
         logger.log("→ \(request.httpMethod ?? "") \(request.url?.absoluteString ?? "")", level: .info)
 
         if cachePolicy == .useCache,
            let cacheKey = cacheKey(for: request, endpoint: endpoint) {
-            if let cachedValue = await cache?.cachedValue(for: cacheKey) {
+            if let cachedValue = await cache.cachedValue(for: cacheKey) {
                 logger.log(
                     "↻ Cache hit \(cacheKey) source=\(String(describing: cachedValue.metadata.source)) stale=\(cachedValue.metadata.isStale)",
                     level: .debug)
                 return cachedValue.data
             }
 
-            if let staleValue = await cache?.cachedValue(for: cacheKey, allowingStale: true) {
+            if let staleValue = await cache.cachedValue(for: cacheKey, allowingStale: true) {
                 logger.log("↻ Cache stale \(cacheKey) fetchedAt=\(staleValue.metadata.fetchedAt)", level: .debug)
             }
         }
 
         let data = try await execute(request: request)
         if let cacheKey = cacheKey(for: request, endpoint: endpoint) {
-            await cache?.set(data, for: cacheKey, ttl: endpoint.cacheTTL, source: .network)
+            await cache.set(data, for: cacheKey, ttl: endpoint.cacheTTL, source: .network)
         }
         return data
     }

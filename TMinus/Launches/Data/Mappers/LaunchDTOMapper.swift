@@ -15,7 +15,7 @@ enum LaunchDTOMapper {
             status: mapStatus(dto.status),
             windowStart: dto.windowStart,
             windowEnd: dto.windowEnd,
-            rocket: mapRocket(dto.rocket),
+            rocket: dto.rocket?.configuration.map { LaunchRocket(id: $0.id, name: $0.name) },
             launchPad: mapPad(dto.pad),
             mission: mapMission(dto.mission),
             imageURL: mapImageURL(dto.imageURL),
@@ -53,24 +53,15 @@ enum LaunchDTOMapper {
         }
     }
 
-    private static func mapRocket(_ rocket: LaunchRocketDTO?) -> LaunchRocket {
-        guard let configuration = rocket?.configuration else {
-            return LaunchRocket(id: 0, name: "Unknown Rocket")
-        }
-
-        return LaunchRocket(id: configuration.id, name: configuration.name)
-    }
-
-    private static func mapPad(_ pad: LaunchPadDTO?) -> LaunchPad {
-        let latitude = pad?.latitude ?? 0
-        let longitude = pad?.longitude ?? 0
+    private static func mapPad(_ pad: LaunchPadDTO?) -> LaunchPad? {
+        guard let pad, let id = pad.id else { return nil }
 
         return LaunchPad(
-            id: String(pad?.id ?? -1),
-            name: pad?.name ?? "Unknown Launch Pad",
-            latitude: latitude,
-            longitude: longitude,
-            locationName: pad?.location?.name)
+            id: String(id),
+            name: pad.name ?? "Unknown",
+            latitude: pad.latitude ?? 0,
+            longitude: pad.longitude ?? 0,
+            locationName: pad.location?.name)
     }
 
     private static func mapMission(_ mission: LaunchMissionDTO?) -> LaunchMission? {

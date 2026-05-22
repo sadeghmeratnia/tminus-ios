@@ -166,14 +166,14 @@ enum EndpointTests {
     struct CachePolicyTests {
         @Test("Defaults endpoint cache policy")
         func defaultsCachePolicy() {
-            let endpoint = Endpoint(path: "launches")
+            let endpoint = Endpoint(baseURL: EndpointTests.defaultBaseURL, path: "launches")
             #expect(endpoint.cacheable == true)
             #expect(endpoint.cacheTTL == nil)
         }
 
         @Test("Sets custom endpoint cache policy")
         func setsCustomCachePolicy() {
-            let endpoint = Endpoint(path: "launches", cacheable: false, cacheTTL: 120)
+            let endpoint = Endpoint(baseURL: EndpointTests.defaultBaseURL, path: "launches", cacheable: false, cacheTTL: 120)
             #expect(endpoint.cacheable == false)
             #expect(endpoint.cacheTTL == 120)
         }
@@ -191,11 +191,12 @@ extension EndpointTests {
                                         timeoutInterval: TimeInterval = 30,
                                         baseURL: URL = defaultBaseURL) throws -> URLRequest {
         try Endpoint(
+            baseURL: baseURL,
             path: path,
             method: method,
             queryItems: queryItems,
             headers: headers,
             timeoutInterval: timeoutInterval)
-            .urlRequest(baseURL: baseURL)
+            .urlRequest()
     }
 }

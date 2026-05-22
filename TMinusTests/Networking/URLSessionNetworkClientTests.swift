@@ -188,7 +188,7 @@ enum URLSessionNetworkClientTests {
             let expected = Data("post-response".utf8)
             var requestCount = 0
             let cache = DataCache(ttl: 60)
-            let endpoint = Endpoint(path: "mock-post", method: .post)
+            let endpoint = Endpoint(baseURL: URL(string: "https://example.com")!, path: "mock-post", method: .post)
 
             let client = make(cache: cache) { _ in
                 requestCount += 1
@@ -227,10 +227,9 @@ extension URLSessionNetworkClientTests {
 
     static func make(retryPolicy: RetryPolicy = MockRetryPolicy(),
                      logger: NetworkLogger = MockLogger(),
-                     cache: DataCache? = nil,
+                     cache: DataCache = DataCache(),
                      handler: @escaping MockNetworkSession.Handler) -> URLSessionNetworkClient {
         URLSessionNetworkClient(
-            baseURL: URL(string: "https://example.com")!,
             session: MockNetworkSession(handler: handler),
             decoder: JSONDecoder(),
             retryPolicy: retryPolicy,

@@ -15,7 +15,8 @@ enum LaunchRepositoryTests {
     static func fetchUpcomingLaunches() async throws {
         let dataSource = MockLaunchRemoteDataSource()
         dataSource.upcomingResponse = Self.makeLaunchesResponseDTO()
-        let repository = LaunchRepository(remoteDataSource: dataSource)
+        let localDataSource = MockLaunchLocalDataSource()
+        let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
         let query = LaunchListQuery(page: 2, limit: 20, searchText: "star", fetchPolicy: .networkOnly)
 
         let launches = try await repository.fetchUpcomingLaunches(query: query)
@@ -29,8 +30,9 @@ enum LaunchRepositoryTests {
     @Test("Previous launches maps response from remote data source")
     static func fetchPreviousLaunches() async throws {
         let dataSource = MockLaunchRemoteDataSource()
-        dataSource.previousResponse = LaunchesResponseDTO(results: [])
-        let repository = LaunchRepository(remoteDataSource: dataSource)
+        dataSource.previousResponse = LaunchesResponseDTO(count: nil, next: nil, previous: nil, results: [])
+        let localDataSource = MockLaunchLocalDataSource()
+        let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
         let query = LaunchListQuery(page: 1, limit: 20, fetchPolicy: .useCache)
 
         let launches = try await repository.fetchPreviousLaunches(query: query)
@@ -43,7 +45,8 @@ enum LaunchRepositoryTests {
     static func fetchLaunchDetailUsesUseCachePolicy() async throws {
         let dataSource = MockLaunchRemoteDataSource()
         dataSource.detailResponse = Self.makeLaunchDTO(id: "detail-1")
-        let repository = LaunchRepository(remoteDataSource: dataSource)
+        let localDataSource = MockLaunchLocalDataSource()
+        let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
 
         let launch = try await repository.fetchLaunchDetail(id: "detail-1")
         #expect(launch.id == "detail-1")
@@ -108,7 +111,7 @@ enum LaunchRepositoryTests {
 
 private extension LaunchRepositoryTests {
     static func makeLaunchesResponseDTO() -> LaunchesResponseDTO {
-        LaunchesResponseDTO(results: [makeLaunchDTO(id: "launch-1")])
+        LaunchesResponseDTO(count: 1, next: nil, previous: nil, results: [makeLaunchDTO(id: "launch-1")])
     }
 
     static func makeLaunchDTO(id: String) -> LaunchDTO {
@@ -134,8 +137,8 @@ private extension LaunchRepositoryTests {
 }
 
 private final class MockLaunchRemoteDataSource: LaunchRemoteDataSource {
-    var upcomingResponse = LaunchesResponseDTO(results: [])
-    var previousResponse = LaunchesResponseDTO(results: [])
+    var upcomingResponse = LaunchesResponseDTO(count: nil, next: nil, previous: nil, results: [])
+    var previousResponse = LaunchesResponseDTO(count: nil, next: nil, previous: nil, results: [])
     var detailResponse = LaunchRepositoryTests.makeLaunchDTO(id: "detail")
     var lastUpcomingQuery: LaunchListQuery?
     var lastPreviousQuery: LaunchListQuery?

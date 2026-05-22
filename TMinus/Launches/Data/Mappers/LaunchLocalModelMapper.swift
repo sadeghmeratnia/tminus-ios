@@ -19,13 +19,13 @@ enum LaunchLocalModelMapper {
             statusLabel: statusLabel,
             windowStart: launch.windowStart,
             windowEnd: launch.windowEnd,
-            rocketID: launch.rocket.id,
-            rocketName: launch.rocket.name,
-            padID: launch.launchPad.id,
-            padName: launch.launchPad.name,
-            padLatitude: launch.launchPad.latitude,
-            padLongitude: launch.launchPad.longitude,
-            padLocationName: launch.launchPad.locationName,
+            rocketID: launch.rocket?.id,
+            rocketName: launch.rocket?.name,
+            padID: launch.launchPad?.id,
+            padName: launch.launchPad?.name,
+            padLatitude: launch.launchPad?.latitude,
+            padLongitude: launch.launchPad?.longitude,
+            padLocationName: launch.launchPad?.locationName,
             missionID: launch.mission?.id,
             missionName: launch.mission?.name,
             missionDescriptionText: launch.mission?.description,
@@ -43,13 +43,8 @@ enum LaunchLocalModelMapper {
             status: mapStatus(code: model.statusCode, label: model.statusLabel),
             windowStart: model.windowStart,
             windowEnd: model.windowEnd,
-            rocket: LaunchRocket(id: model.rocketID, name: model.rocketName),
-            launchPad: LaunchPad(
-                id: model.padID,
-                name: model.padName,
-                latitude: model.padLatitude,
-                longitude: model.padLongitude,
-                locationName: model.padLocationName),
+            rocket: mapRocket(model),
+            launchPad: mapLaunchPad(model),
             mission: mapMission(model),
             imageURL: model.imageURLString.flatMap(URL.init(string:)),
             webcastURL: model.webcastURLString.flatMap(URL.init(string:)))
@@ -89,6 +84,21 @@ extension LaunchLocalModelMapper {
         default:
             return .unknown(label)
         }
+    }
+
+    fileprivate static func mapRocket(_ model: LaunchLocalModel) -> LaunchRocket? {
+        guard let id = model.rocketID, let name = model.rocketName else { return nil }
+        return LaunchRocket(id: id, name: name)
+    }
+
+    fileprivate static func mapLaunchPad(_ model: LaunchLocalModel) -> LaunchPad? {
+        guard let id = model.padID, let name = model.padName else { return nil }
+        return LaunchPad(
+            id: id,
+            name: name,
+            latitude: model.padLatitude ?? 0,
+            longitude: model.padLongitude ?? 0,
+            locationName: model.padLocationName)
     }
 
     fileprivate static func mapMission(_ model: LaunchLocalModel) -> LaunchMission? {

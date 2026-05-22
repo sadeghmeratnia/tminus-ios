@@ -9,79 +9,83 @@ import Foundation
 
 final class LaunchRepository: LaunchRepositoryProtocol {
     private let remoteDataSource: LaunchRemoteDataSource
-    private let localDataSource: LaunchLocalDataSource?
+    private let localDataSource: LaunchLocalDataSource
 
     init(remoteDataSource: LaunchRemoteDataSource,
-         localDataSource: LaunchLocalDataSource? = nil) {
+         localDataSource: LaunchLocalDataSource) {
         self.remoteDataSource = remoteDataSource
         self.localDataSource = localDataSource
     }
 
     func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> [Launch] {
-        let endpoint = LaunchesEndpoint.upcoming(query: query)
-
-        if query.fetchPolicy == .useCache,
-           let cached = try await localDataSource?.fetchUpcomingLaunches(query: query, maxAge: endpoint.cacheTTL),
-           cached.isEmpty == false {
-            return cached
-        }
-
-        do {
-            let response = try await remoteDataSource.fetchUpcomingLaunches(query: query)
-            let launches = response.results.map(LaunchDTOMapper.map(_:))
-            try await localDataSource?.save(launches, fetchedAt: Date())
-            return launches
-        } catch {
-            if query.fetchPolicy == .useCache,
-               let stale = try await localDataSource?.fetchUpcomingLaunches(query: query, maxAge: nil),
-               stale.isEmpty == false {
-                return stale
-            }
-            throw error
-        }
+        try await fetchWithLocalFallback(
+            query: query,
+            maxAge: LaunchCacheTTL.upcoming,
+            local: { try await self.localDataSource.fetchUpcomingLaunches(query: $0, maxAge: $1) },
+            remote: {
+                let response = try await self.remoteDataSource.fetchUpcomingLaunches(query: query)
+                return response.results.map(LaunchDTOMapper.map(_:))
+            })
     }
 
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> [Launch] {
-        let endpoint = LaunchesEndpoint.previous(query: query)
-
-        if query.fetchPolicy == .useCache,
-           let cached = try await localDataSource?.fetchPreviousLaunches(query: query, maxAge: endpoint.cacheTTL),
-           cached.isEmpty == false {
-            return cached
-        }
-
-        do {
-            let response = try await remoteDataSource.fetchPreviousLaunches(query: query)
-            let launches = response.results.map(LaunchDTOMapper.map(_:))
-            try await localDataSource?.save(launches, fetchedAt: Date())
-            return launches
-        } catch {
-            if query.fetchPolicy == .useCache,
-               let stale = try await localDataSource?.fetchPreviousLaunches(query: query, maxAge: nil),
-               stale.isEmpty == false {
-                return stale
-            }
-            throw error
-        }
+        try await fetchWithLocalFallback(
+            query: query,
+            maxAge: LaunchCacheTTL.previous,
+            local: { try await self.localDataSource.fetchPreviousLaunches(query: $0, maxAge: $1) },
+            remote: {
+                let response = try await self.remoteDataSource.fetchPreviousLaunches(query: query)
+                return response.results.map(LaunchDTOMapper.map(_:))
+            })
     }
 
     func fetchLaunchDetail(id: String) async throws -> Launch {
-        let endpoint = LaunchesEndpoint.detail(id: id)
-
-        if let cached = try await localDataSource?.fetchLaunchDetail(id: id, maxAge: endpoint.cacheTTL) {
+        if let cached = try await localDataSource.fetchLaunchDetail(id: id, maxAge: LaunchCacheTTL.detail) {
             return cached
         }
 
         do {
             let dto = try await remoteDataSource.fetchLaunchDetail(id: id, fetchPolicy: .useCache)
             let launch = LaunchDTOMapper.map(dto)
-            try await localDataSource?.save(launch, fetchedAt: Date())
+            try await localDataSource.save(launch, fetchedAt: Date())
             return launch
         } catch {
-            if let stale = try await localDataSource?.fetchLaunchDetail(id: id, maxAge: nil) {
+            if let stale = try await localDataSource.fetchLaunchDetail(id: id, maxAge: nil) {
                 return stale
             }
-            throw error
+            throw LaunchErrorMapper.map(error)
+        }
+    }
+}
+
+private extension LaunchRepository {
+    enum LaunchCacheTTL {
+        static let upcoming: TimeInterval = 120
+        static let previous: TimeInterval = 900
+        static let detail: TimeInterval = 1800
+    }
+
+    func fetchWithLocalFallback(
+        query: LaunchListQuery,
+        maxAge: TimeInterval,
+        local: (LaunchListQuery, TimeInterval?) async throws -> [Launch],
+        remote: () async throws -> [Launch]
+    ) async throws -> [Launch] {
+        if query.fetchPolicy == .useCache {
+            let cached = try await local(query, maxAge)
+            if !cached.isEmpty { return cached }
+        }
+
+        do {
+            let launches = try await remote()
+            try await localDataSource.save(launches, fetchedAt: Date())
+            return launches
+        } catch {
+            if query.fetchPolicy == .useCache {
+                let stale = try await local(query, nil)
+                if !stale.isEmpty { return stale }
+            }
+            throw LaunchErrorMapper.map(error)
         }
     }
 }

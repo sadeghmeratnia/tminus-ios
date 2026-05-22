@@ -16,12 +16,12 @@ final class LaunchLocalModel {
     var statusLabel: String?
     var windowStart: Date
     var windowEnd: Date?
-    var rocketID: Int
-    var rocketName: String
-    var padID: String
-    var padName: String
-    var padLatitude: Double
-    var padLongitude: Double
+    var rocketID: Int?
+    var rocketName: String?
+    var padID: String?
+    var padName: String?
+    var padLatitude: Double?
+    var padLongitude: Double?
     var padLocationName: String?
     var missionID: String?
     var missionName: String?
@@ -38,12 +38,12 @@ final class LaunchLocalModel {
          statusLabel: String?,
          windowStart: Date,
          windowEnd: Date?,
-         rocketID: Int,
-         rocketName: String,
-         padID: String,
-         padName: String,
-         padLatitude: Double,
-         padLongitude: Double,
+         rocketID: Int?,
+         rocketName: String?,
+         padID: String?,
+         padName: String?,
+         padLatitude: Double?,
+         padLongitude: Double?,
          padLocationName: String?,
          missionID: String?,
          missionName: String?,
