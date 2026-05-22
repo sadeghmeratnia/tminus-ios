@@ -107,3 +107,9 @@ private enum Constants {
         static let empty = "moon.stars.fill"
     }
 }
+
+#Preview {
+    let container = AppContainer.preview()
+    let coordinator = LaunchesFeatureBuilder(container: container).makeCoordinator()
+    coordinator.makeRootView()
+}

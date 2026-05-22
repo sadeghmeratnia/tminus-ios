@@ -10,14 +10,6 @@ import Foundation
 enum L10n {
     enum Error {
         enum Network {
-            static var requestCreation: String {
-                tr(.errorNetworkRequestCreation)
-            }
-
-            static var invalidResponse: String {
-                tr(.errorNetworkInvalidResponse)
-            }
-
             static var unauthorized: String {
                 tr(.errorNetworkUnauthorized)
             }
@@ -28,10 +20,6 @@ enum L10n {
 
             static var serverUnavailable: String {
                 tr(.errorNetworkServerUnavailable)
-            }
-
-            static var genericLoad: String {
-                tr(.errorNetworkGenericLoad)
             }
 
             static var transport: String {
@@ -111,12 +99,9 @@ enum L10n {
     }
 
     private enum Key: String {
-        case errorNetworkRequestCreation = "error.network.request_creation"
-        case errorNetworkInvalidResponse = "error.network.invalid_response"
         case errorNetworkUnauthorized = "error.network.unauthorized"
         case errorNetworkRateLimited = "error.network.rate_limited"
         case errorNetworkServerUnavailable = "error.network.server_unavailable"
-        case errorNetworkGenericLoad = "error.network.generic_load"
         case errorNetworkTransport = "error.network.transport"
         case errorNetworkDecoding = "error.network.decoding"
         case errorNetworkUnknown = "error.network.unknown"

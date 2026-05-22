@@ -10,18 +10,12 @@ import Foundation
 enum LaunchesEndpoint {
     static let baseURL = APIEnvironment.current.launchLibraryBaseURL
 
-    private enum CacheTTL {
-        static let upcoming: TimeInterval = 120
-        static let previous: TimeInterval = 900
-        static let detail: TimeInterval = 1800
-    }
-
     static func upcoming(query: LaunchListQuery) -> Endpoint {
         Endpoint(
             baseURL: baseURL,
             path: "launches/upcoming/",
             queryItems: makeQueryItems(query: query, ordering: "window_start"),
-            cacheTTL: CacheTTL.upcoming)
+            cacheTTL: LaunchCacheTTL.upcoming)
     }
 
     static func previous(query: LaunchListQuery) -> Endpoint {
@@ -29,11 +23,11 @@ enum LaunchesEndpoint {
             baseURL: baseURL,
             path: "launches/previous/",
             queryItems: makeQueryItems(query: query, ordering: "-window_start"),
-            cacheTTL: CacheTTL.previous)
+            cacheTTL: LaunchCacheTTL.previous)
     }
 
     static func detail(id: String) -> Endpoint {
-        Endpoint(baseURL: baseURL, path: "launches/\(id)/", cacheTTL: CacheTTL.detail)
+        Endpoint(baseURL: baseURL, path: "launches/\(id)/", cacheTTL: LaunchCacheTTL.detail)
     }
 
     private static func makeQueryItems(query: LaunchListQuery, ordering: String) -> [URLQueryItem] {

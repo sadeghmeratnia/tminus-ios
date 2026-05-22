@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 final class LaunchesCoordinator: CoordinatorProtocol {
-    typealias RootView = ContentView
+    typealias RootView = LaunchListView
 
     private let viewModel: LaunchListViewModel
 
@@ -17,7 +17,7 @@ final class LaunchesCoordinator: CoordinatorProtocol {
         self.viewModel = viewModel
     }
 
-    func makeRootView() -> ContentView {
-        ContentView(viewModel: viewModel)
+    func makeRootView() -> LaunchListView {
+        LaunchListView(viewModel: viewModel)
     }
 }

@@ -65,11 +65,11 @@ enum LaunchDTOMapper {
     }
 
     private static func mapMission(_ mission: LaunchMissionDTO?) -> LaunchMission? {
-        guard let mission else { return nil }
+        guard let mission, let id = mission.id else { return nil }
 
         return LaunchMission(
-            id: String(mission.id ?? -1),
-            name: mission.name ?? "Unknown Mission",
+            id: String(id),
+            name: mission.name ?? "Unknown",
             description: mission.description,
             type: mission.type,
             orbit: mission.orbit?.name)

@@ -59,12 +59,6 @@ final class LaunchRepository: LaunchRepositoryProtocol {
 }
 
 private extension LaunchRepository {
-    enum LaunchCacheTTL {
-        static let upcoming: TimeInterval = 120
-        static let previous: TimeInterval = 900
-        static let detail: TimeInterval = 1800
-    }
-
     func fetchWithLocalFallback(
         query: LaunchListQuery,
         maxAge: TimeInterval,
