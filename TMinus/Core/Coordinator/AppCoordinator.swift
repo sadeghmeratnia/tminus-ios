@@ -11,10 +11,12 @@ import SwiftUI
 final class AppCoordinator: CoordinatorProtocol {
     typealias RootView = ContentView
 
-    private let launchesCoordinator: LaunchesCoordinator
+    private let container: AppContainer
+    private lazy var launchesCoordinator: LaunchesCoordinator = LaunchesFeatureBuilder(container: container)
+        .makeCoordinator()
 
-    init(launchesCoordinator: LaunchesCoordinator) {
-        self.launchesCoordinator = launchesCoordinator
+    init(container: AppContainer) {
+        self.container = container
     }
 
     func makeRootView() -> ContentView {

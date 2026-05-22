@@ -2,7 +2,7 @@
 //  LaunchListReducerTests.swift
 //  TMinusTests
 //
-//  Created by Codex on 12/05/2026.
+//  Created by Sadegh on 12/05/2026.
 //
 
 @testable import TMinus
