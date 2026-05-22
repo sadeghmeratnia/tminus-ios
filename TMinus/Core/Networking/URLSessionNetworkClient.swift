@@ -11,7 +11,7 @@ import Foundation
 
 final class URLSessionNetworkClient: NetworkClientProtocol {
     private let session: NetworkSession
-    private let decoder: JSONDecoder
+    private let makeDecoder: @Sendable () -> JSONDecoder
     private let retryPolicy: RetryPolicy
     private let logger: NetworkLogger
     private let cache: DataCache
@@ -22,7 +22,15 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
          logger: NetworkLogger,
          cache: DataCache) {
         self.session = session
-        self.decoder = decoder
+        self.makeDecoder = {
+            let configuredDecoder = JSONDecoder()
+            configuredDecoder.keyDecodingStrategy = decoder.keyDecodingStrategy
+            configuredDecoder.dateDecodingStrategy = decoder.dateDecodingStrategy
+            configuredDecoder.dataDecodingStrategy = decoder.dataDecodingStrategy
+            configuredDecoder.nonConformingFloatDecodingStrategy = decoder.nonConformingFloatDecodingStrategy
+            configuredDecoder.userInfo = decoder.userInfo
+            return configuredDecoder
+        }
         self.retryPolicy = retryPolicy
         self.logger = logger
         self.cache = cache
@@ -41,9 +49,6 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
                 return cachedValue.data
             }
 
-            if let staleValue = await cache.cachedValue(for: cacheKey, allowingStale: true) {
-                logger.log("↻ Cache stale \(cacheKey) fetchedAt=\(staleValue.metadata.fetchedAt)", level: .debug)
-            }
         }
 
         let data = try await execute(request: request)
@@ -56,7 +61,7 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
     func request<T: Decodable>(_ type: T.Type, endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> T {
         let data = try await requestData(endpoint: endpoint, cachePolicy: cachePolicy)
         do {
-            return try decoder.decode(type, from: data)
+            return try makeDecoder().decode(type, from: data)
         } catch {
             logger.log("✖ Decoding failed for \(T.self): \(error)", level: .error)
             throw NetworkError.decoding(error)

@@ -177,6 +177,16 @@
         }
       }
     },
+    "launches.retry_action" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        }
+      }
+    },
     "launches.navigation.title" : {
       "extractionState" : "stale",
       "localizations" : {

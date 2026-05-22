@@ -61,6 +61,10 @@ enum L10n {
             tr(.launchesModePicker)
         }
 
+        static var retryAction: String {
+            tr(.launchesRetryAction)
+        }
+
         enum Mode {
             static var upcoming: String {
                 tr(.launchesModeUpcoming)
@@ -111,6 +115,7 @@ enum L10n {
         case launchesEmptyTitle = "launches.empty.title"
         case launchesEmptyDescription = "launches.empty.description"
         case launchesModePicker = "launches.mode.picker"
+        case launchesRetryAction = "launches.retry_action"
         case launchesModeUpcoming = "launches.mode.upcoming"
         case launchesModePrevious = "launches.mode.previous"
         case launchesStatusGo = "launches.status.go"

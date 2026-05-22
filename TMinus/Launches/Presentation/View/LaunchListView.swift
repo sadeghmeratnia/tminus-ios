@@ -21,7 +21,7 @@ struct LaunchListView: View {
     }
 
     private var emptyErrorMessage: String? {
-        if case let .error(_, message, launchesInErrorState) = state, launchesInErrorState.isEmpty {
+        if case let .error(_, message, launchesInErrorState, _) = state, launchesInErrorState.isEmpty {
             return message
         }
         return nil
@@ -70,6 +70,26 @@ struct LaunchListView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    private func loadMoreErrorFooter(message: String) -> some View {
+        VStack(spacing: UIConstants.Spacing.small) {
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            Button {
+                viewModel.onTrigger(.retryLoadMore)
+            } label: {
+                Label(L10n.Launches.retryAction, systemImage: Constants.Icon.retry)
+                    .font(.subheadline.weight(.medium))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, UIConstants.Padding.vertical)
+    }
+
     private var emptyView: some View {
         ContentUnavailableView(
             L10n.Launches.emptyTitle,
@@ -80,7 +100,7 @@ struct LaunchListView: View {
 
     private var launchesListView: some View {
         ScrollView {
-            VStack(spacing: UIConstants.Spacing.large) {
+            LazyVStack(spacing: UIConstants.Spacing.large) {
                 Picker(L10n.Launches.modePicker, selection: modeBinding) {
                     ForEach(LaunchListViewModel.Mode.allCases) { mode in
                         Text(mode.title).tag(mode)
@@ -90,6 +110,14 @@ struct LaunchListView: View {
 
                 ForEach(launches) { launch in
                     LaunchCardView(launch: launch)
+                        .onAppear { viewModel.onTrigger(.launchAppeared(launch.id)) }
+                }
+
+                if state.pagination.isLoadingMore {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                } else if let loadMoreError = state.pagination.loadMoreError {
+                    loadMoreErrorFooter(message: loadMoreError)
                 }
             }
             .padding(.horizontal, UIConstants.Padding.horizontal)
@@ -105,6 +133,7 @@ private enum Constants {
     enum Icon {
         static let error = "wifi.exclamationmark"
         static let empty = "moon.stars.fill"
+        static let retry = "arrow.clockwise"
     }
 }
 

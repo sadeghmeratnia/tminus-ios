@@ -17,25 +17,25 @@ final class LaunchRepository: LaunchRepositoryProtocol {
         self.localDataSource = localDataSource
     }
 
-    func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> [Launch] {
+    func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch> {
         try await fetchWithLocalFallback(
             query: query,
             maxAge: LaunchCacheTTL.upcoming,
             local: { try await self.localDataSource.fetchUpcomingLaunches(query: $0, maxAge: $1) },
             remote: {
                 let response = try await self.remoteDataSource.fetchUpcomingLaunches(query: query)
-                return response.results.map(LaunchDTOMapper.map(_:))
+                return Self.mapPage(response, query: query)
             })
     }
 
-    func fetchPreviousLaunches(query: LaunchListQuery) async throws -> [Launch] {
+    func fetchPreviousLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch> {
         try await fetchWithLocalFallback(
             query: query,
             maxAge: LaunchCacheTTL.previous,
             local: { try await self.localDataSource.fetchPreviousLaunches(query: $0, maxAge: $1) },
             remote: {
                 let response = try await self.remoteDataSource.fetchPreviousLaunches(query: query)
-                return response.results.map(LaunchDTOMapper.map(_:))
+                return Self.mapPage(response, query: query)
             })
     }
 
@@ -63,23 +63,55 @@ private extension LaunchRepository {
         query: LaunchListQuery,
         maxAge: TimeInterval,
         local: (LaunchListQuery, TimeInterval?) async throws -> [Launch],
-        remote: () async throws -> [Launch]
-    ) async throws -> [Launch] {
+        remote: () async throws -> PagedResult<Launch>
+    ) async throws -> PagedResult<Launch> {
         if query.fetchPolicy == .useCache {
             let cached = try await local(query, maxAge)
-            if !cached.isEmpty { return cached }
+            if !cached.isEmpty {
+                return PagedResult(
+                    items: cached,
+                    currentPage: query.page,
+                    previousPage: query.page > 1 ? query.page - 1 : nil)
+            }
         }
 
         do {
-            let launches = try await remote()
-            try await localDataSource.save(launches, fetchedAt: Date())
-            return launches
+            let page = try await remote()
+            try await localDataSource.save(page.items, fetchedAt: Date())
+            return page
         } catch {
             if query.fetchPolicy == .useCache {
                 let stale = try await local(query, nil)
-                if !stale.isEmpty { return stale }
+                if !stale.isEmpty {
+                    return PagedResult(
+                        items: stale,
+                        currentPage: query.page,
+                        previousPage: query.page > 1 ? query.page - 1 : nil)
+                }
             }
             throw LaunchErrorMapper.map(error)
         }
+    }
+
+    static func mapPage(_ response: LaunchesResponseDTO, query: LaunchListQuery) -> PagedResult<Launch> {
+        PagedResult(
+            items: response.results.map(LaunchDTOMapper.map(_:)),
+            currentPage: query.page,
+            totalCount: response.count,
+            nextPage: pageNumber(from: response.next, fallbackLimit: query.limit),
+            previousPage: pageNumber(from: response.previous, fallbackLimit: query.limit))
+    }
+
+    static func pageNumber(from urlString: String?, fallbackLimit: Int) -> Int? {
+        guard let urlString,
+              let components = URLComponents(string: urlString),
+              let queryItems = components.queryItems
+        else { return nil }
+
+        let safeLimit = max(1, fallbackLimit)
+        let offset = queryItems.first(where: { $0.name == "offset" }).flatMap { Int($0.value ?? "") } ?? 0
+        let limit = queryItems.first(where: { $0.name == "limit" }).flatMap { Int($0.value ?? "") } ?? safeLimit
+        let safePageLimit = max(1, limit)
+        return (offset / safePageLimit) + 1
     }
 }

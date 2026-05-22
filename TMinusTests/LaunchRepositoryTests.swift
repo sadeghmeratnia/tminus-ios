@@ -19,11 +19,15 @@ enum LaunchRepositoryTests {
         let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
         let query = LaunchListQuery(page: 2, limit: 20, searchText: "star", fetchPolicy: .networkOnly)
 
-        let launches = try await repository.fetchUpcomingLaunches(query: query)
+        let page = try await repository.fetchUpcomingLaunches(query: query)
 
-        #expect(launches.count == 1)
-        #expect(launches.first?.id == "launch-1")
-        #expect(launches.first?.status == .go)
+        #expect(page.items.count == 1)
+        #expect(page.items.first?.id == "launch-1")
+        #expect(page.items.first?.status == .go)
+        #expect(page.currentPage == 2)
+        #expect(page.totalCount == 1)
+        #expect(page.nextPage == 3)
+        #expect(page.previousPage == 1)
         #expect(dataSource.lastUpcomingQuery == query)
     }
 
@@ -35,9 +39,9 @@ enum LaunchRepositoryTests {
         let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
         let query = LaunchListQuery(page: 1, limit: 20, fetchPolicy: .useCache)
 
-        let launches = try await repository.fetchPreviousLaunches(query: query)
+        let page = try await repository.fetchPreviousLaunches(query: query)
 
-        #expect(launches.isEmpty)
+        #expect(page.items.isEmpty)
         #expect(dataSource.lastPreviousQuery == query)
     }
 
@@ -73,9 +77,9 @@ enum LaunchRepositoryTests {
         ])
         let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
 
-        let launches = try await repository.fetchUpcomingLaunches(query: LaunchListQuery(fetchPolicy: .useCache))
+        let page = try await repository.fetchUpcomingLaunches(query: LaunchListQuery(fetchPolicy: .useCache))
 
-        #expect(launches.map(\.id) == ["local-1"])
+        #expect(page.items.map(\.id) == ["local-1"])
         #expect(dataSource.lastUpcomingQuery == nil)
         let maxAges = await localDataSource.upcomingMaxAges
         #expect(maxAges == [120.0])
@@ -101,9 +105,9 @@ enum LaunchRepositoryTests {
         ])
         let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
 
-        let launches = try await repository.fetchUpcomingLaunches(query: LaunchListQuery(fetchPolicy: .useCache))
+        let page = try await repository.fetchUpcomingLaunches(query: LaunchListQuery(fetchPolicy: .useCache))
 
-        #expect(launches.map(\.id) == ["stale-1"])
+        #expect(page.items.map(\.id) == ["stale-1"])
         let maxAges = await localDataSource.upcomingMaxAges
         #expect(maxAges == [120.0, nil])
     }
@@ -111,7 +115,11 @@ enum LaunchRepositoryTests {
 
 private extension LaunchRepositoryTests {
     static func makeLaunchesResponseDTO() -> LaunchesResponseDTO {
-        LaunchesResponseDTO(count: 1, next: nil, previous: nil, results: [makeLaunchDTO(id: "launch-1")])
+        LaunchesResponseDTO(
+            count: 1,
+            next: "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=20&offset=40",
+            previous: "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=20&offset=0",
+            results: [makeLaunchDTO(id: "launch-1")])
     }
 
     static func makeLaunchDTO(id: String) -> LaunchDTO {

@@ -15,8 +15,8 @@ enum LaunchFetchPolicy: Equatable, Sendable {
 // MARK: - LaunchRepositoryProtocol
 
 protocol LaunchRepositoryProtocol {
-    func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> [Launch]
-    func fetchPreviousLaunches(query: LaunchListQuery) async throws -> [Launch]
+    func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch>
+    func fetchPreviousLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch>
     func fetchLaunchDetail(id: String) async throws -> Launch
 }
 

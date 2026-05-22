@@ -6,8 +6,10 @@
 //
 
 @testable import TMinus
-import Foundation
 import Testing
+import Foundation
+
+// MARK: - LaunchRemoteDataSourceTests
 
 @Suite("NetworkLaunchRemoteDataSource")
 enum LaunchRemoteDataSourceTests {
@@ -26,8 +28,8 @@ enum LaunchRemoteDataSourceTests {
     }
 }
 
-private extension LaunchRemoteDataSourceTests {
-    static func makeLaunchesPayload(launchID: String) -> Data {
+extension LaunchRemoteDataSourceTests {
+    fileprivate static func makeLaunchesPayload(launchID: String) -> Data {
         Data("""
         {
           "results": [
@@ -48,6 +50,8 @@ private extension LaunchRemoteDataSourceTests {
         """.utf8)
     }
 }
+
+// MARK: - MockRemoteNetworkClient
 
 private final class MockRemoteNetworkClient: NetworkClientProtocol {
     var dataResponse = Data()

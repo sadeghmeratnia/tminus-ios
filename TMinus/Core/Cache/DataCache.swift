@@ -8,6 +8,11 @@
 import Foundation
 
 actor DataCache {
+    private enum Defaults {
+        static let cacheCountLimit = 512
+        static let keyCompactionThreshold = 1024
+    }
+
     enum DataSource: Equatable, Sendable {
         case network
         case disk
@@ -46,9 +51,14 @@ actor DataCache {
     private let cache = NSCache<NSString, CacheEntry>()
     private var knownKeys: Set<String> = []
     private let ttl: TimeInterval
+    private let keyCompactionThreshold: Int
 
-    init(ttl: TimeInterval = 300) {
+    init(ttl: TimeInterval = 300,
+         countLimit: Int = Defaults.cacheCountLimit,
+         keyCompactionThreshold: Int = Defaults.keyCompactionThreshold) {
         self.ttl = ttl
+        self.keyCompactionThreshold = max(1, keyCompactionThreshold)
+        cache.countLimit = max(1, countLimit)
     }
 
     func set(_ data: Data,
@@ -62,6 +72,7 @@ actor DataCache {
             source: source)
         cache.setObject(CacheEntry(data: data, metadata: metadata), forKey: key as NSString)
         knownKeys.insert(key)
+        compactKnownKeysIfNeeded()
     }
 
     func value(for key: String) -> Data? {
@@ -92,10 +103,16 @@ actor DataCache {
                 knownKeys.remove(key)
             }
         }
+        compactKnownKeysIfNeeded(force: true)
     }
 
     func removeAll() {
         cache.removeAllObjects()
         knownKeys.removeAll()
+    }
+
+    private func compactKnownKeysIfNeeded(force: Bool = false) {
+        guard force || knownKeys.count >= keyCompactionThreshold else { return }
+        knownKeys = Set(knownKeys.filter { cache.object(forKey: $0 as NSString) != nil })
     }
 }

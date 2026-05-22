@@ -173,7 +173,11 @@ enum EndpointTests {
 
         @Test("Sets custom endpoint cache policy")
         func setsCustomCachePolicy() {
-            let endpoint = Endpoint(baseURL: EndpointTests.defaultBaseURL, path: "launches", cacheable: false, cacheTTL: 120)
+            let endpoint = Endpoint(
+                baseURL: EndpointTests.defaultBaseURL,
+                path: "launches",
+                cacheable: false,
+                cacheTTL: 120)
             #expect(endpoint.cacheable == false)
             #expect(endpoint.cacheTTL == 120)
         }

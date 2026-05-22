@@ -6,8 +6,10 @@
 //
 
 @testable import TMinus
-import Foundation
 import Testing
+import Foundation
+
+// MARK: - LaunchDTOMapperTests
 
 @Suite("LaunchDTOMapper")
 enum LaunchDTOMapperTests {
@@ -128,8 +130,8 @@ enum LaunchDTOMapperTests {
     }
 }
 
-private extension LaunchDTOMapperTests {
-    static func decodeLaunchDTO(json: String) throws -> LaunchDTO {
+extension LaunchDTOMapperTests {
+    fileprivate static func decodeLaunchDTO(json: String) throws -> LaunchDTO {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601

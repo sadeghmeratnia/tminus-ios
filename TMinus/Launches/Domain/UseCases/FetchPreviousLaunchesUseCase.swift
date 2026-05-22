@@ -14,7 +14,7 @@ struct FetchPreviousLaunchesUseCase {
         self.repository = repository
     }
 
-    func execute(query: LaunchListQuery) async throws -> [Launch] {
+    func execute(query: LaunchListQuery) async throws -> PagedResult<Launch> {
         try await repository.fetchPreviousLaunches(query: query)
     }
 }

@@ -48,6 +48,13 @@ final class LaunchListViewModel: ReducingStoreProtocol {
 
         case let .modeChanged(newMode):
             send(.modeChanged(newMode))
+
+        case let .launchAppeared(id):
+            guard state.launches.last?.id == id else { return }
+            send(.loadMore)
+
+        case .retryLoadMore:
+            send(.retryLoadMore)
         }
     }
 
@@ -61,16 +68,17 @@ final class LaunchListViewModel: ReducingStoreProtocol {
 
     func run(_ effect: LaunchListEffect) {
         switch effect {
-        case let .load(mode, previousLaunches, fetchPolicy):
+        case let .load(mode, page, previousLaunches, fetchPolicy, isLoadMore):
             loadTask?.cancel()
             loadTask = Task { [weak self] in
                 guard let self else { return }
 
                 let launches: [Launch]
+                let pagedResult: PagedResult<Launch>
                 let errorMessage: String?
                 do {
-                    let query = LaunchListQuery(page: 1, limit: 20, fetchPolicy: fetchPolicy)
-                    launches = try await {
+                    let query = LaunchListQuery(page: page, limit: 20, fetchPolicy: fetchPolicy)
+                    pagedResult = try await {
                         switch mode {
                         case .upcoming:
                             return try await self.fetchUpcomingLaunchesUseCase.execute(query: query)
@@ -78,14 +86,17 @@ final class LaunchListViewModel: ReducingStoreProtocol {
                             return try await self.fetchPreviousLaunchesUseCase.execute(query: query)
                         }
                     }()
+                    launches = pagedResult.items
                     errorMessage = nil
                 } catch is CancellationError {
                     return
                 } catch let launchError as LaunchError {
                     launches = []
+                    pagedResult = PagedResult(items: [], currentPage: page)
                     errorMessage = launchError.userMessage
                 } catch {
                     launches = []
+                    pagedResult = PagedResult(items: [], currentPage: page)
                     errorMessage = LaunchError.unknown(underlying: error).userMessage
                 }
 
@@ -93,7 +104,8 @@ final class LaunchListViewModel: ReducingStoreProtocol {
                     .loadResponse(
                         mode: mode,
                         previousLaunches: previousLaunches,
-                        launches: launches,
+                        page: errorMessage == nil ? pagedResult : PagedResult(items: launches, currentPage: page),
+                        isLoadMore: isLoadMore,
                         errorMessage: errorMessage))
             }
         }

@@ -6,8 +6,8 @@
 //
 
 @testable import TMinus
-import Foundation
 import Testing
+import Foundation
 
 @Suite("DataCache")
 enum DataCacheTests {

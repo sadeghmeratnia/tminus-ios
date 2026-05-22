@@ -14,7 +14,7 @@ struct FetchUpcomingLaunchesUseCase {
         self.repository = repository
     }
 
-    func execute(query: LaunchListQuery) async throws -> [Launch] {
+    func execute(query: LaunchListQuery) async throws -> PagedResult<Launch> {
         try await repository.fetchUpcomingLaunches(query: query)
     }
 }
