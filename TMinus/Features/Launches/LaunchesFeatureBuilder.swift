@@ -25,10 +25,15 @@ final class LaunchesFeatureBuilder {
     @MainActor
     func makeCoordinator() -> LaunchesCoordinator {
         let repository = makeRepository()
-        let viewModel = LaunchListViewModel(
-            fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase(repository: repository),
-            fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: repository))
-        return LaunchesCoordinator(viewModel: viewModel)
+        let launchListBuilder = LaunchListBuilder(
+            viewModel: LaunchListViewModel(
+                fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase(repository: repository),
+                fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: repository)))
+        let launchDetailBuilder = LaunchDetailBuilder(
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository))
+        return LaunchesCoordinator(
+            launchListBuilder: launchListBuilder,
+            launchDetailBuilder: launchDetailBuilder)
     }
 
     private func makeRepository() -> LaunchRepositoryProtocol {

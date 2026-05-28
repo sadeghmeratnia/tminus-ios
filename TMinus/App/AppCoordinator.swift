@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 final class AppCoordinator: CoordinatorProtocol {
-    typealias RootView = LaunchListView
+    typealias RootView = LaunchesRootView
 
     private let container: AppContainer
     private lazy var launchesCoordinator: LaunchesCoordinator = LaunchesFeatureBuilder(
@@ -22,7 +22,7 @@ final class AppCoordinator: CoordinatorProtocol {
         self.container = container
     }
 
-    func makeRootView() -> LaunchListView {
-        self.launchesCoordinator.makeRootView()
+    func makeRootView() -> LaunchesRootView {
+        launchesCoordinator.makeRootView()
     }
 }

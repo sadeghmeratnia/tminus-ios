@@ -100,6 +100,105 @@
         }
       }
     },
+    "launches.detail.launch_pad" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch pad"
+          }
+        }
+      }
+    },
+    "launches.detail.location" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location"
+          }
+        }
+      }
+    },
+    "launches.detail.mission" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mission"
+          }
+        }
+      }
+    },
+    "launches.detail.mission_description" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mission overview"
+          }
+        }
+      }
+    },
+    "launches.detail.mission_type" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mission type"
+          }
+        }
+      }
+    },
+    "launches.detail.orbit" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orbit"
+          }
+        }
+      }
+    },
+    "launches.detail.rocket" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rocket"
+          }
+        }
+      }
+    },
+    "launches.detail.watch_webcast" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch webcast"
+          }
+        }
+      }
+    },
+    "launches.detail.window_start" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch window"
+          }
+        }
+      }
+    },
     "launches.empty.description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -177,16 +276,6 @@
         }
       }
     },
-    "launches.retry_action" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retry"
-          }
-        }
-      }
-    },
     "launches.navigation.title" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -194,6 +283,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Launches"
+          }
+        }
+      }
+    },
+    "launches.retry_action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
           }
         }
       }

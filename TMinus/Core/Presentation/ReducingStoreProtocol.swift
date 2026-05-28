@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - ReducerProtocol
+
 protocol ReducerProtocol {
     associatedtype State
     associatedtype Action
@@ -14,6 +16,8 @@ protocol ReducerProtocol {
 
     static func reduce(state: State, action: Action) -> (state: State, effect: Effect?)
 }
+
+// MARK: - ReducingStoreProtocol
 
 protocol ReducingStoreProtocol: ViewModelProtocol {
     associatedtype Action

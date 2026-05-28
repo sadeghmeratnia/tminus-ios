@@ -26,11 +26,12 @@ enum LaunchListAction {
 // MARK: - LaunchListEffect
 
 enum LaunchListEffect {
-    case load(mode: LaunchListMode,
-              page: Int,
-              previousLaunches: [Launch],
-              fetchPolicy: LaunchFetchPolicy,
-              isLoadMore: Bool)
+    case load(
+        mode: LaunchListMode,
+        page: Int,
+        previousLaunches: [Launch],
+        fetchPolicy: LaunchFetchPolicy,
+        isLoadMore: Bool)
 }
 
 // MARK: - LaunchListReducer

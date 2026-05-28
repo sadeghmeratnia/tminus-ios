@@ -100,6 +100,44 @@ enum L10n {
                 tr(.launchesStatusUnknown)
             }
         }
+
+        enum Detail {
+            static var rocket: String {
+                tr(.launchesDetailRocket)
+            }
+
+            static var launchPad: String {
+                tr(.launchesDetailLaunchPad)
+            }
+
+            static var location: String {
+                tr(.launchesDetailLocation)
+            }
+
+            static var windowStart: String {
+                tr(.launchesDetailWindowStart)
+            }
+
+            static var mission: String {
+                tr(.launchesDetailMission)
+            }
+
+            static var missionType: String {
+                tr(.launchesDetailMissionType)
+            }
+
+            static var missionDescription: String {
+                tr(.launchesDetailMissionDescription)
+            }
+
+            static var orbit: String {
+                tr(.launchesDetailOrbit)
+            }
+
+            static var watchWebcast: String {
+                tr(.launchesDetailWatchWebcast)
+            }
+        }
     }
 
     private enum Key: String {
@@ -124,6 +162,15 @@ enum L10n {
         case launchesStatusSuccess = "launches.status.success"
         case launchesStatusFailure = "launches.status.failure"
         case launchesStatusUnknown = "launches.status.unknown"
+        case launchesDetailRocket = "launches.detail.rocket"
+        case launchesDetailLaunchPad = "launches.detail.launch_pad"
+        case launchesDetailLocation = "launches.detail.location"
+        case launchesDetailWindowStart = "launches.detail.window_start"
+        case launchesDetailMission = "launches.detail.mission"
+        case launchesDetailMissionType = "launches.detail.mission_type"
+        case launchesDetailMissionDescription = "launches.detail.mission_description"
+        case launchesDetailOrbit = "launches.detail.orbit"
+        case launchesDetailWatchWebcast = "launches.detail.watch_webcast"
     }
 
     private static func tr(_ key: Key) -> String {

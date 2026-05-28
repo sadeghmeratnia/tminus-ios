@@ -7,11 +7,15 @@
 
 import Foundation
 
+// MARK: - LaunchRemoteDataSource
+
 protocol LaunchRemoteDataSource {
     func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO
     func fetchLaunchDetail(id: String, fetchPolicy: LaunchFetchPolicy) async throws -> LaunchDTO
 }
+
+// MARK: - NetworkLaunchRemoteDataSource
 
 final class NetworkLaunchRemoteDataSource: LaunchRemoteDataSource {
     private let networkClient: NetworkClientProtocol
@@ -42,8 +46,8 @@ final class NetworkLaunchRemoteDataSource: LaunchRemoteDataSource {
     }
 }
 
-private extension LaunchFetchPolicy {
-    var networkCachePolicy: CachePolicy {
+extension LaunchFetchPolicy {
+    fileprivate var networkCachePolicy: CachePolicy {
         switch self {
         case .useCache:
             return .useCache

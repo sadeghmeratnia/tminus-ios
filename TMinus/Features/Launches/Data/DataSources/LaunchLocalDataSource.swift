@@ -36,13 +36,13 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
         if let searchText, !searchText.isEmpty {
             predicate = #Predicate<LaunchLocalModel> {
                 $0.windowStart >= now
-                && $0.fetchedAt >= cutoff
-                && $0.name.localizedStandardContains(searchText)
+                    && $0.fetchedAt >= cutoff
+                    && $0.name.localizedStandardContains(searchText)
             }
         } else {
             predicate = #Predicate<LaunchLocalModel> {
                 $0.windowStart >= now
-                && $0.fetchedAt >= cutoff
+                    && $0.fetchedAt >= cutoff
             }
         }
 
@@ -61,13 +61,13 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
         if let searchText, !searchText.isEmpty {
             predicate = #Predicate<LaunchLocalModel> {
                 $0.windowStart < now
-                && $0.fetchedAt >= cutoff
-                && $0.name.localizedStandardContains(searchText)
+                    && $0.fetchedAt >= cutoff
+                    && $0.name.localizedStandardContains(searchText)
             }
         } else {
             predicate = #Predicate<LaunchLocalModel> {
                 $0.windowStart < now
-                && $0.fetchedAt >= cutoff
+                    && $0.fetchedAt >= cutoff
             }
         }
 
@@ -94,12 +94,12 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
         for launch in launches {
             try upsert(launch, fetchedAt: fetchedAt)
         }
-        try self.context.save()
+        try context.save()
     }
 
     func save(_ launch: Launch, fetchedAt: Date) async throws {
         try upsert(launch, fetchedAt: fetchedAt)
-        try self.context.save()
+        try context.save()
     }
 }
 
@@ -121,19 +121,19 @@ extension SwiftDataLaunchLocalDataSource {
 
     private func upsert(_ launch: Launch, fetchedAt: Date) throws {
         if let existing = try fetchModel(id: launch.id) {
-            self.update(existing, with: launch, fetchedAt: fetchedAt)
+            update(existing, with: launch, fetchedAt: fetchedAt)
             return
         }
 
         let model = LaunchLocalModelMapper.map(launch, fetchedAt: fetchedAt)
-        self.context.insert(model)
+        context.insert(model)
     }
 
     private func fetchModel(id: String) throws -> LaunchLocalModel? {
         var descriptor = FetchDescriptor<LaunchLocalModel>(
             predicate: #Predicate<LaunchLocalModel> { $0.id == id })
         descriptor.fetchLimit = 1
-        return try self.context.fetch(descriptor).first
+        return try context.fetch(descriptor).first
     }
 
     private func update(_ model: LaunchLocalModel, with launch: Launch, fetchedAt: Date) {

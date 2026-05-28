@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - LaunchRepository
+
 final class LaunchRepository: LaunchRepositoryProtocol {
     private let remoteDataSource: LaunchRemoteDataSource
     private let localDataSource: LaunchLocalDataSource
@@ -58,13 +60,12 @@ final class LaunchRepository: LaunchRepositoryProtocol {
     }
 }
 
-private extension LaunchRepository {
-    func fetchWithLocalFallback(
-        query: LaunchListQuery,
-        maxAge: TimeInterval,
-        local: (LaunchListQuery, TimeInterval?) async throws -> [Launch],
-        remote: () async throws -> PagedResult<Launch>
-    ) async throws -> PagedResult<Launch> {
+extension LaunchRepository {
+    private func fetchWithLocalFallback(query: LaunchListQuery,
+                                        maxAge: TimeInterval,
+                                        local: (LaunchListQuery, TimeInterval?) async throws -> [Launch],
+                                        remote: () async throws -> PagedResult<Launch>) async throws
+        -> PagedResult<Launch> {
         if query.fetchPolicy == .useCache {
             let cached = try await local(query, maxAge)
             if !cached.isEmpty {
@@ -93,7 +94,7 @@ private extension LaunchRepository {
         }
     }
 
-    static func mapPage(_ response: LaunchesResponseDTO, query: LaunchListQuery) -> PagedResult<Launch> {
+    fileprivate static func mapPage(_ response: LaunchesResponseDTO, query: LaunchListQuery) -> PagedResult<Launch> {
         PagedResult(
             items: response.results.map(LaunchDTOMapper.map(_:)),
             currentPage: query.page,
@@ -102,7 +103,7 @@ private extension LaunchRepository {
             previousPage: pageNumber(from: response.previous, fallbackLimit: query.limit))
     }
 
-    static func pageNumber(from urlString: String?, fallbackLimit: Int) -> Int? {
+    fileprivate static func pageNumber(from urlString: String?, fallbackLimit: Int) -> Int? {
         guard let urlString,
               let components = URLComponents(string: urlString),
               let queryItems = components.queryItems

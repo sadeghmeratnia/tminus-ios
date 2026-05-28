@@ -11,6 +11,7 @@ import SwiftUI
 
 struct LaunchListView: View {
     @ObservedObject var viewModel: LaunchListViewModel
+    let onLaunchSelected: (String) -> Void
 
     private var state: LaunchListViewModel.State {
         viewModel.state
@@ -34,13 +35,11 @@ struct LaunchListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            contentView
-                .background(Color(.systemGroupedBackground))
-                .navigationTitle(L10n.Launches.navigationTitle)
-                .navigationBarTitleDisplayMode(.large)
-                .task { viewModel.onTrigger(.onAppear) }
-        }
+        contentView
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle(L10n.Launches.navigationTitle)
+            .navigationBarTitleDisplayMode(.large)
+            .task { viewModel.onTrigger(.onAppear) }
     }
 
     private var contentView: some View {
@@ -109,8 +108,13 @@ struct LaunchListView: View {
                 .pickerStyle(.segmented)
 
                 ForEach(launches) { launch in
-                    LaunchCardView(launch: launch)
-                        .onAppear { viewModel.onTrigger(.launchAppeared(launch.id)) }
+                    Button {
+                        onLaunchSelected(launch.id)
+                    } label: {
+                        LaunchCardView(launch: launch)
+                    }
+                    .buttonStyle(.plain)
+                    .onAppear { viewModel.onTrigger(.launchAppeared(launch.id)) }
                 }
 
                 if case .loading(.loadMore) = state.phase {
@@ -139,10 +143,10 @@ private enum Constants {
 
 #Preview {
     let container = AppContainer.preview()
-    let coordinator = LaunchesFeatureBuilder(
+    LaunchesFeatureBuilder(
         dependencies: .init(
             networkClient: container.networkClient,
             modelContainer: container.modelContainer))
         .makeCoordinator()
-    coordinator.makeRootView()
+        .makeRootView()
 }
