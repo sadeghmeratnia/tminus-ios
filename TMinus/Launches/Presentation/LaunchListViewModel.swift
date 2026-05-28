@@ -19,7 +19,7 @@ final class LaunchListViewModel: ReducingStoreProtocol {
     typealias Effect = LaunchListEffect
     typealias Reducer = LaunchListReducer
 
-    @Published private(set) var state: State = .idle(mode: .upcoming)
+    @Published private(set) var state: State = .initial
 
     private let fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase
     private let fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase

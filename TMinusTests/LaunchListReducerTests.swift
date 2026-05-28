@@ -15,12 +15,13 @@ import Foundation
 enum LaunchListReducerTests {
     @Test("Appear loads current mode using cache")
     static func appearLoadsCurrentMode() {
-        let state: LaunchListState = .idle(mode: .upcoming)
+        let state = LaunchListState(mode: .upcoming, launches: [], pagination: .initial, phase: .idle)
 
         let result = LaunchListReducer.reduce(state: state, action: .appear)
 
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches.isEmpty)
+        #expect(result.state.phase == .loading(.initial))
         guard case let .load(mode, page, previousLaunches, fetchPolicy, isLoadMore) = result.effect else {
             Issue.record("Expected load effect")
             return
@@ -35,15 +36,13 @@ enum LaunchListReducerTests {
     @Test("Refresh keeps previous launches and reloads ignoring cache")
     static func refreshKeepsPreviousLaunches() {
         let previousLaunches = [makeLaunch(id: "1"), makeLaunch(id: "2")]
-        let state: LaunchListState = .loaded(
-            mode: .previous,
-            launches: previousLaunches,
-            pagination: .initial)
+        let state = LaunchListState(mode: .previous, launches: previousLaunches, pagination: .initial, phase: .loaded)
 
         let result = LaunchListReducer.reduce(state: state, action: .refresh)
 
         #expect(result.state.mode == .previous)
         #expect(result.state.launches == previousLaunches)
+        #expect(result.state.phase == .loading(.refresh))
         guard case let .load(mode, page, launches, fetchPolicy, isLoadMore) = result.effect else {
             Issue.record("Expected load effect")
             return
@@ -58,10 +57,7 @@ enum LaunchListReducerTests {
     @Test("Mode change to same mode has no effect")
     static func modeChangedToSameModeNoEffect() {
         let launches = [makeLaunch(id: "x")]
-        let state: LaunchListState = .loaded(
-            mode: .upcoming,
-            launches: launches,
-            pagination: .initial)
+        let state = LaunchListState(mode: .upcoming, launches: launches, pagination: .initial, phase: .loaded)
 
         let result = LaunchListReducer.reduce(state: state, action: .modeChanged(.upcoming))
 
@@ -76,7 +72,11 @@ enum LaunchListReducerTests {
         let errorMessage = "Network failed"
 
         let result = LaunchListReducer.reduce(
-            state: .loading(mode: .upcoming, launches: previousLaunches, pagination: .initial),
+            state: LaunchListState(
+                mode: .upcoming,
+                launches: previousLaunches,
+                pagination: .initial,
+                phase: .loading(.initial)),
             action: .loadResponse(
                 mode: .upcoming,
                 previousLaunches: previousLaunches,
@@ -86,6 +86,11 @@ enum LaunchListReducerTests {
 
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches == previousLaunches)
+        if case let .error(message) = result.state.phase {
+            #expect(message == errorMessage)
+        } else {
+            Issue.record("Expected error phase")
+        }
         #expect(result.effect == nil)
     }
 
@@ -97,9 +102,8 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            isLoadingMore: false,
             loadMoreError: nil)
-        let state: LaunchListState = .loaded(mode: .upcoming, launches: launches, pagination: pagination)
+        let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loaded)
 
         let result = LaunchListReducer.reduce(state: state, action: .loadMore)
 
@@ -112,7 +116,7 @@ enum LaunchListReducerTests {
         #expect(previousLaunches == launches)
         #expect(fetchPolicy == .networkOnly)
         #expect(isLoadMore == true)
-        #expect(result.state.pagination.isLoadingMore == true)
+        #expect(result.state.phase == .loading(.loadMore))
     }
 
     @Test("Load-more error stays in loaded state with error in pagination")
@@ -123,9 +127,8 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            isLoadingMore: true,
             loadMoreError: nil)
-        let state: LaunchListState = .loading(mode: .upcoming, launches: launches, pagination: pagination)
+        let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loading(.loadMore))
 
         let result = LaunchListReducer.reduce(
             state: state,
@@ -136,15 +139,11 @@ enum LaunchListReducerTests {
                 isLoadMore: true,
                 errorMessage: "Network failed"))
 
-        if case let .loaded(mode, resultLaunches, resultPagination) = result.state {
-            #expect(mode == .upcoming)
-            #expect(resultLaunches == launches)
-            #expect(resultPagination.loadMoreError == "Network failed")
-            #expect(resultPagination.isLoadingMore == false)
-            #expect(resultPagination.nextPage == 2)
-        } else {
-            Issue.record("Expected loaded state, got \(result.state)")
-        }
+        #expect(result.state.mode == .upcoming)
+        #expect(result.state.launches == launches)
+        #expect(result.state.phase == .loaded)
+        #expect(result.state.pagination.loadMoreError == "Network failed")
+        #expect(result.state.pagination.nextPage == 2)
         #expect(result.effect == nil)
     }
 
@@ -156,9 +155,24 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            isLoadingMore: false,
             loadMoreError: "Previous failure")
-        let state: LaunchListState = .loaded(mode: .upcoming, launches: launches, pagination: pagination)
+        let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loaded)
+
+        let result = LaunchListReducer.reduce(state: state, action: .loadMore)
+
+        #expect(result.effect == nil)
+    }
+
+    @Test("Load more is blocked while already loading next page")
+    static func loadMoreBlockedWhileLoading() {
+        let launches = [makeLaunch(id: "1")]
+        let pagination = LaunchListPagination(
+            currentPage: 1,
+            nextPage: 2,
+            previousPage: nil,
+            totalCount: 100,
+            loadMoreError: nil)
+        let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loading(.loadMore))
 
         let result = LaunchListReducer.reduce(state: state, action: .loadMore)
 
@@ -173,9 +187,8 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            isLoadingMore: false,
             loadMoreError: "Previous failure")
-        let state: LaunchListState = .loaded(mode: .upcoming, launches: launches, pagination: pagination)
+        let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loaded)
 
         let result = LaunchListReducer.reduce(state: state, action: .retryLoadMore)
 
@@ -188,7 +201,7 @@ enum LaunchListReducerTests {
         #expect(previousLaunches == launches)
         #expect(fetchPolicy == .networkOnly)
         #expect(isLoadMore == true)
-        #expect(result.state.pagination.isLoadingMore == true)
+        #expect(result.state.phase == .loading(.loadMore))
         #expect(result.state.pagination.loadMoreError == nil)
     }
 }

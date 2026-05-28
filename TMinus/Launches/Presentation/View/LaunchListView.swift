@@ -21,7 +21,7 @@ struct LaunchListView: View {
     }
 
     private var emptyErrorMessage: String? {
-        if case let .error(_, message, launchesInErrorState, _) = state, launchesInErrorState.isEmpty {
+        if case let .error(message) = state.phase, launches.isEmpty {
             return message
         }
         return nil
@@ -45,7 +45,7 @@ struct LaunchListView: View {
 
     private var contentView: some View {
         Group {
-            if case .loading = state, launches.isEmpty {
+            if case .loading(.initial) = state.phase, launches.isEmpty {
                 loadingView
             } else if let errorMessage = emptyErrorMessage {
                 errorView(message: errorMessage)
@@ -113,7 +113,7 @@ struct LaunchListView: View {
                         .onAppear { viewModel.onTrigger(.launchAppeared(launch.id)) }
                 }
 
-                if state.pagination.isLoadingMore {
+                if case .loading(.loadMore) = state.phase {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                 } else if let loadMoreError = state.pagination.loadMoreError {

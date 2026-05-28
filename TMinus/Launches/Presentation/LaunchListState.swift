@@ -27,14 +27,13 @@ enum LaunchListMode: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - LaunchListState
+// MARK: - LaunchListPagination
 
 struct LaunchListPagination: Equatable {
     let currentPage: Int
     let nextPage: Int?
     let previousPage: Int?
     let totalCount: Int?
-    let isLoadingMore: Bool
     let loadMoreError: String?
 
     static let initial = LaunchListPagination(
@@ -42,15 +41,133 @@ struct LaunchListPagination: Equatable {
         nextPage: nil,
         previousPage: nil,
         totalCount: nil,
-        isLoadingMore: false,
         loadMoreError: nil)
+
+    func with(currentPage: Int? = nil,
+              nextPage: Int? = nil,
+              previousPage: Int? = nil,
+              totalCount: Int? = nil,
+              loadMoreError: String? = nil,
+              clearsLoadMoreError: Bool = false) -> LaunchListPagination {
+        LaunchListPagination(
+            currentPage: currentPage ?? self.currentPage,
+            nextPage: nextPage ?? self.nextPage,
+            previousPage: previousPage ?? self.previousPage,
+            totalCount: totalCount ?? self.totalCount,
+            loadMoreError: clearsLoadMoreError ? nil : (loadMoreError ?? self.loadMoreError))
+    }
+
+    func applying(page: PagedResult<Launch>) -> LaunchListPagination {
+        with(
+            currentPage: page.currentPage,
+            nextPage: page.nextPage,
+            previousPage: page.previousPage,
+            totalCount: page.totalCount,
+            loadMoreError: nil,
+            clearsLoadMoreError: true)
+    }
+
+    func failingLoadMore(message: String) -> LaunchListPagination {
+        with(loadMoreError: message)
+    }
+
+    func clearingLoadMoreError() -> LaunchListPagination {
+        with(loadMoreError: nil, clearsLoadMoreError: true)
+    }
 }
 
-enum LaunchListState {
-    case idle(mode: LaunchListMode)
-    case loading(mode: LaunchListMode, launches: [Launch], pagination: LaunchListPagination)
-    case loaded(mode: LaunchListMode, launches: [Launch], pagination: LaunchListPagination)
-    case error(mode: LaunchListMode, message: String, launches: [Launch], pagination: LaunchListPagination)
+// MARK: - LaunchListState
+
+struct LaunchListState: Equatable {
+    let mode: LaunchListMode
+    let launches: [Launch]
+    let pagination: LaunchListPagination
+    let phase: Phase
+
+    enum Phase: Equatable {
+        case idle
+        case loading(LoadingKind)
+        case loaded
+        case error(message: String)
+
+        enum LoadingKind: Equatable {
+            case initial
+            case refresh
+            case loadMore
+        }
+    }
+
+    static let initial = LaunchListState(
+        mode: .upcoming,
+        launches: [],
+        pagination: .initial,
+        phase: .idle)
+
+    func with(mode: LaunchListMode? = nil,
+              launches: [Launch]? = nil,
+              pagination: LaunchListPagination? = nil,
+              phase: Phase? = nil) -> LaunchListState {
+        LaunchListState(
+            mode: mode ?? self.mode,
+            launches: launches ?? self.launches,
+            pagination: pagination ?? self.pagination,
+            phase: phase ?? self.phase)
+    }
+
+    func startingInitialLoad() -> LaunchListState {
+        with(launches: [], pagination: .initial, phase: .loading(.initial))
+    }
+
+    func startingRefresh() -> LaunchListState {
+        with(phase: .loading(.refresh))
+    }
+
+    func startingModeChange(_ newMode: LaunchListMode) -> LaunchListState {
+        with(mode: newMode, launches: [], pagination: .initial, phase: .loading(.initial))
+    }
+
+    func startingLoadMore() -> LaunchListState {
+        with(pagination: pagination.clearingLoadMoreError(), phase: .loading(.loadMore))
+    }
+
+    func applyingLoadResponse(mode: LaunchListMode,
+                              previousLaunches: [Launch],
+                              page: PagedResult<Launch>,
+                              isLoadMore: Bool,
+                              errorMessage: String?) -> LaunchListState {
+        if let errorMessage {
+            if isLoadMore {
+                return with(
+                    mode: mode,
+                    launches: previousLaunches,
+                    pagination: pagination.failingLoadMore(message: errorMessage),
+                    phase: .loaded)
+            }
+
+            return with(
+                mode: mode,
+                launches: previousLaunches,
+                pagination: pagination.clearingLoadMoreError(),
+                phase: .error(message: errorMessage))
+        }
+
+        let launches = isLoadMore ? Self.mergeLaunches(previousLaunches, page.items) : page.items
+        return with(
+            mode: mode,
+            launches: launches,
+            pagination: pagination.applying(page: page),
+            phase: .loaded)
+    }
+
+    private static func mergeLaunches(_ existing: [Launch], _ incoming: [Launch]) -> [Launch] {
+        var ids = Set(existing.map(\.id))
+        var merged = existing
+        for launch in incoming where ids.contains(launch.id) == false {
+            merged.append(launch)
+            ids.insert(launch.id)
+        }
+        return merged
+    }
 }
 
 // MARK: - LaunchListTrigger
@@ -61,38 +178,4 @@ enum LaunchListTrigger {
     case modeChanged(LaunchListMode)
     case launchAppeared(String)
     case retryLoadMore
-}
-
-extension LaunchListState {
-    var mode: LaunchListMode {
-        switch self {
-        case let .idle(mode),
-             let .loading(mode, _, _),
-             let .loaded(mode, _, _),
-             let .error(mode, _, _, _):
-            return mode
-        }
-    }
-
-    var launches: [Launch] {
-        switch self {
-        case .idle:
-            return []
-        case let .loading(_, launches, _),
-             let .loaded(_, launches, _),
-             let .error(_, _, launches, _):
-            return launches
-        }
-    }
-
-    var pagination: LaunchListPagination {
-        switch self {
-        case .idle:
-            return .initial
-        case let .loading(_, _, pagination),
-             let .loaded(_, _, pagination),
-             let .error(_, _, _, pagination):
-            return pagination
-        }
-    }
 }

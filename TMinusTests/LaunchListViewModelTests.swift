@@ -24,10 +24,9 @@ struct LaunchListViewModelTests {
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
-            if case let .loaded(mode, launches, _) = viewModel.state {
-                return mode == .upcoming && launches.map(\.id) == ["upcoming-1"]
-            }
-            return false
+            viewModel.state.phase == .loaded
+                && viewModel.state.mode == .upcoming
+                && viewModel.state.launches.map(\.id) == ["upcoming-1"]
         }
 
         viewModel.onTrigger(.onAppear)
@@ -51,24 +50,17 @@ struct LaunchListViewModelTests {
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
-            if case let .loaded(_, launches, _) = viewModel.state {
-                return launches.map(\.id) == ["cached"]
-            }
-            return false
+            viewModel.state.phase == .loaded
+                && viewModel.state.launches.map(\.id) == ["cached"]
         }
 
         viewModel.onTrigger(.refresh)
-        if case let .loading(_, launches, _) = viewModel.state {
-            #expect(launches.map(\.id) == ["cached"])
-        } else {
-            Issue.record("Expected loading state immediately after refresh")
-        }
+        #expect(viewModel.state.phase == .loading(.refresh))
+        #expect(viewModel.state.launches.map(\.id) == ["cached"])
 
         try await Self.waitUntil {
-            if case let .loaded(_, launches, _) = viewModel.state {
-                return launches.map(\.id) == ["fresh"]
-            }
-            return false
+            viewModel.state.phase == .loaded
+                && viewModel.state.launches.map(\.id) == ["fresh"]
         }
 
         let upcomingQueries = await repository.upcomingQueries
@@ -89,25 +81,20 @@ struct LaunchListViewModelTests {
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
-            if case let .loaded(mode, launches, _) = viewModel.state {
-                return mode == .upcoming && launches.map(\.id) == ["upcoming"]
-            }
-            return false
+            viewModel.state.phase == .loaded
+                && viewModel.state.mode == .upcoming
+                && viewModel.state.launches.map(\.id) == ["upcoming"]
         }
 
         viewModel.onTrigger(.modeChanged(.previous))
-        if case let .loading(mode, launches, _) = viewModel.state {
-            #expect(mode == .previous)
-            #expect(launches.isEmpty)
-        } else {
-            Issue.record("Expected loading(previous) state after changing mode")
-        }
+        #expect(viewModel.state.phase == .loading(.initial))
+        #expect(viewModel.state.mode == .previous)
+        #expect(viewModel.state.launches.isEmpty)
 
         try await Self.waitUntil {
-            if case let .loaded(mode, launches, _) = viewModel.state {
-                return mode == .previous && launches.map(\.id) == ["previous"]
-            }
-            return false
+            viewModel.state.phase == .loaded
+                && viewModel.state.mode == .previous
+                && viewModel.state.launches.map(\.id) == ["previous"]
         }
 
         let previousQueries = await repository.previousQueries
@@ -134,10 +121,8 @@ struct LaunchListViewModelTests {
         viewModel.onTrigger(.refresh)
 
         try await Self.waitUntil {
-            if case let .loaded(_, launches, _) = viewModel.state {
-                return launches.map(\.id) == ["fresh"]
-            }
-            return false
+            viewModel.state.phase == .loaded
+                && viewModel.state.launches.map(\.id) == ["fresh"]
         }
 
         let upcomingQueries = await repository.upcomingQueries
@@ -168,19 +153,17 @@ struct LaunchListViewModelTests {
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
-            if case let .loaded(_, launches, pagination) = viewModel.state {
-                return launches.map(\.id) == ["page-1-last"] && pagination.nextPage == 2
-            }
-            return false
+            viewModel.state.phase == .loaded
+                && viewModel.state.launches.map(\.id) == ["page-1-last"]
+                && viewModel.state.pagination.nextPage == 2
         }
 
         viewModel.onTrigger(.launchAppeared("page-1-last"))
 
         try await Self.waitUntil {
-            if case let .loaded(_, launches, pagination) = viewModel.state {
-                return launches.map(\.id) == ["page-1-last", "page-2-item"] && pagination.currentPage == 2
-            }
-            return false
+            viewModel.state.phase == .loaded
+                && viewModel.state.launches.map(\.id) == ["page-1-last", "page-2-item"]
+                && viewModel.state.pagination.currentPage == 2
         }
 
         let upcomingQueries = await repository.upcomingQueries
