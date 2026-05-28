@@ -6,12 +6,20 @@
 //
 
 import Foundation
+import SwiftData
+
+// MARK: - LaunchesFeatureBuilder
 
 final class LaunchesFeatureBuilder {
-    private let container: AppContainer
+    struct Dependencies {
+        let networkClient: NetworkClientProtocol
+        let modelContainer: ModelContainer
+    }
 
-    init(container: AppContainer) {
-        self.container = container
+    private let dependencies: Dependencies
+
+    init(dependencies: Dependencies) {
+        self.dependencies = dependencies
     }
 
     @MainActor
@@ -24,8 +32,8 @@ final class LaunchesFeatureBuilder {
     }
 
     private func makeRepository() -> LaunchRepositoryProtocol {
-        let remote = NetworkLaunchRemoteDataSource(networkClient: container.networkClient)
-        let local = SwiftDataLaunchLocalDataSource(container: container.modelContainer)
+        let remote = NetworkLaunchRemoteDataSource(networkClient: dependencies.networkClient)
+        let local = SwiftDataLaunchLocalDataSource(container: dependencies.modelContainer)
         return LaunchRepository(remoteDataSource: remote, localDataSource: local)
     }
 }

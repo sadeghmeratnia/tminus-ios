@@ -12,7 +12,10 @@ final class AppCoordinator: CoordinatorProtocol {
     typealias RootView = LaunchListView
 
     private let container: AppContainer
-    private lazy var launchesCoordinator: LaunchesCoordinator = LaunchesFeatureBuilder(container: container)
+    private lazy var launchesCoordinator: LaunchesCoordinator = LaunchesFeatureBuilder(
+        dependencies: LaunchesFeatureBuilder.Dependencies(
+            networkClient: container.networkClient,
+            modelContainer: container.modelContainer))
         .makeCoordinator()
 
     init(container: AppContainer) {
@@ -20,6 +23,6 @@ final class AppCoordinator: CoordinatorProtocol {
     }
 
     func makeRootView() -> LaunchListView {
-        launchesCoordinator.makeRootView()
+        self.launchesCoordinator.makeRootView()
     }
 }

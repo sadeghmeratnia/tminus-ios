@@ -139,6 +139,10 @@ private enum Constants {
 
 #Preview {
     let container = AppContainer.preview()
-    let coordinator = LaunchesFeatureBuilder(container: container).makeCoordinator()
+    let coordinator = LaunchesFeatureBuilder(
+        dependencies: .init(
+            networkClient: container.networkClient,
+            modelContainer: container.modelContainer))
+        .makeCoordinator()
     coordinator.makeRootView()
 }

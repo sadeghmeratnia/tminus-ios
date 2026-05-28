@@ -25,29 +25,29 @@ final class AppContainer {
     }
 
     #if DEBUG
-    static func preview() -> AppContainer {
-        let logger = OSNetworkLogger()
-        let cache = DataCache()
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
+        static func preview() -> AppContainer {
+            let logger = OSNetworkLogger()
+            let cache = DataCache()
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            decoder.dateDecodingStrategy = .iso8601
 
-        let networkClient = URLSessionNetworkClient(
-            session: URLSession.shared,
-            decoder: decoder,
-            retryPolicy: DefaultRetryPolicy(),
-            logger: logger,
-            cache: cache)
+            let networkClient = URLSessionNetworkClient(
+                session: URLSession.shared,
+                decoder: decoder,
+                retryPolicy: DefaultRetryPolicy(),
+                logger: logger,
+                cache: cache)
 
-        let schema = Schema([LaunchLocalModel.self])
-        let configuration = try! ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        let modelContainer = try! ModelContainer(for: schema, configurations: [configuration])
+            let schema = Schema([LaunchLocalModel.self])
+            let configuration = try! ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            let modelContainer = try! ModelContainer(for: schema, configurations: [configuration])
 
-        return AppContainer(
-            networkClient: networkClient,
-            modelContainer: modelContainer,
-            cache: cache,
-            logger: logger)
-    }
+            return AppContainer(
+                networkClient: networkClient,
+                modelContainer: modelContainer,
+                cache: cache,
+                logger: logger)
+        }
     #endif
 }
