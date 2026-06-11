@@ -170,6 +170,63 @@ struct LaunchListViewModelTests {
         #expect(upcomingQueries.map(\.page) == [1, 2])
         #expect(upcomingQueries.map(\.fetchPolicy) == [.useCache, .networkOnly])
     }
+
+    @Test("retrying load-more does not cancel an in-flight refresh")
+    func retryLoadMoreDoesNotCancelRefresh() async throws {
+        let repository = MockLaunchRepository()
+        await repository.setUpcomingHandler { query, callIndex in
+            switch callIndex {
+            case 1:
+                return PagedResult(
+                    items: [Self.makeLaunch(id: "page-1-last")],
+                    currentPage: 1,
+                    totalCount: 2,
+                    nextPage: 2,
+                    previousPage: nil)
+            case 2:
+                throw LaunchError.networkUnavailable
+            case 3:
+                // Slow refresh: still in flight when retry-load-more fires.
+                try await Task.sleep(nanoseconds: 300_000_000)
+                return PagedResult(
+                    items: [Self.makeLaunch(id: "fresh")],
+                    currentPage: 1,
+                    totalCount: 2,
+                    nextPage: 2,
+                    previousPage: nil)
+            default:
+                return PagedResult(
+                    items: [Self.makeLaunch(id: "page-2-item")],
+                    currentPage: 2,
+                    totalCount: 2,
+                    nextPage: nil,
+                    previousPage: 1)
+            }
+        }
+        let viewModel = Self.makeViewModel(repository: repository)
+
+        viewModel.onTrigger(.onAppear)
+        try await Self.waitUntil {
+            viewModel.state.phase == .loaded
+                && viewModel.state.launches.map(\.id) == ["page-1-last"]
+        }
+
+        viewModel.onTrigger(.launchAppeared("page-1-last"))
+        try await Self.waitUntil {
+            viewModel.state.pagination.loadMoreError != nil
+        }
+
+        viewModel.onTrigger(.refresh)
+        #expect(viewModel.state.phase == .loading(.refresh))
+
+        viewModel.onTrigger(.retryLoadMore)
+
+        // The refresh response must still land; with a shared task it would be cancelled.
+        try await Self.waitUntil {
+            viewModel.state.phase == .loaded
+                && viewModel.state.launches.map(\.id) == ["fresh"]
+        }
+    }
 }
 
 extension LaunchListViewModelTests {

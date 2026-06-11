@@ -133,10 +133,10 @@ struct LaunchListState: Equatable {
     func applyingLoadResponse(mode: LaunchListMode,
                               previousLaunches: [Launch],
                               page: PagedResult<Launch>,
-                              isLoadMore: Bool,
+                              kind: LaunchListLoadKind,
                               errorMessage: String?) -> LaunchListState {
         if let errorMessage {
-            if isLoadMore {
+            if kind == .loadMore {
                 return with(
                     mode: mode,
                     launches: previousLaunches,
@@ -151,7 +151,7 @@ struct LaunchListState: Equatable {
                 phase: .error(message: errorMessage))
         }
 
-        let launches = isLoadMore ? Self.mergeLaunches(previousLaunches, page.items) : page.items
+        let launches = kind == .loadMore ? Self.mergeLaunches(previousLaunches, page.items) : page.items
         return with(
             mode: mode,
             launches: launches,

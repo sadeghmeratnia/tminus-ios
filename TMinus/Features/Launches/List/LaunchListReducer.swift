@@ -7,6 +7,28 @@
 
 import Foundation
 
+// MARK: - LaunchListLoadKind
+
+/// The two kinds of load the screen can run concurrently.
+/// Also identifies the running task of each kind in the ViewModel.
+enum LaunchListLoadKind: Hashable {
+    /// Initial load, refresh, or mode change — replaces the list from page 1.
+    case fresh
+    /// Pagination — appends the next page to the current list.
+    case loadMore
+
+    /// A fresh load invalidates any pending load-more, but a load-more
+    /// must never cancel an in-flight fresh load.
+    var cancels: Set<LaunchListLoadKind> {
+        switch self {
+        case .fresh:
+            return [.fresh, .loadMore]
+        case .loadMore:
+            return [.loadMore]
+        }
+    }
+}
+
 // MARK: - LaunchListAction
 
 enum LaunchListAction {
@@ -19,7 +41,7 @@ enum LaunchListAction {
         mode: LaunchListMode,
         previousLaunches: [Launch],
         page: PagedResult<Launch>,
-        isLoadMore: Bool,
+        kind: LaunchListLoadKind,
         errorMessage: String?)
 }
 
@@ -31,7 +53,7 @@ enum LaunchListEffect {
         page: Int,
         previousLaunches: [Launch],
         fetchPolicy: LaunchFetchPolicy,
-        isLoadMore: Bool)
+        kind: LaunchListLoadKind)
 }
 
 // MARK: - LaunchListReducer
@@ -48,7 +70,7 @@ enum LaunchListReducer {
                     page: 1,
                     previousLaunches: [],
                     fetchPolicy: .useCache,
-                    isLoadMore: false))
+                    kind: .fresh))
 
         case .refresh:
             return (
@@ -58,7 +80,7 @@ enum LaunchListReducer {
                     page: 1,
                     previousLaunches: state.launches,
                     fetchPolicy: .networkOnly,
-                    isLoadMore: false))
+                    kind: .fresh))
 
         case let .modeChanged(newMode):
             guard newMode != state.mode else {
@@ -71,7 +93,7 @@ enum LaunchListReducer {
                     page: 1,
                     previousLaunches: [],
                     fetchPolicy: .useCache,
-                    isLoadMore: false))
+                    kind: .fresh))
 
         case .retryLoadMore:
             guard state.pagination.loadMoreError != nil,
@@ -85,7 +107,7 @@ enum LaunchListReducer {
                     page: nextPage,
                     previousLaunches: state.launches,
                     fetchPolicy: .networkOnly,
-                    isLoadMore: true))
+                    kind: .loadMore))
 
         case .loadMore:
             guard case .loaded = state.phase,
@@ -101,15 +123,15 @@ enum LaunchListReducer {
                     page: nextPage,
                     previousLaunches: state.launches,
                     fetchPolicy: .networkOnly,
-                    isLoadMore: true))
+                    kind: .loadMore))
 
-        case let .loadResponse(mode, previousLaunches, page, isLoadMore, errorMessage):
+        case let .loadResponse(mode, previousLaunches, page, kind, errorMessage):
             return (
                 state.applyingLoadResponse(
                     mode: mode,
                     previousLaunches: previousLaunches,
                     page: page,
-                    isLoadMore: isLoadMore,
+                    kind: kind,
                     errorMessage: errorMessage),
                 nil)
         }
@@ -119,13 +141,13 @@ enum LaunchListReducer {
                                    page: Int,
                                    previousLaunches: [Launch],
                                    fetchPolicy: LaunchFetchPolicy,
-                                   isLoadMore: Bool) -> LaunchListEffect {
+                                   kind: LaunchListLoadKind) -> LaunchListEffect {
         .load(
             mode: mode,
             page: page,
             previousLaunches: previousLaunches,
             fetchPolicy: fetchPolicy,
-            isLoadMore: isLoadMore)
+            kind: kind)
     }
 }
 

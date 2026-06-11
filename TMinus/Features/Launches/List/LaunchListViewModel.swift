@@ -24,7 +24,7 @@ final class LaunchListViewModel: ReducingStoreProtocol {
     private let fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase
     private let fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase
     private var hasAppeared = false
-    private var loadTask: Task<Void, Never>?
+    private var loadTasks: [LaunchListLoadKind: Task<Void, Never>] = [:]
 
     init(fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase,
          fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase) {
@@ -33,7 +33,7 @@ final class LaunchListViewModel: ReducingStoreProtocol {
     }
 
     deinit {
-        loadTask?.cancel()
+        loadTasks.values.forEach { $0.cancel() }
     }
 
     func onTrigger(_ trigger: Trigger) {
@@ -68,9 +68,9 @@ final class LaunchListViewModel: ReducingStoreProtocol {
 
     func run(_ effect: LaunchListEffect) {
         switch effect {
-        case let .load(mode, page, previousLaunches, fetchPolicy, isLoadMore):
-            loadTask?.cancel()
-            loadTask = Task { [weak self] in
+        case let .load(mode, page, previousLaunches, fetchPolicy, kind):
+            kind.cancels.forEach { loadTasks[$0]?.cancel() }
+            loadTasks[kind] = Task { [weak self] in
                 guard let self else { return }
 
                 let launches: [Launch]
@@ -105,7 +105,7 @@ final class LaunchListViewModel: ReducingStoreProtocol {
                         mode: mode,
                         previousLaunches: previousLaunches,
                         page: errorMessage == nil ? pagedResult : PagedResult(items: launches, currentPage: page),
-                        isLoadMore: isLoadMore,
+                        kind: kind,
                         errorMessage: errorMessage))
             }
         }

@@ -22,7 +22,7 @@ enum LaunchListReducerTests {
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches.isEmpty)
         #expect(result.state.phase == .loading(.initial))
-        guard case let .load(mode, page, previousLaunches, fetchPolicy, isLoadMore) = result.effect else {
+        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
@@ -30,7 +30,7 @@ enum LaunchListReducerTests {
         #expect(page == 1)
         #expect(previousLaunches.isEmpty)
         #expect(fetchPolicy == .useCache)
-        #expect(isLoadMore == false)
+        #expect(kind == .fresh)
     }
 
     @Test("Refresh keeps previous launches and reloads ignoring cache")
@@ -43,7 +43,7 @@ enum LaunchListReducerTests {
         #expect(result.state.mode == .previous)
         #expect(result.state.launches == previousLaunches)
         #expect(result.state.phase == .loading(.refresh))
-        guard case let .load(mode, page, launches, fetchPolicy, isLoadMore) = result.effect else {
+        guard case let .load(mode, page, launches, fetchPolicy, kind) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
@@ -51,7 +51,7 @@ enum LaunchListReducerTests {
         #expect(page == 1)
         #expect(launches == previousLaunches)
         #expect(fetchPolicy == .networkOnly)
-        #expect(isLoadMore == false)
+        #expect(kind == .fresh)
     }
 
     @Test("Mode change to same mode has no effect")
@@ -81,7 +81,7 @@ enum LaunchListReducerTests {
                 mode: .upcoming,
                 previousLaunches: previousLaunches,
                 page: PagedResult(items: [], currentPage: 1),
-                isLoadMore: false,
+                kind: .fresh,
                 errorMessage: errorMessage))
 
         #expect(result.state.mode == .upcoming)
@@ -107,7 +107,7 @@ enum LaunchListReducerTests {
 
         let result = LaunchListReducer.reduce(state: state, action: .loadMore)
 
-        guard case let .load(mode, page, previousLaunches, fetchPolicy, isLoadMore) = result.effect else {
+        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind) = result.effect else {
             Issue.record("Expected load-more effect")
             return
         }
@@ -115,7 +115,7 @@ enum LaunchListReducerTests {
         #expect(page == 2)
         #expect(previousLaunches == launches)
         #expect(fetchPolicy == .networkOnly)
-        #expect(isLoadMore == true)
+        #expect(kind == .loadMore)
         #expect(result.state.phase == .loading(.loadMore))
     }
 
@@ -136,7 +136,7 @@ enum LaunchListReducerTests {
                 mode: .upcoming,
                 previousLaunches: launches,
                 page: PagedResult(items: [], currentPage: 2),
-                isLoadMore: true,
+                kind: .loadMore,
                 errorMessage: "Network failed"))
 
         #expect(result.state.mode == .upcoming)
@@ -192,7 +192,7 @@ enum LaunchListReducerTests {
 
         let result = LaunchListReducer.reduce(state: state, action: .retryLoadMore)
 
-        guard case let .load(mode, page, previousLaunches, fetchPolicy, isLoadMore) = result.effect else {
+        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind) = result.effect else {
             Issue.record("Expected load effect from retry")
             return
         }
@@ -200,7 +200,7 @@ enum LaunchListReducerTests {
         #expect(page == 2)
         #expect(previousLaunches == launches)
         #expect(fetchPolicy == .networkOnly)
-        #expect(isLoadMore == true)
+        #expect(kind == .loadMore)
         #expect(result.state.phase == .loading(.loadMore))
         #expect(result.state.pagination.loadMoreError == nil)
     }
