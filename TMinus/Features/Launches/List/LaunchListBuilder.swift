@@ -10,7 +10,7 @@ import SwiftUI
 @MainActor
 protocol LaunchListBuilding: AnyObject {
     var viewModel: LaunchListViewModel { get }
-    func makeView(onLaunchSelected: @escaping (String) -> Void) -> LaunchListView
+    func makeView(onLaunchSelected: @escaping (String) -> Void) -> DefaultLaunchListView
 }
 
 @MainActor
@@ -21,7 +21,7 @@ final class LaunchListBuilder: LaunchListBuilding {
         self.viewModel = viewModel
     }
 
-    func makeView(onLaunchSelected: @escaping (String) -> Void) -> LaunchListView {
+    func makeView(onLaunchSelected: @escaping (String) -> Void) -> DefaultLaunchListView {
         LaunchListView(viewModel: viewModel, onLaunchSelected: onLaunchSelected)
     }
 }

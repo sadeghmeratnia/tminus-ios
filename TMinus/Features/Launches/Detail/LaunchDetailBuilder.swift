@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 protocol LaunchDetailBuilding {
-    func makeView(launchID: String) -> LaunchDetailView
+    func makeView(launchID: String) -> DefaultLaunchDetailView
 }
 
 @MainActor
@@ -26,7 +26,7 @@ final class LaunchDetailBuilder: LaunchDetailBuilding {
             fetchLaunchDetailUseCase: fetchLaunchDetailUseCase)
     }
 
-    func makeView(launchID: String) -> LaunchDetailView {
+    func makeView(launchID: String) -> DefaultLaunchDetailView {
         LaunchDetailView(viewModel: makeViewModel(launchID: launchID))
     }
 }

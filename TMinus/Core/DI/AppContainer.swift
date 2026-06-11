@@ -40,7 +40,7 @@ final class AppContainer {
                 cache: cache)
 
             let schema = Schema([LaunchLocalModel.self])
-            let configuration = try! ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
             let modelContainer = try! ModelContainer(for: schema, configurations: [configuration])
 
             return AppContainer(

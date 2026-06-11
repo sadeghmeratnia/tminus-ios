@@ -7,10 +7,12 @@
 
 import SwiftUI
 
-struct LaunchDetailView: View {
-    @ObservedObject var viewModel: LaunchDetailViewModel
+// MARK: - LaunchDetailView
 
-    private var state: LaunchDetailViewModel.State {
+struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
+    @ObservedObject var viewModel: VM
+
+    private var state: LaunchDetailState {
         viewModel.state
     }
 
@@ -161,6 +163,10 @@ struct LaunchDetailView: View {
     }
 }
 
+typealias DefaultLaunchDetailView = LaunchDetailView<LaunchDetailViewModel>
+
+// MARK: - Constants
+
 private enum Constants {
     enum Layout {
         static let heroHeight: CGFloat = 220
@@ -174,4 +180,35 @@ private enum Constants {
     static let windowDateStyle = Date.FormatStyle(
         date: .complete,
         time: .shortened)
+}
+
+// MARK: - Previews
+
+#Preview("Loaded") {
+    NavigationStack {
+        LaunchDetailView(
+            viewModel: StaticViewModel(state: LaunchPreviewFixtures.detailLoadedState))
+    }
+}
+
+#Preview("Loading") {
+    NavigationStack {
+        LaunchDetailView(
+            viewModel: StaticViewModel(
+                state: LaunchDetailState(
+                    launchID: LaunchPreviewFixtures.launchID,
+                    launch: nil,
+                    phase: .loading)))
+    }
+}
+
+#Preview("Error") {
+    NavigationStack {
+        LaunchDetailView(
+            viewModel: StaticViewModel(
+                state: LaunchDetailState(
+                    launchID: LaunchPreviewFixtures.launchID,
+                    launch: nil,
+                    phase: .error(message: "Could not load launch details"))))
+    }
 }

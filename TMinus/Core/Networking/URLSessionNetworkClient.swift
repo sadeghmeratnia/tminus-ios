@@ -48,7 +48,6 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
                     level: .debug)
                 return cachedValue.data
             }
-
         }
 
         let data = try await execute(request: request)

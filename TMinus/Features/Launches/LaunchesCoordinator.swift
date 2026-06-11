@@ -27,7 +27,7 @@ final class LaunchesCoordinator: ObservableObject, CoordinatorProtocol {
         LaunchesRootView(coordinator: self)
     }
 
-    func makeLaunchListView(onLaunchSelected: @escaping (String) -> Void) -> LaunchListView {
+    func makeLaunchListView(onLaunchSelected: @escaping (String) -> Void) -> DefaultLaunchListView {
         launchListBuilder.makeView(onLaunchSelected: onLaunchSelected)
     }
 

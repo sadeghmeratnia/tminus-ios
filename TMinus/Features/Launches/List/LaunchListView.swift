@@ -9,11 +9,11 @@ import SwiftUI
 
 // MARK: - LaunchListView
 
-struct LaunchListView: View {
-    @ObservedObject var viewModel: LaunchListViewModel
+struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
+    @ObservedObject var viewModel: VM
     let onLaunchSelected: (String) -> Void
 
-    private var state: LaunchListViewModel.State {
+    private var state: LaunchListState {
         viewModel.state
     }
 
@@ -28,7 +28,7 @@ struct LaunchListView: View {
         return nil
     }
 
-    private var modeBinding: Binding<LaunchListViewModel.Mode> {
+    private var modeBinding: Binding<LaunchListMode> {
         Binding(
             get: { state.mode },
             set: { viewModel.onTrigger(.modeChanged($0)) })
@@ -101,7 +101,7 @@ struct LaunchListView: View {
         ScrollView {
             LazyVStack(spacing: UIConstants.Spacing.large) {
                 Picker(L10n.Launches.modePicker, selection: modeBinding) {
-                    ForEach(LaunchListViewModel.Mode.allCases) { mode in
+                    ForEach(LaunchListMode.allCases) { mode in
                         Text(mode.title).tag(mode)
                     }
                 }
@@ -131,6 +131,8 @@ struct LaunchListView: View {
     }
 }
 
+typealias DefaultLaunchListView = LaunchListView<LaunchListViewModel>
+
 // MARK: - Constants
 
 private enum Constants {
@@ -141,12 +143,38 @@ private enum Constants {
     }
 }
 
-#Preview {
-    let container = AppContainer.preview()
-    LaunchesFeatureBuilder(
-        dependencies: .init(
-            networkClient: container.networkClient,
-            modelContainer: container.modelContainer))
-        .makeCoordinator()
-        .makeRootView()
+// MARK: - Previews
+
+#Preview("Loaded") {
+    NavigationStack {
+        LaunchListView(
+            viewModel: StaticViewModel(state: LaunchPreviewFixtures.listLoadedState),
+            onLaunchSelected: { _ in })
+    }
+}
+
+#Preview("Loading") {
+    NavigationStack {
+        LaunchListView(
+            viewModel: StaticViewModel(
+                state: LaunchListState(
+                    mode: .upcoming,
+                    launches: [],
+                    pagination: .initial,
+                    phase: .loading(.initial))),
+            onLaunchSelected: { _ in })
+    }
+}
+
+#Preview("Error") {
+    NavigationStack {
+        LaunchListView(
+            viewModel: StaticViewModel(
+                state: LaunchListState(
+                    mode: .upcoming,
+                    launches: [],
+                    pagination: .initial,
+                    phase: .error(message: "Could not load launches"))),
+            onLaunchSelected: { _ in })
+    }
 }
