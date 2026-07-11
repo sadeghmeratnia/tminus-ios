@@ -21,11 +21,8 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
         state.articles
     }
 
-    private var emptyErrorMessage: String? {
-        if case let .error(message) = state.phase, articles.isEmpty {
-            return message
-        }
-        return nil
+    private var contentPhase: ListContentPhase<NewsArticle> {
+        .derive(phase: state.phase, items: articles)
     }
 
     private var searchBinding: Binding<String> {
@@ -45,13 +42,14 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
 
     private var contentView: some View {
         Group {
-            if case .loading(.initial) = state.phase, articles.isEmpty {
+            switch contentPhase {
+            case .loading:
                 loadingView
-            } else if let errorMessage = emptyErrorMessage {
-                errorView(message: errorMessage)
-            } else if articles.isEmpty {
+            case let .error(message):
+                errorView(message: message)
+            case .empty:
                 emptyView
-            } else {
+            case .content:
                 articlesListView
             }
         }

@@ -21,11 +21,8 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
         state.launches
     }
 
-    private var emptyErrorMessage: String? {
-        if case let .error(message) = state.phase, launches.isEmpty {
-            return message
-        }
-        return nil
+    private var contentPhase: ListContentPhase<Launch> {
+        .derive(phase: state.phase, items: launches)
     }
 
     private var modeBinding: Binding<LaunchListMode> {
@@ -44,13 +41,14 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
 
     private var contentView: some View {
         Group {
-            if case .loading(.initial) = state.phase, launches.isEmpty {
+            switch contentPhase {
+            case .loading:
                 loadingView
-            } else if let errorMessage = emptyErrorMessage {
-                errorView(message: errorMessage)
-            } else if launches.isEmpty {
+            case let .error(message):
+                errorView(message: message)
+            case .empty:
                 emptyView
-            } else {
+            case .content:
                 launchesListView
             }
         }
