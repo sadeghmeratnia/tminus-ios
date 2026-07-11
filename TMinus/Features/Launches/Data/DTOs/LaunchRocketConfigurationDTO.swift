@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LaunchRocketConfigurationDTO: Decodable {
+struct LaunchRocketConfigurationDTO: Decodable, Sendable {
     let id: Int
     let name: String
 }

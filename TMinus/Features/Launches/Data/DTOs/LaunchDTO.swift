@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - LaunchesResponseDTO
 
-struct LaunchesResponseDTO: Decodable {
+struct LaunchesResponseDTO: Decodable, Sendable {
     let count: Int?
     let next: String?
     let previous: String?
@@ -18,7 +18,7 @@ struct LaunchesResponseDTO: Decodable {
 
 // MARK: - LaunchDTO
 
-struct LaunchDTO: Decodable {
+struct LaunchDTO: Decodable, Sendable {
     let id: String
     let name: String
     let status: LaunchStatusDTO?

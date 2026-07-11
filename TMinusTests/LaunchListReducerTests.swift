@@ -97,7 +97,7 @@ enum LaunchListReducerTests {
     @Test("Load more requests next page with network-only policy")
     static func loadMoreRequestsNextPage() {
         let launches = [makeLaunch(id: "1")]
-        let pagination = LaunchListPagination(
+        let pagination = ListPagination(
             currentPage: 1,
             nextPage: 2,
             previousPage: nil,
@@ -122,7 +122,7 @@ enum LaunchListReducerTests {
     @Test("Load-more error stays in loaded state with error in pagination")
     static func loadMoreErrorKeepsLoadedState() {
         let launches = [makeLaunch(id: "1")]
-        let pagination = LaunchListPagination(
+        let pagination = ListPagination(
             currentPage: 1,
             nextPage: 2,
             previousPage: nil,
@@ -150,7 +150,7 @@ enum LaunchListReducerTests {
     @Test("Load more is blocked when loadMoreError is present")
     static func loadMoreBlockedByError() {
         let launches = [makeLaunch(id: "1")]
-        let pagination = LaunchListPagination(
+        let pagination = ListPagination(
             currentPage: 1,
             nextPage: 2,
             previousPage: nil,
@@ -166,7 +166,7 @@ enum LaunchListReducerTests {
     @Test("Load more is blocked while already loading next page")
     static func loadMoreBlockedWhileLoading() {
         let launches = [makeLaunch(id: "1")]
-        let pagination = LaunchListPagination(
+        let pagination = ListPagination(
             currentPage: 1,
             nextPage: 2,
             previousPage: nil,
@@ -182,7 +182,7 @@ enum LaunchListReducerTests {
     @Test("Retry load more clears error and triggers load")
     static func retryLoadMoreClearsErrorAndLoads() {
         let launches = [makeLaunch(id: "1")]
-        let pagination = LaunchListPagination(
+        let pagination = ListPagination(
             currentPage: 1,
             nextPage: 2,
             previousPage: nil,

@@ -14,6 +14,7 @@ final class LaunchesFeatureBuilder {
     struct Dependencies {
         let networkClient: NetworkClientProtocol
         let modelContainer: ModelContainer
+        let newsRepository: NewsRepositoryProtocol
     }
 
     private let dependencies: Dependencies
@@ -30,7 +31,8 @@ final class LaunchesFeatureBuilder {
                 fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase(repository: repository),
                 fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: repository)))
         let launchDetailBuilder = LaunchDetailBuilder(
-            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository))
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: dependencies.newsRepository))
         return LaunchesCoordinator(
             launchListBuilder: launchListBuilder,
             launchDetailBuilder: launchDetailBuilder)

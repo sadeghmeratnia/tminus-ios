@@ -15,15 +15,19 @@ protocol LaunchDetailBuilding {
 @MainActor
 final class LaunchDetailBuilder: LaunchDetailBuilding {
     private let fetchLaunchDetailUseCase: FetchLaunchDetailUseCase
+    private let fetchRelatedNewsUseCase: FetchRelatedNewsUseCase
 
-    init(fetchLaunchDetailUseCase: FetchLaunchDetailUseCase) {
+    init(fetchLaunchDetailUseCase: FetchLaunchDetailUseCase,
+         fetchRelatedNewsUseCase: FetchRelatedNewsUseCase) {
         self.fetchLaunchDetailUseCase = fetchLaunchDetailUseCase
+        self.fetchRelatedNewsUseCase = fetchRelatedNewsUseCase
     }
 
-    func makeViewModel(launchID: String) -> LaunchDetailViewModel {
+    private func makeViewModel(launchID: String) -> LaunchDetailViewModel {
         LaunchDetailViewModel(
             launchID: launchID,
-            fetchLaunchDetailUseCase: fetchLaunchDetailUseCase)
+            fetchLaunchDetailUseCase: fetchLaunchDetailUseCase,
+            fetchRelatedNewsUseCase: fetchRelatedNewsUseCase)
     }
 
     func makeView(launchID: String) -> DefaultLaunchDetailView {

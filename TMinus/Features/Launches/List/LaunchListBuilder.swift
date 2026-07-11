@@ -9,13 +9,12 @@ import SwiftUI
 
 @MainActor
 protocol LaunchListBuilding: AnyObject {
-    var viewModel: LaunchListViewModel { get }
     func makeView(onLaunchSelected: @escaping (String) -> Void) -> DefaultLaunchListView
 }
 
 @MainActor
 final class LaunchListBuilder: LaunchListBuilding {
-    let viewModel: LaunchListViewModel
+    private let viewModel: LaunchListViewModel
 
     init(viewModel: LaunchListViewModel) {
         self.viewModel = viewModel

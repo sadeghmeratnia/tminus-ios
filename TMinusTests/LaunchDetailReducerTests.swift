@@ -31,7 +31,8 @@ enum LaunchDetailReducerTests {
         let state = LaunchDetailState(
             launchID: "launch-1",
             launch: nil,
-            phase: .loading)
+            phase: .loading,
+            relatedArticles: [])
 
         let result = LaunchDetailReducer.reduce(state: state, action: .appear)
 
@@ -42,7 +43,7 @@ enum LaunchDetailReducerTests {
     @Test("Successful load response stores launch")
     static func loadResponseSuccess() {
         let launch = makeLaunch(id: "launch-1")
-        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading)
+        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading, relatedArticles: [])
 
         let result = LaunchDetailReducer.reduce(
             state: state,
@@ -55,7 +56,7 @@ enum LaunchDetailReducerTests {
 
     @Test("Failed load response enters error phase")
     static func loadResponseFailure() {
-        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading)
+        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading, relatedArticles: [])
         let errorMessage = "Network failed"
 
         let result = LaunchDetailReducer.reduce(
@@ -75,7 +76,8 @@ enum LaunchDetailReducerTests {
         let state = LaunchDetailState(
             launchID: "launch-1",
             launch: nil,
-            phase: .error(message: "Network failed"))
+            phase: .error(message: "Network failed"),
+            relatedArticles: [])
 
         let result = LaunchDetailReducer.reduce(state: state, action: .retry)
 
@@ -85,6 +87,30 @@ enum LaunchDetailReducerTests {
             return
         }
         #expect(id == "launch-1")
+    }
+
+    @Test("Related news response populates related articles without affecting phase")
+    static func relatedNewsResponseSuccess() {
+        let launch = makeLaunch(id: "launch-1")
+        let state = LaunchDetailState(launchID: "launch-1", launch: launch, phase: .loaded, relatedArticles: [])
+        let article = makeArticle(id: "article-1")
+
+        let result = LaunchDetailReducer.reduce(state: state, action: .relatedNewsResponse([article]))
+
+        #expect(result.state.relatedArticles == [article])
+        #expect(result.state.phase == .loaded)
+        #expect(result.effect == nil)
+    }
+
+    @Test("Empty related news response leaves the section empty without an error")
+    static func relatedNewsResponseEmpty() {
+        let launch = makeLaunch(id: "launch-1")
+        let state = LaunchDetailState(launchID: "launch-1", launch: launch, phase: .loaded, relatedArticles: [])
+
+        let result = LaunchDetailReducer.reduce(state: state, action: .relatedNewsResponse([]))
+
+        #expect(result.state.relatedArticles.isEmpty)
+        #expect(result.state.phase == .loaded)
     }
 }
 
@@ -101,5 +127,17 @@ extension LaunchDetailReducerTests {
             mission: nil,
             imageURL: nil,
             webcastURL: nil)
+    }
+
+    fileprivate static func makeArticle(id: String) -> NewsArticle {
+        NewsArticle(
+            id: id,
+            title: "Article \(id)",
+            summary: "Summary",
+            url: URL(string: "https://example.com/\(id)")!,
+            imageURL: nil,
+            newsSite: "SpaceNews",
+            publishedAt: Date(timeIntervalSince1970: 1000),
+            relatedLaunchIDs: ["launch-1"])
     }
 }

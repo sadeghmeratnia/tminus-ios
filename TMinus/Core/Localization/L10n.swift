@@ -8,6 +8,12 @@
 import Foundation
 
 enum L10n {
+    enum Common {
+        static var unknown: String {
+            tr(.commonUnknown)
+        }
+    }
+
     enum Error {
         enum Network {
             static var unauthorized: String {
@@ -137,10 +143,61 @@ enum L10n {
             static var watchWebcast: String {
                 tr(.launchesDetailWatchWebcast)
             }
+
+            static var relatedNewsTitle: String {
+                tr(.launchesDetailRelatedNewsTitle)
+            }
+        }
+    }
+
+    enum News {
+        static var navigationTitle: String {
+            tr(.newsNavigationTitle)
+        }
+
+        static var loading: String {
+            tr(.newsLoading)
+        }
+
+        static var errorTitle: String {
+            tr(.newsErrorTitle)
+        }
+
+        static var emptyTitle: String {
+            tr(.newsEmptyTitle)
+        }
+
+        static var emptyDescription: String {
+            tr(.newsEmptyDescription)
+        }
+
+        static var retryAction: String {
+            tr(.newsRetryAction)
+        }
+
+        static var searchPrompt: String {
+            tr(.newsSearchPrompt)
+        }
+
+        enum Detail {
+            static var readFullArticle: String {
+                tr(.newsDetailReadFullArticle)
+            }
+        }
+    }
+
+    enum Tabs {
+        static var launches: String {
+            tr(.tabsLaunches)
+        }
+
+        static var news: String {
+            tr(.tabsNews)
         }
     }
 
     private enum Key: String {
+        case commonUnknown = "common.unknown"
         case errorNetworkUnauthorized = "error.network.unauthorized"
         case errorNetworkRateLimited = "error.network.rate_limited"
         case errorNetworkServerUnavailable = "error.network.server_unavailable"
@@ -171,6 +228,17 @@ enum L10n {
         case launchesDetailMissionDescription = "launches.detail.mission_description"
         case launchesDetailOrbit = "launches.detail.orbit"
         case launchesDetailWatchWebcast = "launches.detail.watch_webcast"
+        case launchesDetailRelatedNewsTitle = "launches.detail.related_news_title"
+        case newsNavigationTitle = "news.navigation.title"
+        case newsLoading = "news.loading"
+        case newsErrorTitle = "news.error.title"
+        case newsEmptyTitle = "news.empty.title"
+        case newsEmptyDescription = "news.empty.description"
+        case newsRetryAction = "news.retry_action"
+        case newsSearchPrompt = "news.search.prompt"
+        case newsDetailReadFullArticle = "news.detail.read_full_article"
+        case tabsLaunches = "tabs.launches"
+        case tabsNews = "tabs.news"
     }
 
     private static func tr(_ key: Key) -> String {

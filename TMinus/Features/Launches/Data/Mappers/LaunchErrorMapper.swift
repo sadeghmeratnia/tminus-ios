@@ -9,23 +9,19 @@ import Foundation
 
 enum LaunchErrorMapper {
     static func map(_ error: Error) -> LaunchError {
-        guard let networkError = error as? NetworkError else {
-            return .unknown(underlying: error)
-        }
-
-        switch networkError {
-        case .transport:
+        switch NetworkErrorClassifier.classify(error) {
+        case .networkUnavailable:
             return .networkUnavailable
-        case let .statusCode(code) where code == 401 || code == 403:
+        case .unauthorized:
             return .unauthorized
-        case let .statusCode(code) where code == 429:
+        case .rateLimited:
             return .rateLimited
-        case let .statusCode(code) where code >= 500:
+        case .serverError:
             return .serverError
-        case .decoding:
+        case .decodingFailed:
             return .decodingFailed
-        default:
-            return .unknown(underlying: networkError)
+        case let .unknown(underlying):
+            return .unknown(underlying: underlying)
         }
     }
 }

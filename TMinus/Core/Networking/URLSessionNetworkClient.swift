@@ -36,7 +36,7 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
         self.cache = cache
     }
 
-    func requestData(endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> Data {
+    func requestData(endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> Data {
         let request = try endpoint.urlRequest()
         logger.log("→ \(request.httpMethod ?? "") \(request.url?.absoluteString ?? "")", level: .info)
 
@@ -57,14 +57,20 @@ final class URLSessionNetworkClient: NetworkClientProtocol {
         return data
     }
 
-    func request<T: Decodable>(_ type: T.Type, endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> T {
+    func request<T: Decodable & Sendable>(_ type: T.Type, endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> T {
         let data = try await requestData(endpoint: endpoint, cachePolicy: cachePolicy)
         do {
-            return try makeDecoder().decode(type, from: data)
+            return try await decode(type, from: data)
         } catch {
             logger.log("✖ Decoding failed for \(T.self): \(error)", level: .error)
             throw NetworkError.decoding(error)
         }
+    }
+
+    /// Runs off the caller's actor so JSON decoding never blocks the MainActor.
+    @concurrent
+    private func decode<T: Decodable & Sendable>(_ type: T.Type, from data: Data) async throws -> T {
+        try makeDecoder().decode(type, from: data)
     }
 
     private func execute(request: URLRequest, attempt: Int = 0) async throws -> Data {

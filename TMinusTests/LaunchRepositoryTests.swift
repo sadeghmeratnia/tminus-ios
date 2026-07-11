@@ -150,7 +150,7 @@ private final class MockLaunchRemoteDataSource: LaunchRemoteDataSource {
     var detailResponse = LaunchRepositoryTests.makeLaunchDTO(id: "detail")
     var lastUpcomingQuery: LaunchListQuery?
     var lastPreviousQuery: LaunchListQuery?
-    var lastDetailRequest: (id: String, fetchPolicy: LaunchFetchPolicy)?
+    var lastDetailRequest: (id: String, fetchPolicy: FetchPolicy)?
     var upcomingError: Error?
     var previousError: Error?
     var detailError: Error?
@@ -167,7 +167,7 @@ private final class MockLaunchRemoteDataSource: LaunchRemoteDataSource {
         return previousResponse
     }
 
-    func fetchLaunchDetail(id: String, fetchPolicy: LaunchFetchPolicy) async throws -> LaunchDTO {
+    func fetchLaunchDetail(id: String, fetchPolicy: FetchPolicy) async throws -> LaunchDTO {
         if let detailError { throw detailError }
         lastDetailRequest = (id, fetchPolicy)
         return detailResponse

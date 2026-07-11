@@ -99,20 +99,7 @@ extension LaunchRepository {
             items: response.results.map(LaunchDTOMapper.map(_:)),
             currentPage: query.page,
             totalCount: response.count,
-            nextPage: pageNumber(from: response.next, fallbackLimit: query.limit),
-            previousPage: pageNumber(from: response.previous, fallbackLimit: query.limit))
-    }
-
-    fileprivate static func pageNumber(from urlString: String?, fallbackLimit: Int) -> Int? {
-        guard let urlString,
-              let components = URLComponents(string: urlString),
-              let queryItems = components.queryItems
-        else { return nil }
-
-        let safeLimit = max(1, fallbackLimit)
-        let offset = queryItems.first(where: { $0.name == "offset" }).flatMap { Int($0.value ?? "") } ?? 0
-        let limit = queryItems.first(where: { $0.name == "limit" }).flatMap { Int($0.value ?? "") } ?? safeLimit
-        let safePageLimit = max(1, limit)
-        return (offset / safePageLimit) + 1
+            nextPage: PaginationURLParser.pageNumber(from: response.next, fallbackLimit: query.limit),
+            previousPage: PaginationURLParser.pageNumber(from: response.previous, fallbackLimit: query.limit))
     }
 }

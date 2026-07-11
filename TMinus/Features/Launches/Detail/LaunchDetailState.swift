@@ -12,24 +12,21 @@ import Foundation
 struct LaunchDetailState: Equatable {
     let launchID: String
     let launch: Launch?
-    let phase: Phase
-
-    enum Phase: Equatable {
-        case idle
-        case loading
-        case loaded
-        case error(message: String)
-    }
+    let phase: DetailPhase
+    let relatedArticles: [NewsArticle]
 
     static func initial(launchID: String) -> LaunchDetailState {
-        LaunchDetailState(launchID: launchID, launch: nil, phase: .idle)
+        LaunchDetailState(launchID: launchID, launch: nil, phase: .idle, relatedArticles: [])
     }
 
-    func with(launch: Launch? = nil, phase: Phase? = nil) -> LaunchDetailState {
+    func with(launch: Launch? = nil,
+              phase: DetailPhase? = nil,
+              relatedArticles: [NewsArticle]? = nil) -> LaunchDetailState {
         LaunchDetailState(
             launchID: launchID,
             launch: launch ?? self.launch,
-            phase: phase ?? self.phase)
+            phase: phase ?? self.phase,
+            relatedArticles: relatedArticles ?? self.relatedArticles)
     }
 
     func startingLoad() -> LaunchDetailState {
@@ -42,10 +39,16 @@ struct LaunchDetailState: Equatable {
         }
 
         guard let launch else {
-            return with(phase: .error(message: errorMessage ?? "Unknown error"))
+            return with(phase: .error(message: L10n.Error.Network.unknown))
         }
 
         return with(launch: launch, phase: .loaded)
+    }
+
+    /// Related news is best-effort: failures never surface an error and simply
+    /// leave the section empty, since it must never block or fail the main launch load.
+    func applyingRelatedNewsResponse(_ articles: [NewsArticle]) -> LaunchDetailState {
+        with(relatedArticles: articles)
     }
 }
 

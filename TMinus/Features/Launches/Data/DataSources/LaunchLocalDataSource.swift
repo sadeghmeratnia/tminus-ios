@@ -121,7 +121,7 @@ extension SwiftDataLaunchLocalDataSource {
 
     private func upsert(_ launch: Launch, fetchedAt: Date) throws {
         if let existing = try fetchModel(id: launch.id) {
-            update(existing, with: launch, fetchedAt: fetchedAt)
+            LaunchLocalModelMapper.update(existing, from: launch, fetchedAt: fetchedAt)
             return
         }
 
@@ -134,29 +134,5 @@ extension SwiftDataLaunchLocalDataSource {
             predicate: #Predicate<LaunchLocalModel> { $0.id == id })
         descriptor.fetchLimit = 1
         return try context.fetch(descriptor).first
-    }
-
-    private func update(_ model: LaunchLocalModel, with launch: Launch, fetchedAt: Date) {
-        let mapped = LaunchLocalModelMapper.map(launch, fetchedAt: fetchedAt)
-        model.name = mapped.name
-        model.statusCode = mapped.statusCode
-        model.statusLabel = mapped.statusLabel
-        model.windowStart = mapped.windowStart
-        model.windowEnd = mapped.windowEnd
-        model.rocketID = mapped.rocketID
-        model.rocketName = mapped.rocketName
-        model.padID = mapped.padID
-        model.padName = mapped.padName
-        model.padLatitude = mapped.padLatitude
-        model.padLongitude = mapped.padLongitude
-        model.padLocationName = mapped.padLocationName
-        model.missionID = mapped.missionID
-        model.missionName = mapped.missionName
-        model.missionDescriptionText = mapped.missionDescriptionText
-        model.missionType = mapped.missionType
-        model.missionOrbit = mapped.missionOrbit
-        model.imageURLString = mapped.imageURLString
-        model.webcastURLString = mapped.webcastURLString
-        model.fetchedAt = mapped.fetchedAt
     }
 }

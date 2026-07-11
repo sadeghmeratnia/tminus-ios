@@ -8,7 +8,7 @@
 @testable import TMinus
 import Foundation
 
-struct MockModel: Codable, Equatable {
+struct MockModel: Codable, Equatable, Sendable {
     let id: Int
     let name: String
 }

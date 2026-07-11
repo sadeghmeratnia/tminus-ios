@@ -36,6 +36,32 @@ enum LaunchLocalModelMapper {
             fetchedAt: fetchedAt)
     }
 
+    /// Updates an existing persisted model in place from a domain entity,
+    /// avoiding the allocation of an intermediate model instance.
+    static func update(_ model: LaunchLocalModel, from launch: Launch, fetchedAt: Date) {
+        let (statusCode, statusLabel) = mapStatus(launch.status)
+        model.name = launch.name
+        model.statusCode = statusCode
+        model.statusLabel = statusLabel
+        model.windowStart = launch.windowStart
+        model.windowEnd = launch.windowEnd
+        model.rocketID = launch.rocket?.id
+        model.rocketName = launch.rocket?.name
+        model.padID = launch.launchPad?.id
+        model.padName = launch.launchPad?.name
+        model.padLatitude = launch.launchPad?.latitude
+        model.padLongitude = launch.launchPad?.longitude
+        model.padLocationName = launch.launchPad?.locationName
+        model.missionID = launch.mission?.id
+        model.missionName = launch.mission?.name
+        model.missionDescriptionText = launch.mission?.description
+        model.missionType = launch.mission?.type
+        model.missionOrbit = launch.mission?.orbit
+        model.imageURLString = launch.imageURL?.absoluteString
+        model.webcastURLString = launch.webcastURL?.absoluteString
+        model.fetchedAt = fetchedAt
+    }
+
     static func map(_ model: LaunchLocalModel) -> Launch {
         Launch(
             id: model.id,

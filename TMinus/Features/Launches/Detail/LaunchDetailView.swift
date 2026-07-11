@@ -56,6 +56,10 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
                             .font(.subheadline.weight(.medium))
                     }
                 }
+
+                if state.relatedArticles.isEmpty == false {
+                    relatedNewsSection
+                }
             }
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)
@@ -137,6 +141,43 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
                 .fill(Color(.secondarySystemGroupedBackground)))
     }
 
+    private var relatedNewsSection: some View {
+        VStack(alignment: .leading, spacing: UIConstants.Spacing.medium) {
+            Text(L10n.Launches.Detail.relatedNewsTitle)
+                .font(.headline)
+
+            ForEach(state.relatedArticles) { article in
+                Link(destination: article.url) {
+                    relatedNewsRow(for: article)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func relatedNewsRow(for article: NewsArticle) -> some View {
+        HStack(alignment: .top, spacing: UIConstants.Spacing.small) {
+            Image(systemName: Constants.Icon.relatedNews)
+                .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: UIConstants.Spacing.xSmall) {
+                Text(article.title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+
+                Text(article.newsSite)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(UIConstants.Padding.card)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground)))
+    }
+
     private func metadataRow(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: UIConstants.Spacing.small) {
             Text(title)
@@ -175,6 +216,7 @@ private enum Constants {
     enum Icon {
         static let error = "wifi.exclamationmark"
         static let webcast = "play.rectangle"
+        static let relatedNews = "newspaper"
     }
 
     static let windowDateStyle = Date.FormatStyle(
@@ -198,7 +240,8 @@ private enum Constants {
                 state: LaunchDetailState(
                     launchID: LaunchPreviewFixtures.launchID,
                     launch: nil,
-                    phase: .loading)))
+                    phase: .loading,
+                    relatedArticles: [])))
     }
 }
 
@@ -209,6 +252,7 @@ private enum Constants {
                 state: LaunchDetailState(
                     launchID: LaunchPreviewFixtures.launchID,
                     launch: nil,
-                    phase: .error(message: "Could not load launch details"))))
+                    phase: .error(message: "Could not load launch details"),
+                    relatedArticles: [])))
     }
 }

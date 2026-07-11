@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension LaunchError {
+extension LaunchError: UserMessagePresentable {
     var userMessage: String {
         switch self {
         case .networkUnavailable:

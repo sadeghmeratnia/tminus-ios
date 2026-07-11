@@ -26,3 +26,5 @@ struct PagedResult<Item: Sendable>: Sendable {
         self.previousPage = previousPage
     }
 }
+
+extension PagedResult: Equatable where Item: Equatable {}

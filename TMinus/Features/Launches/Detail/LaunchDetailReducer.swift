@@ -13,6 +13,7 @@ enum LaunchDetailAction {
     case appear
     case retry
     case loadResponse(launch: Launch?, errorMessage: String?)
+    case relatedNewsResponse([NewsArticle])
 }
 
 // MARK: - LaunchDetailEffect
@@ -41,6 +42,9 @@ enum LaunchDetailReducer {
 
         case let .loadResponse(launch, errorMessage):
             return (state.applyingLoadResponse(launch: launch, errorMessage: errorMessage), nil)
+
+        case let .relatedNewsResponse(articles):
+            return (state.applyingRelatedNewsResponse(articles), nil)
         }
     }
 }

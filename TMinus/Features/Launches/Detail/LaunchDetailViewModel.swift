@@ -19,16 +19,22 @@ final class LaunchDetailViewModel: ReducingStoreProtocol {
     @Published private(set) var state: State
 
     private let fetchLaunchDetailUseCase: FetchLaunchDetailUseCase
+    private let fetchRelatedNewsUseCase: FetchRelatedNewsUseCase
     private var hasAppeared = false
     private var loadTask: Task<Void, Never>?
+    private var relatedNewsTask: Task<Void, Never>?
 
-    init(launchID: String, fetchLaunchDetailUseCase: FetchLaunchDetailUseCase) {
+    init(launchID: String,
+         fetchLaunchDetailUseCase: FetchLaunchDetailUseCase,
+         fetchRelatedNewsUseCase: FetchRelatedNewsUseCase) {
         self.state = .initial(launchID: launchID)
         self.fetchLaunchDetailUseCase = fetchLaunchDetailUseCase
+        self.fetchRelatedNewsUseCase = fetchRelatedNewsUseCase
     }
 
     deinit {
         loadTask?.cancel()
+        relatedNewsTask?.cancel()
     }
 
     func onTrigger(_ trigger: Trigger) {
@@ -37,6 +43,7 @@ final class LaunchDetailViewModel: ReducingStoreProtocol {
             guard hasAppeared == false else { return }
             hasAppeared = true
             send(.appear)
+            loadRelatedNews()
 
         case .retry:
             send(.retry)
@@ -65,16 +72,39 @@ final class LaunchDetailViewModel: ReducingStoreProtocol {
                     errorMessage = nil
                 } catch is CancellationError {
                     return
-                } catch let launchError as LaunchError {
+                } catch let presentable as UserMessagePresentable {
                     launch = nil
-                    errorMessage = launchError.userMessage
+                    errorMessage = presentable.userMessage
                 } catch {
                     launch = nil
-                    errorMessage = LaunchError.unknown(underlying: error).userMessage
+                    errorMessage = L10n.Error.Network.unknown
                 }
 
                 self.send(.loadResponse(launch: launch, errorMessage: errorMessage))
             }
+        }
+    }
+}
+
+// MARK: - Related news
+
+extension LaunchDetailViewModel {
+    /// Best-effort: never gates the main launch load and swallows all failures,
+    /// since the section simply doesn't appear when there's nothing to show.
+    private func loadRelatedNews() {
+        relatedNewsTask?.cancel()
+        relatedNewsTask = Task { [weak self] in
+            guard let self else { return }
+
+            let articles: [NewsArticle]
+            do {
+                articles = try await self.fetchRelatedNewsUseCase.execute(launchID: self.state.launchID)
+            } catch {
+                articles = []
+            }
+
+            guard Task.isCancelled == false else { return }
+            self.send(.relatedNewsResponse(articles))
         }
     }
 }

@@ -7,28 +7,6 @@
 
 import Foundation
 
-// MARK: - LaunchListLoadKind
-
-/// The two kinds of load the screen can run concurrently.
-/// Also identifies the running task of each kind in the ViewModel.
-enum LaunchListLoadKind: Hashable {
-    /// Initial load, refresh, or mode change — replaces the list from page 1.
-    case fresh
-    /// Pagination — appends the next page to the current list.
-    case loadMore
-
-    /// A fresh load invalidates any pending load-more, but a load-more
-    /// must never cancel an in-flight fresh load.
-    var cancels: Set<LaunchListLoadKind> {
-        switch self {
-        case .fresh:
-            return [.fresh, .loadMore]
-        case .loadMore:
-            return [.loadMore]
-        }
-    }
-}
-
 // MARK: - LaunchListAction
 
 enum LaunchListAction {
@@ -41,7 +19,7 @@ enum LaunchListAction {
         mode: LaunchListMode,
         previousLaunches: [Launch],
         page: PagedResult<Launch>,
-        kind: LaunchListLoadKind,
+        kind: ListLoadKind,
         errorMessage: String?)
 }
 
@@ -52,8 +30,8 @@ enum LaunchListEffect {
         mode: LaunchListMode,
         page: Int,
         previousLaunches: [Launch],
-        fetchPolicy: LaunchFetchPolicy,
-        kind: LaunchListLoadKind)
+        fetchPolicy: FetchPolicy,
+        kind: ListLoadKind)
 }
 
 // MARK: - LaunchListReducer
@@ -140,8 +118,8 @@ enum LaunchListReducer {
     private static func loadEffect(mode: LaunchListMode,
                                    page: Int,
                                    previousLaunches: [Launch],
-                                   fetchPolicy: LaunchFetchPolicy,
-                                   kind: LaunchListLoadKind) -> LaunchListEffect {
+                                   fetchPolicy: FetchPolicy,
+                                   kind: ListLoadKind) -> LaunchListEffect {
         .load(
             mode: mode,
             page: page,

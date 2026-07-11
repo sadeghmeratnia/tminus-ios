@@ -24,7 +24,7 @@ final class LaunchListViewModel: ReducingStoreProtocol {
     private let fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase
     private let fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase
     private var hasAppeared = false
-    private var loadTasks: [LaunchListLoadKind: Task<Void, Never>] = [:]
+    private var loadTasks: [ListLoadKind: Task<Void, Never>] = [:]
 
     init(fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase,
          fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase) {
@@ -73,7 +73,6 @@ final class LaunchListViewModel: ReducingStoreProtocol {
             loadTasks[kind] = Task { [weak self] in
                 guard let self else { return }
 
-                let launches: [Launch]
                 let pagedResult: PagedResult<Launch>
                 let errorMessage: String?
                 do {
@@ -86,25 +85,22 @@ final class LaunchListViewModel: ReducingStoreProtocol {
                             return try await self.fetchPreviousLaunchesUseCase.execute(query: query)
                         }
                     }()
-                    launches = pagedResult.items
                     errorMessage = nil
                 } catch is CancellationError {
                     return
-                } catch let launchError as LaunchError {
-                    launches = []
+                } catch let presentable as UserMessagePresentable {
                     pagedResult = PagedResult(items: [], currentPage: page)
-                    errorMessage = launchError.userMessage
+                    errorMessage = presentable.userMessage
                 } catch {
-                    launches = []
                     pagedResult = PagedResult(items: [], currentPage: page)
-                    errorMessage = LaunchError.unknown(underlying: error).userMessage
+                    errorMessage = L10n.Error.Network.unknown
                 }
 
                 self.send(
                     .loadResponse(
                         mode: mode,
                         previousLaunches: previousLaunches,
-                        page: errorMessage == nil ? pagedResult : PagedResult(items: launches, currentPage: page),
+                        page: pagedResult,
                         kind: kind,
                         errorMessage: errorMessage))
             }

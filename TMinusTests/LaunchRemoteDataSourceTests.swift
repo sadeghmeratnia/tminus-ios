@@ -24,7 +24,7 @@ enum LaunchRemoteDataSourceTests {
 
         #expect(response.results.map(\.id) == ["network"])
         #expect(network.requestCount == 1)
-        #expect(network.lastCachePolicy == .networkOnly)
+        #expect(network.lastFetchPolicy == .networkOnly)
     }
 }
 
@@ -57,16 +57,16 @@ private final class MockRemoteNetworkClient: NetworkClientProtocol {
     var dataResponse = Data()
     var error: Error?
     var requestCount = 0
-    var lastCachePolicy: CachePolicy?
+    var lastFetchPolicy: FetchPolicy?
 
-    func requestData(endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> Data {
+    func requestData(endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> Data {
         requestCount += 1
-        lastCachePolicy = cachePolicy
+        lastFetchPolicy = cachePolicy
         if let error { throw error }
         return dataResponse
     }
 
-    func request<T>(_ type: T.Type, endpoint: Endpoint, cachePolicy: CachePolicy) async throws -> T where T: Decodable {
+    func request<T>(_ type: T.Type, endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> T where T: Decodable & Sendable {
         let data = try await requestData(endpoint: endpoint, cachePolicy: cachePolicy)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase

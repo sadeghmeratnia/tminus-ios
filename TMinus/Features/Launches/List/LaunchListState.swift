@@ -27,75 +27,13 @@ enum LaunchListMode: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - LaunchListPagination
-
-struct LaunchListPagination: Equatable {
-    let currentPage: Int
-    let nextPage: Int?
-    let previousPage: Int?
-    let totalCount: Int?
-    let loadMoreError: String?
-
-    static let initial = LaunchListPagination(
-        currentPage: 1,
-        nextPage: nil,
-        previousPage: nil,
-        totalCount: nil,
-        loadMoreError: nil)
-
-    func with(currentPage: Int? = nil,
-              nextPage: Int? = nil,
-              previousPage: Int? = nil,
-              totalCount: Int? = nil,
-              loadMoreError: String? = nil,
-              clearsLoadMoreError: Bool = false) -> LaunchListPagination {
-        LaunchListPagination(
-            currentPage: currentPage ?? self.currentPage,
-            nextPage: nextPage ?? self.nextPage,
-            previousPage: previousPage ?? self.previousPage,
-            totalCount: totalCount ?? self.totalCount,
-            loadMoreError: clearsLoadMoreError ? nil : (loadMoreError ?? self.loadMoreError))
-    }
-
-    func applying(page: PagedResult<Launch>) -> LaunchListPagination {
-        with(
-            currentPage: page.currentPage,
-            nextPage: page.nextPage,
-            previousPage: page.previousPage,
-            totalCount: page.totalCount,
-            loadMoreError: nil,
-            clearsLoadMoreError: true)
-    }
-
-    func failingLoadMore(message: String) -> LaunchListPagination {
-        with(loadMoreError: message)
-    }
-
-    func clearingLoadMoreError() -> LaunchListPagination {
-        with(loadMoreError: nil, clearsLoadMoreError: true)
-    }
-}
-
 // MARK: - LaunchListState
 
 struct LaunchListState: Equatable {
     let mode: LaunchListMode
     let launches: [Launch]
-    let pagination: LaunchListPagination
-    let phase: Phase
-
-    enum Phase: Equatable {
-        case idle
-        case loading(LoadingKind)
-        case loaded
-        case error(message: String)
-
-        enum LoadingKind: Equatable {
-            case initial
-            case refresh
-            case loadMore
-        }
-    }
+    let pagination: ListPagination
+    let phase: ListPhase
 
     static let initial = LaunchListState(
         mode: .upcoming,
@@ -105,8 +43,8 @@ struct LaunchListState: Equatable {
 
     func with(mode: LaunchListMode? = nil,
               launches: [Launch]? = nil,
-              pagination: LaunchListPagination? = nil,
-              phase: Phase? = nil) -> LaunchListState {
+              pagination: ListPagination? = nil,
+              phase: ListPhase? = nil) -> LaunchListState {
         LaunchListState(
             mode: mode ?? self.mode,
             launches: launches ?? self.launches,
@@ -133,7 +71,7 @@ struct LaunchListState: Equatable {
     func applyingLoadResponse(mode: LaunchListMode,
                               previousLaunches: [Launch],
                               page: PagedResult<Launch>,
-                              kind: LaunchListLoadKind,
+                              kind: ListLoadKind,
                               errorMessage: String?) -> LaunchListState {
         if let errorMessage {
             if kind == .loadMore {
@@ -151,22 +89,12 @@ struct LaunchListState: Equatable {
                 phase: .error(message: errorMessage))
         }
 
-        let launches = kind == .loadMore ? Self.mergeLaunches(previousLaunches, page.items) : page.items
+        let launches = kind == .loadMore ? previousLaunches.merging(page.items) : page.items
         return with(
             mode: mode,
             launches: launches,
             pagination: pagination.applying(page: page),
             phase: .loaded)
-    }
-
-    private static func mergeLaunches(_ existing: [Launch], _ incoming: [Launch]) -> [Launch] {
-        var ids = Set(existing.map(\.id))
-        var merged = existing
-        for launch in incoming where ids.contains(launch.id) == false {
-            merged.append(launch)
-            ids.insert(launch.id)
-        }
-        return merged
     }
 }
 

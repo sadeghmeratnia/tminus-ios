@@ -41,5 +41,6 @@ enum LaunchPreviewFixtures {
     static let detailLoadedState = LaunchDetailState(
         launchID: launchID,
         launch: launch,
-        phase: .loaded)
+        phase: .loaded,
+        relatedArticles: [NewsPreviewFixtures.article])
 }

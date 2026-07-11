@@ -7,6 +7,6 @@
 
 import Foundation
 
-struct LaunchMissionOrbitDTO: Decodable {
+struct LaunchMissionOrbitDTO: Decodable, Sendable {
     let name: String?
 }

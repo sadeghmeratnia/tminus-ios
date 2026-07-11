@@ -58,7 +58,7 @@ enum LaunchDTOMapper {
 
         return LaunchPad(
             id: String(id),
-            name: pad.name ?? "Unknown",
+            name: pad.name ?? L10n.Common.unknown,
             latitude: pad.latitude ?? 0,
             longitude: pad.longitude ?? 0,
             locationName: pad.location?.name)
@@ -69,7 +69,7 @@ enum LaunchDTOMapper {
 
         return LaunchMission(
             id: String(id),
-            name: mission.name ?? "Unknown",
+            name: mission.name ?? L10n.Common.unknown,
             description: mission.description,
             type: mission.type,
             orbit: mission.orbit?.name)

@@ -12,7 +12,7 @@ import Foundation
 protocol LaunchRemoteDataSource {
     func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO
-    func fetchLaunchDetail(id: String, fetchPolicy: LaunchFetchPolicy) async throws -> LaunchDTO
+    func fetchLaunchDetail(id: String, fetchPolicy: FetchPolicy) async throws -> LaunchDTO
 }
 
 // MARK: - NetworkLaunchRemoteDataSource
@@ -28,31 +28,20 @@ final class NetworkLaunchRemoteDataSource: LaunchRemoteDataSource {
         try await networkClient.request(
             LaunchesResponseDTO.self,
             endpoint: LaunchesEndpoint.upcoming(query: query),
-            cachePolicy: query.fetchPolicy.networkCachePolicy)
+            cachePolicy: query.fetchPolicy)
     }
 
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO {
         try await networkClient.request(
             LaunchesResponseDTO.self,
             endpoint: LaunchesEndpoint.previous(query: query),
-            cachePolicy: query.fetchPolicy.networkCachePolicy)
+            cachePolicy: query.fetchPolicy)
     }
 
-    func fetchLaunchDetail(id: String, fetchPolicy: LaunchFetchPolicy) async throws -> LaunchDTO {
+    func fetchLaunchDetail(id: String, fetchPolicy: FetchPolicy) async throws -> LaunchDTO {
         try await networkClient.request(
             LaunchDTO.self,
             endpoint: LaunchesEndpoint.detail(id: id),
-            cachePolicy: fetchPolicy.networkCachePolicy)
-    }
-}
-
-extension LaunchFetchPolicy {
-    fileprivate var networkCachePolicy: CachePolicy {
-        switch self {
-        case .useCache:
-            return .useCache
-        case .networkOnly:
-            return .networkOnly
-        }
+            cachePolicy: fetchPolicy)
     }
 }

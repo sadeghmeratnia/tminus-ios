@@ -95,7 +95,7 @@ struct LaunchCardView: View {
     }
 
     private var launchDateView: some View {
-        Label(Self.dateFormatter.string(from: launch.windowStart), systemImage: Constants.Icon.calendar)
+        Label(launch.windowStart.formatted(Constants.windowDateStyle), systemImage: Constants.Icon.calendar)
             .font(.caption)
             .foregroundStyle(.secondary)
     }
@@ -126,13 +126,7 @@ private enum Constants {
         static let calendar = "calendar"
         static let placeholder = "photo"
     }
-}
 
-extension LaunchCardView {
-    fileprivate static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter
-    }()
+    static let windowDateStyle = Date.FormatStyle()
+        .month().day().year().hour().minute()
 }
