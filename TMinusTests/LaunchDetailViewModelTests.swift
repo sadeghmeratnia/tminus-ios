@@ -98,6 +98,52 @@ struct LaunchDetailViewModelTests {
         #expect(viewModel.state.phase == .loaded)
     }
 
+    @Test("retry re-fetches related news, not just the launch")
+    func retryRefetchesRelatedNews() async throws {
+        let repository = MockLaunchDetailRepository()
+        await repository.setHandler { id, callIndex in
+            if callIndex == 1 {
+                throw LaunchError.networkUnavailable
+            }
+            return LaunchDetailViewModelTests.makeLaunch(id: id)
+        }
+        let article = NewsArticle(
+            id: "article-1",
+            title: "Related Article",
+            summary: "Summary",
+            url: URL(string: "https://example.com/article-1")!,
+            imageURL: nil,
+            newsSite: "SpaceNews",
+            publishedAt: Date(timeIntervalSince1970: 1000),
+            relatedLaunchIDs: ["detail-1"])
+        let newsRepository = MockNewsRepository()
+        await newsRepository.setShouldThrow(true)
+
+        let viewModel = LaunchDetailViewModel(
+            launchID: "detail-1",
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository))
+
+        viewModel.onTrigger(.onAppear)
+        try await Self.waitUntil {
+            if case .error = viewModel.state.phase { return true }
+            return false
+        }
+        try await Self.waitUntilActor { await newsRepository.relatedArticlesRequestCount == 1 }
+
+        await newsRepository.setShouldThrow(false)
+        await newsRepository.setRelatedArticles([article])
+
+        viewModel.onTrigger(.retry)
+        try await Self.waitUntil {
+            viewModel.state.relatedArticles.isEmpty == false
+        }
+
+        #expect(viewModel.state.relatedArticles == [article])
+        let requestCount = await newsRepository.relatedArticlesRequestCount
+        #expect(requestCount == 2)
+    }
+
     @Test("Related news failure is swallowed and never surfaces an error")
     func relatedNewsFailureIsSwallowed() async throws {
         let repository = MockLaunchDetailRepository()
@@ -148,6 +194,17 @@ extension LaunchDetailViewModelTests {
         }
         Issue.record("Timed out waiting for expected state")
     }
+
+    fileprivate static func waitUntilActor(timeoutNanoseconds: UInt64 = 1_500_000_000,
+                                           checkEveryNanoseconds: UInt64 = 20_000_000,
+                                           _ condition: @escaping () async -> Bool) async throws {
+        let start = DispatchTime.now().uptimeNanoseconds
+        while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
+            if await condition() { return }
+            try await Task.sleep(nanoseconds: checkEveryNanoseconds)
+        }
+        Issue.record("Timed out waiting for expected state")
+    }
 }
 
 actor MockLaunchDetailRepository: LaunchRepositoryProtocol {
@@ -178,6 +235,7 @@ actor MockLaunchDetailRepository: LaunchRepositoryProtocol {
 }
 
 actor MockNewsRepository: NewsRepositoryProtocol {
+    private(set) var relatedArticlesRequestCount = 0
     private var relatedArticles: [NewsArticle] = []
     private var shouldThrow = false
 
@@ -198,6 +256,7 @@ actor MockNewsRepository: NewsRepositoryProtocol {
     }
 
     func fetchRelatedArticles(launchID: String, limit: Int) async throws -> [NewsArticle] {
+        relatedArticlesRequestCount += 1
         if shouldThrow {
             throw NewsError.networkUnavailable
         }

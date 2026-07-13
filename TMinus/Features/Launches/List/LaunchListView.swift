@@ -36,11 +36,25 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
     }
 
     var body: some View {
-        contentView
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle(L10n.Launches.navigationTitle)
-            .navigationBarTitleDisplayMode(.large)
-            .task { viewModel.onTrigger(.onAppear) }
+        VStack(spacing: 0) {
+            modePicker
+            contentView
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(L10n.Launches.navigationTitle)
+        .navigationBarTitleDisplayMode(.large)
+        .task { viewModel.onTrigger(.onAppear) }
+    }
+
+    private var modePicker: some View {
+        Picker(L10n.Launches.modePicker, selection: modeBinding) {
+            ForEach(LaunchListMode.allCases) { mode in
+                Text(mode.title).tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, UIConstants.Padding.horizontal)
+        .padding(.vertical, UIConstants.Padding.vertical)
     }
 
     private var contentView: some View {
@@ -82,13 +96,6 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
     private func launchesListView(bannerMessage: String?) -> some View {
         ScrollView {
             LazyVStack(spacing: UIConstants.Spacing.large) {
-                Picker(L10n.Launches.modePicker, selection: modeBinding) {
-                    ForEach(LaunchListMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-
                 if let bannerMessage {
                     ListRefreshErrorBanner(
                         message: bannerMessage,

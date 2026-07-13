@@ -47,6 +47,7 @@ final class LaunchDetailViewModel: ReducingStoreProtocol {
 
         case .retry:
             send(.retry)
+            loadRelatedNews()
         }
     }
 
