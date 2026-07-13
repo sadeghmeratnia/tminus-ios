@@ -106,7 +106,7 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
 
     private func errorView(message: String) -> some View {
         ContentUnavailableView {
-            Label(L10n.News.errorTitle, systemImage: Constants.Icon.error)
+            Label(L10n.News.errorTitle, systemImage: UIConstants.Icon.networkError)
         } description: {
             Text(message)
         } actions: {
@@ -129,7 +129,6 @@ private enum Constants {
     }
 
     enum Icon {
-        static let error = "wifi.exclamationmark"
         static let link = "safari"
         static let newsSite = "newspaper"
         static let calendar = "calendar"

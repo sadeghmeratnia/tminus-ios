@@ -41,4 +41,14 @@ enum ListContentPhaseTests {
             #expect(ListContentPhase.derive(phase: phase, items: items) == .content(items))
         }
     }
+
+    @Test("refreshErrorMessage is nil unless the phase is error and items are present")
+    static func refreshErrorMessageOnlyWhenErrorWithItems() {
+        let items = [1, 2, 3]
+
+        #expect(ListContentPhase.refreshErrorMessage(phase: .error(message: "refresh failed"), items: items) == "refresh failed")
+        #expect(ListContentPhase.refreshErrorMessage(phase: .error(message: "refresh failed"), items: []) == nil)
+        #expect(ListContentPhase.refreshErrorMessage(phase: .loaded, items: items) == nil)
+        #expect(ListContentPhase.refreshErrorMessage(phase: .loading(.loadMore), items: items) == nil)
+    }
 }

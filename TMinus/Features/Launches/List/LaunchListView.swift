@@ -25,6 +25,10 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
         .derive(phase: state.phase, items: launches)
     }
 
+    private var refreshBannerMessage: String? {
+        ListContentPhase.refreshErrorMessage(phase: state.phase, items: launches)
+    }
+
     private var modeBinding: Binding<LaunchListMode> {
         Binding(
             get: { state.mode },
@@ -49,7 +53,7 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
             case .empty:
                 emptyView
             case .content:
-                launchesListView
+                launchesListView(bannerMessage: refreshBannerMessage)
             }
         }
     }
@@ -62,29 +66,9 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
     private func errorView(message: String) -> some View {
         ContentUnavailableView(
             L10n.Launches.errorTitle,
-            systemImage: Constants.Icon.error,
+            systemImage: UIConstants.Icon.networkError,
             description: Text(message))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func loadMoreErrorFooter(message: String) -> some View {
-        VStack(spacing: UIConstants.Spacing.small) {
-            Text(message)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Button {
-                viewModel.onTrigger(.retryLoadMore)
-            } label: {
-                Label(L10n.Launches.retryAction, systemImage: Constants.Icon.retry)
-                    .font(.subheadline.weight(.medium))
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, UIConstants.Padding.vertical)
     }
 
     private var emptyView: some View {
@@ -95,7 +79,7 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var launchesListView: some View {
+    private func launchesListView(bannerMessage: String?) -> some View {
         ScrollView {
             LazyVStack(spacing: UIConstants.Spacing.large) {
                 Picker(L10n.Launches.modePicker, selection: modeBinding) {
@@ -104,6 +88,13 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
                     }
                 }
                 .pickerStyle(.segmented)
+
+                if let bannerMessage {
+                    ListRefreshErrorBanner(
+                        message: bannerMessage,
+                        retryTitle: L10n.Launches.retryAction,
+                        onRetry: { viewModel.onTrigger(.refresh) })
+                }
 
                 ForEach(launches) { launch in
                     Button {
@@ -119,7 +110,10 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                 } else if let loadMoreError = state.pagination.loadMoreError {
-                    loadMoreErrorFooter(message: loadMoreError)
+                    ListLoadMoreErrorFooter(
+                        message: loadMoreError,
+                        retryTitle: L10n.Launches.retryAction,
+                        onRetry: { viewModel.onTrigger(.retryLoadMore) })
                 }
             }
             .padding(.horizontal, UIConstants.Padding.horizontal)
@@ -135,9 +129,7 @@ typealias DefaultLaunchListView = LaunchListView<LaunchListViewModel>
 
 private enum Constants {
     enum Icon {
-        static let error = "wifi.exclamationmark"
         static let empty = "moon.stars.fill"
-        static let retry = "arrow.clockwise"
     }
 }
 

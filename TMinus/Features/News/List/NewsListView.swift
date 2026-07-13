@@ -25,6 +25,10 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
         .derive(phase: state.phase, items: articles)
     }
 
+    private var refreshBannerMessage: String? {
+        ListContentPhase.refreshErrorMessage(phase: state.phase, items: articles)
+    }
+
     private var searchBinding: Binding<String> {
         Binding(
             get: { state.searchText },
@@ -50,7 +54,7 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
             case .empty:
                 emptyView
             case .content:
-                articlesListView
+                articlesListView(bannerMessage: refreshBannerMessage)
             }
         }
     }
@@ -63,29 +67,9 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
     private func errorView(message: String) -> some View {
         ContentUnavailableView(
             L10n.News.errorTitle,
-            systemImage: Constants.Icon.error,
+            systemImage: UIConstants.Icon.networkError,
             description: Text(message))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func loadMoreErrorFooter(message: String) -> some View {
-        VStack(spacing: UIConstants.Spacing.small) {
-            Text(message)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Button {
-                viewModel.onTrigger(.retryLoadMore)
-            } label: {
-                Label(L10n.News.retryAction, systemImage: Constants.Icon.retry)
-                    .font(.subheadline.weight(.medium))
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, UIConstants.Padding.vertical)
     }
 
     private var emptyView: some View {
@@ -96,9 +80,16 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var articlesListView: some View {
+    private func articlesListView(bannerMessage: String?) -> some View {
         ScrollView {
             LazyVStack(spacing: UIConstants.Spacing.large) {
+                if let bannerMessage {
+                    ListRefreshErrorBanner(
+                        message: bannerMessage,
+                        retryTitle: L10n.News.retryAction,
+                        onRetry: { viewModel.onTrigger(.refresh) })
+                }
+
                 ForEach(articles) { article in
                     Button {
                         onArticleSelected(article.id)
@@ -113,7 +104,10 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                 } else if let loadMoreError = state.pagination.loadMoreError {
-                    loadMoreErrorFooter(message: loadMoreError)
+                    ListLoadMoreErrorFooter(
+                        message: loadMoreError,
+                        retryTitle: L10n.News.retryAction,
+                        onRetry: { viewModel.onTrigger(.retryLoadMore) })
                 }
             }
             .padding(.horizontal, UIConstants.Padding.horizontal)
@@ -129,9 +123,7 @@ typealias DefaultNewsListView = NewsListView<NewsListViewModel>
 
 private enum Constants {
     enum Icon {
-        static let error = "wifi.exclamationmark"
         static let empty = "newspaper"
-        static let retry = "arrow.clockwise"
     }
 }
 

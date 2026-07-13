@@ -9,13 +9,8 @@ import Foundation
 
 // MARK: - ListContentPhase
 
-/// A single, exhaustively-switchable view state for any paginated list screen, derived from
-/// `ListPhase` combined with whether the list currently has items. The two inputs can't be
-/// collapsed into `ListPhase` alone: `.loading(.loadMore)` should keep showing existing items
-/// with a footer spinner rather than a full-screen loader, while `.loading(.initial)` is only
-/// a full-screen loader while the list is still empty. Deriving one value up front lets the view
-/// `switch` exhaustively instead of chaining `if`/`else if` conditions that the compiler can't
-/// verify are complete.
+/// Exhaustively-switchable view state for any list screen, derived from `ListPhase` and whether
+/// the list has items.
 enum ListContentPhase<Item> {
     case loading
     case error(message: String)
@@ -35,6 +30,14 @@ enum ListContentPhase<Item> {
         case .idle, .loaded, .loading(.refresh), .loading(.loadMore):
             return .empty
         }
+    }
+
+    /// Non-nil only when a refresh failed but stale items are still on screen — mirrors how
+    /// `ListPagination.loadMoreError` sits beside `ListPhase` rather than inside it, so a
+    /// transient advisory never needs to be smuggled into a case that's meant to mean one thing.
+    static func refreshErrorMessage(phase: ListPhase, items: [Item]) -> String? {
+        guard items.isEmpty == false, case let .error(message) = phase else { return nil }
+        return message
     }
 }
 

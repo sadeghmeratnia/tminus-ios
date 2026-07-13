@@ -38,4 +38,10 @@ enum UIConstants {
         static let subtleBackground: CGFloat = 0.1
         static let statusBackground: CGFloat = 0.16
     }
+
+    enum Icon {
+        /// SF Symbol for "no network" — used wherever a screen shows a connectivity failure,
+        /// so every feature's error state reads as the same failure rather than a per-feature choice.
+        static let networkError = "wifi.exclamationmark"
+    }
 }

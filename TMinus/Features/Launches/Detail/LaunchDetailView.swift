@@ -191,7 +191,7 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
 
     private func errorView(message: String) -> some View {
         ContentUnavailableView {
-            Label(L10n.Launches.errorTitle, systemImage: Constants.Icon.error)
+            Label(L10n.Launches.errorTitle, systemImage: UIConstants.Icon.networkError)
         } description: {
             Text(message)
         } actions: {
@@ -214,7 +214,6 @@ private enum Constants {
     }
 
     enum Icon {
-        static let error = "wifi.exclamationmark"
         static let webcast = "play.rectangle"
         static let relatedNews = "newspaper"
     }
