@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - LaunchRepository
 
-final class LaunchRepository: LaunchRepositoryProtocol {
+final class LaunchRepository: LaunchRepositoryProtocol, Sendable {
     private let remoteDataSource: LaunchRemoteDataSource
     private let localDataSource: LaunchLocalDataSource
 
@@ -51,6 +51,8 @@ final class LaunchRepository: LaunchRepositoryProtocol {
             let launch = LaunchDTOMapper.map(dto)
             try await localDataSource.save(launch, fetchedAt: Date())
             return launch
+        } catch is CancellationError {
+            throw CancellationError()
         } catch {
             if let stale = try await localDataSource.fetchLaunchDetail(id: id, maxAge: nil) {
                 return stale
@@ -69,10 +71,7 @@ extension LaunchRepository {
         if query.fetchPolicy == .useCache {
             let cached = try await local(query, maxAge)
             if !cached.isEmpty {
-                return PagedResult(
-                    items: cached,
-                    currentPage: query.page,
-                    previousPage: query.page > 1 ? query.page - 1 : nil)
+                return Self.pagedResult(from: cached, query: query)
             }
         }
 
@@ -80,18 +79,30 @@ extension LaunchRepository {
             let page = try await remote()
             try await localDataSource.save(page.items, fetchedAt: Date())
             return page
+        } catch is CancellationError {
+            throw CancellationError()
         } catch {
             if query.fetchPolicy == .useCache {
                 let stale = try await local(query, nil)
                 if !stale.isEmpty {
-                    return PagedResult(
-                        items: stale,
-                        currentPage: query.page,
-                        previousPage: query.page > 1 ? query.page - 1 : nil)
+                    return Self.pagedResult(from: stale, query: query)
                 }
             }
             throw LaunchErrorMapper.map(error)
         }
+    }
+
+    /// A cache-served page is a full page, not the whole result set, so `nextPage` can't be
+    /// known for certain — but a page that filled the requested `limit` is a reasonable signal
+    /// there's more to load, while a partial page means the cache (and likely the underlying
+    /// list) is exhausted. Without this, cache hits always report `nextPage: nil` and silently
+    /// disable "load more" for the rest of the session.
+    fileprivate static func pagedResult(from items: [Launch], query: LaunchListQuery) -> PagedResult<Launch> {
+        PagedResult(
+            items: items,
+            currentPage: query.page,
+            nextPage: items.count == query.limit ? query.page + 1 : nil,
+            previousPage: query.page > 1 ? query.page - 1 : nil)
     }
 
     fileprivate static func mapPage(_ response: LaunchesResponseDTO, query: LaunchListQuery) -> PagedResult<Launch> {

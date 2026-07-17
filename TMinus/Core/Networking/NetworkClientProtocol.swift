@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - NetworkClientProtocol
 
-protocol NetworkClientProtocol {
+protocol NetworkClientProtocol: Sendable {
     func requestData(endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> Data
     func request<T: Decodable & Sendable>(_ type: T.Type, endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> T
 }

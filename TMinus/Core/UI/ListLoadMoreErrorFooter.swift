@@ -22,7 +22,7 @@ struct ListLoadMoreErrorFooter: View {
                 .multilineTextAlignment(.center)
 
             Button(action: onRetry) {
-                Label(retryTitle, systemImage: Constants.Icon.retry)
+                Label(retryTitle, systemImage: UIConstants.Icon.retry)
                     .font(.subheadline.weight(.medium))
             }
             .buttonStyle(.bordered)
@@ -30,16 +30,6 @@ struct ListLoadMoreErrorFooter: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, UIConstants.Padding.vertical)
-    }
-}
-
-// MARK: - Constants
-
-extension ListLoadMoreErrorFooter {
-    private enum Constants {
-        enum Icon {
-            static let retry = "arrow.clockwise"
-        }
     }
 }
 

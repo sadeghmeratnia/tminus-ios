@@ -12,13 +12,13 @@ import Foundation
 enum NewsDetailAction {
     case appear
     case retry
-    case loadResponse(article: NewsArticle?, errorMessage: String?)
+    case loadResponse(article: NewsArticle?, errorMessage: String?, generation: Int)
 }
 
 // MARK: - NewsDetailEffect
 
 enum NewsDetailEffect {
-    case load(id: String)
+    case load(id: String, generation: Int)
 }
 
 // MARK: - NewsDetailReducer
@@ -31,16 +31,18 @@ enum NewsDetailReducer {
             guard case .idle = state.phase else {
                 return (state, nil)
             }
-            return (state.startingLoad(), .load(id: state.articleID))
+            let (newState, generation) = state.startingLoad()
+            return (newState, .load(id: newState.articleID, generation: generation))
 
         case .retry:
             guard case .error = state.phase else {
                 return (state, nil)
             }
-            return (state.startingLoad(), .load(id: state.articleID))
+            let (newState, generation) = state.startingLoad()
+            return (newState, .load(id: newState.articleID, generation: generation))
 
-        case let .loadResponse(article, errorMessage):
-            return (state.applyingLoadResponse(article: article, errorMessage: errorMessage), nil)
+        case let .loadResponse(article, errorMessage, generation):
+            return (state.applyingLoadResponse(article: article, errorMessage: errorMessage, generation: generation), nil)
         }
     }
 }

@@ -17,6 +17,13 @@ final class NewsFeatureBuilder {
 
     private let dependencies: Dependencies
 
+    /// Shared across every consumer (the News tab and any other feature, e.g. Launches' related
+    /// articles) so they all see the same repository instance rather than independent graphs.
+    private lazy var repository: NewsRepositoryProtocol = {
+        let remote = NetworkNewsRemoteDataSource(networkClient: dependencies.networkClient)
+        return NewsRepository(remoteDataSource: remote)
+    }()
+
     init(dependencies: Dependencies) {
         self.dependencies = dependencies
     }
@@ -34,7 +41,6 @@ final class NewsFeatureBuilder {
     }
 
     func makeRepository() -> NewsRepositoryProtocol {
-        let remote = NetworkNewsRemoteDataSource(networkClient: dependencies.networkClient)
-        return NewsRepository(remoteDataSource: remote)
+        repository
     }
 }

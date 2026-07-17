@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - LaunchRepositoryProtocol
 
-protocol LaunchRepositoryProtocol {
+protocol LaunchRepositoryProtocol: Sendable {
     func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch>
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch>
     func fetchLaunchDetail(id: String) async throws -> Launch

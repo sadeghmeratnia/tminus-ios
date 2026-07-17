@@ -8,12 +8,16 @@
 import Foundation
 
 extension Array where Element: Identifiable {
+    /// Appends items from `incoming` that aren't already present, and refreshes items that are
+    /// — `incoming` is treated as the newer data, so an existing entry's fields (e.g. a launch's
+    /// status, a news article's title) are replaced rather than kept stale.
     func merging(_ incoming: [Element]) -> [Element] {
-        var ids = Set(map(\.id))
-        var merged = self
-        for item in incoming where !ids.contains(item.id) {
+        let incomingByID = Dictionary(incoming.map { ($0.id, $0) }, uniquingKeysWith: { _, latest in latest })
+        var seenIDs = Set(map(\.id))
+        var merged = self.map { incomingByID[$0.id] ?? $0 }
+        for item in incoming where !seenIDs.contains(item.id) {
             merged.append(item)
-            ids.insert(item.id)
+            seenIDs.insert(item.id)
         }
         return merged
     }

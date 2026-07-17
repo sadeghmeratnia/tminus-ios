@@ -21,12 +21,8 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
         state.launches
     }
 
-    private var contentPhase: ListContentPhase<Launch> {
-        .derive(phase: state.phase, items: launches)
-    }
-
-    private var refreshBannerMessage: String? {
-        ListContentPhase.refreshErrorMessage(phase: state.phase, items: launches)
+    private var resolvedContent: (phase: ListContentPhase<Launch>, refreshErrorMessage: String?) {
+        ListContentPhase.resolve(phase: state.phase, items: launches)
     }
 
     private var modeBinding: Binding<LaunchListMode> {
@@ -36,9 +32,18 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        let (phase, refreshErrorMessage) = resolvedContent
+        return VStack(spacing: 0) {
             modePicker
-            contentView
+            ListScreenScaffold(
+                phase: phase,
+                loadingTitle: L10n.Launches.loading,
+                errorTitle: L10n.Launches.errorTitle,
+                emptyTitle: L10n.Launches.emptyTitle,
+                emptyDescription: L10n.Launches.emptyDescription,
+                emptyIcon: Constants.Icon.empty) {
+                    launchesListView(bannerMessage: refreshErrorMessage)
+                }
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle(L10n.Launches.navigationTitle)
@@ -55,42 +60,6 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
         .pickerStyle(.segmented)
         .padding(.horizontal, UIConstants.Padding.horizontal)
         .padding(.vertical, UIConstants.Padding.vertical)
-    }
-
-    private var contentView: some View {
-        Group {
-            switch contentPhase {
-            case .loading:
-                loadingView
-            case let .error(message):
-                errorView(message: message)
-            case .empty:
-                emptyView
-            case .content:
-                launchesListView(bannerMessage: refreshBannerMessage)
-            }
-        }
-    }
-
-    private var loadingView: some View {
-        ProgressView(L10n.Launches.loading)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func errorView(message: String) -> some View {
-        ContentUnavailableView(
-            L10n.Launches.errorTitle,
-            systemImage: UIConstants.Icon.networkError,
-            description: Text(message))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var emptyView: some View {
-        ContentUnavailableView(
-            L10n.Launches.emptyTitle,
-            systemImage: Constants.Icon.empty,
-            description: Text(L10n.Launches.emptyDescription))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func launchesListView(bannerMessage: String?) -> some View {
@@ -113,15 +82,11 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
                     .onAppear { viewModel.onTrigger(.launchAppeared(launch.id)) }
                 }
 
-                if case .loading(.loadMore) = state.phase {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else if let loadMoreError = state.pagination.loadMoreError {
-                    ListLoadMoreErrorFooter(
-                        message: loadMoreError,
-                        retryTitle: L10n.Launches.retryAction,
-                        onRetry: { viewModel.onTrigger(.retryLoadMore) })
-                }
+                ListLoadMoreFooter(
+                    isLoadingMore: state.phase.isLoadingMore,
+                    loadMoreError: state.pagination.loadMoreError,
+                    retryTitle: L10n.Launches.retryAction,
+                    onRetry: { viewModel.onTrigger(.retryLoadMore) })
             }
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)

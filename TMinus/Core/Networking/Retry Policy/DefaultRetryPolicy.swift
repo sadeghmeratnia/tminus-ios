@@ -36,6 +36,16 @@ struct DefaultRetryPolicy: RetryPolicy {
     func delay(for attempt: Int) -> UInt64 {
         let base = pow(2.0, Double(attempt))
         let jitter = Double.random(in: 0 ... 1.0)
-        return UInt64((base + jitter) * 1_000_000_000)
+        let seconds = min(base + jitter, Constants.maxDelaySeconds)
+        return UInt64(seconds * 1_000_000_000)
+    }
+}
+
+// MARK: - Constants
+
+extension DefaultRetryPolicy {
+    private enum Constants {
+        /// Caps exponential backoff so a large `maxRetries` can't produce multi-minute sleeps.
+        static let maxDelaySeconds: Double = 30
     }
 }

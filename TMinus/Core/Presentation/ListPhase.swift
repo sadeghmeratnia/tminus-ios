@@ -25,4 +25,11 @@ enum ListPhase: Equatable {
         case refresh
         case loadMore
     }
+
+    /// Whether this phase represents an in-flight pagination request — shared so every list
+    /// screen's load-more footer reads this the same way instead of re-deriving it per feature.
+    var isLoadingMore: Bool {
+        if case .loading(.loadMore) = self { return true }
+        return false
+    }
 }

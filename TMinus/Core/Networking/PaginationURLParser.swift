@@ -20,7 +20,8 @@ enum PaginationURLParser {
         let offset = queryItems.first(where: { $0.name == "offset" })
             .flatMap { Int($0.value ?? "") } ?? 0
         let limit = queryItems.first(where: { $0.name == "limit" })
-            .flatMap { Int($0.value ?? "") } ?? safeLimit
-        return (offset / max(1, limit)) + 1
+            .flatMap { Int($0.value ?? "") }
+            .flatMap { $0 > 0 ? $0 : nil } ?? safeLimit
+        return (offset / limit) + 1
     }
 }

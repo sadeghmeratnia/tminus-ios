@@ -86,7 +86,7 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
 
             Label(
                 article.publishedAt.formatted(Constants.publishedDateStyle),
-                systemImage: Constants.Icon.calendar)
+                systemImage: UIConstants.Icon.calendar)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -131,7 +131,6 @@ private enum Constants {
     enum Icon {
         static let link = "safari"
         static let newsSite = "newspaper"
-        static let calendar = "calendar"
     }
 
     static let publishedDateStyle = Date.FormatStyle(
@@ -155,7 +154,8 @@ private enum Constants {
                 state: NewsDetailState(
                     articleID: NewsPreviewFixtures.articleID,
                     article: nil,
-                    phase: .loading)))
+                    phase: .loading,
+                    loadGeneration: LoadGeneration(current: 1))))
     }
 }
 
@@ -166,6 +166,7 @@ private enum Constants {
                 state: NewsDetailState(
                     articleID: NewsPreviewFixtures.articleID,
                     article: nil,
-                    phase: .error(message: "Could not load article"))))
+                    phase: .error(message: "Could not load article"),
+                    loadGeneration: LoadGeneration(current: 1))))
     }
 }

@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - NewsRemoteDataSource
 
-protocol NewsRemoteDataSource {
+protocol NewsRemoteDataSource: Sendable {
     func fetchArticles(query: NewsListQuery) async throws -> NewsResponseDTO
     func fetchArticleDetail(id: String, fetchPolicy: FetchPolicy) async throws -> NewsArticleDTO
     func fetchRelatedArticles(launchID: String, limit: Int, fetchPolicy: FetchPolicy) async throws -> NewsResponseDTO
@@ -17,7 +17,7 @@ protocol NewsRemoteDataSource {
 
 // MARK: - NetworkNewsRemoteDataSource
 
-final class NetworkNewsRemoteDataSource: NewsRemoteDataSource {
+final class NetworkNewsRemoteDataSource: NewsRemoteDataSource, Sendable {
     private let networkClient: NetworkClientProtocol
 
     init(networkClient: NetworkClientProtocol) {

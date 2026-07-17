@@ -23,7 +23,7 @@ enum LaunchDTOMapperTests {
           "window_start": "2026-05-12T10:00:00Z",
           "window_end": null,
           "image": null,
-          "vidURLs": [],
+          "vid_urls": [],
           "rocket": null,
           "pad": null,
           "mission": null
@@ -45,7 +45,7 @@ enum LaunchDTOMapperTests {
           "window_start": "2026-05-12T10:00:00Z",
           "window_end": null,
           "image": null,
-          "vidURLs": [],
+          "vid_urls": [],
           "rocket": null,
           "pad": null,
           "mission": null
@@ -67,7 +67,7 @@ enum LaunchDTOMapperTests {
           "window_start": "2026-05-12T10:00:00Z",
           "window_end": null,
           "image": { "thumbnail_url": "  https://img.example.com/my image.png  " },
-          "vidURLs": [],
+          "vid_urls": [],
           "rocket": null,
           "pad": null,
           "mission": null
@@ -89,7 +89,7 @@ enum LaunchDTOMapperTests {
           "window_start": "2026-05-12T10:00:00Z",
           "window_end": null,
           "image": null,
-          "vidURLs": [
+          "vid_urls": [
             { "url": "https://youtube.com/watch?v=late", "priority": 3 },
             { "url": "https://youtube.com/watch?v=best", "priority": 1 },
             { "url": "https://youtube.com/watch?v=middle", "priority": 2 }
@@ -115,7 +115,7 @@ enum LaunchDTOMapperTests {
           "window_start": "2026-05-12T10:00:00Z",
           "window_end": null,
           "image": null,
-          "vidURLs": [],
+          "vid_urls": [],
           "rocket": null,
           "pad": null,
           "mission": null

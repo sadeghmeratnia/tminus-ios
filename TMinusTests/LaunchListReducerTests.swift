@@ -22,7 +22,7 @@ enum LaunchListReducerTests {
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches.isEmpty)
         #expect(result.state.phase == .loading(.initial))
-        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind) = result.effect else {
+        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind, _) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
@@ -43,7 +43,7 @@ enum LaunchListReducerTests {
         #expect(result.state.mode == .previous)
         #expect(result.state.launches == previousLaunches)
         #expect(result.state.phase == .loading(.refresh))
-        guard case let .load(mode, page, launches, fetchPolicy, kind) = result.effect else {
+        guard case let .load(mode, page, launches, fetchPolicy, kind, _) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
@@ -82,7 +82,8 @@ enum LaunchListReducerTests {
                 previousLaunches: previousLaunches,
                 page: PagedResult(items: [], currentPage: 1),
                 kind: .fresh,
-                errorMessage: errorMessage))
+                errorMessage: errorMessage,
+                generation: 0))
 
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches == previousLaunches)
@@ -107,7 +108,7 @@ enum LaunchListReducerTests {
 
         let result = LaunchListReducer.reduce(state: state, action: .loadMore)
 
-        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind) = result.effect else {
+        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind, _) = result.effect else {
             Issue.record("Expected load-more effect")
             return
         }
@@ -137,7 +138,8 @@ enum LaunchListReducerTests {
                 previousLaunches: launches,
                 page: PagedResult(items: [], currentPage: 2),
                 kind: .loadMore,
-                errorMessage: "Network failed"))
+                errorMessage: "Network failed",
+                generation: 0))
 
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches == launches)
@@ -192,7 +194,7 @@ enum LaunchListReducerTests {
 
         let result = LaunchListReducer.reduce(state: state, action: .retryLoadMore)
 
-        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind) = result.effect else {
+        guard case let .load(mode, page, previousLaunches, fetchPolicy, kind, _) = result.effect else {
             Issue.record("Expected load effect from retry")
             return
         }
@@ -203,6 +205,41 @@ enum LaunchListReducerTests {
         #expect(kind == .loadMore)
         #expect(result.state.phase == .loading(.loadMore))
         #expect(result.state.pagination.loadMoreError == nil)
+    }
+
+    @Test("A response for a superseded generation is dropped")
+    static func staleGenerationResponseIsDropped() {
+        let appeared = LaunchListReducer.reduce(
+            state: LaunchListState(mode: .upcoming, launches: [], pagination: .initial, phase: .idle),
+            action: .appear)
+        // A second appear-triggered load never happens in practice (onAppear only fires once),
+        // but modelling it here is the simplest way to advance the generation past the first
+        // load's, simulating a fresh load starting while the first is still in flight.
+        let refreshed = LaunchListReducer.reduce(state: appeared.state, action: .refresh)
+
+        let staleResult = LaunchListReducer.reduce(
+            state: refreshed.state,
+            action: .loadResponse(
+                mode: .upcoming,
+                previousLaunches: [],
+                page: PagedResult(items: [makeLaunch(id: "stale")], currentPage: 1),
+                kind: .fresh,
+                errorMessage: nil,
+                generation: 1))
+
+        #expect(staleResult.state == refreshed.state)
+
+        let currentResult = LaunchListReducer.reduce(
+            state: refreshed.state,
+            action: .loadResponse(
+                mode: .upcoming,
+                previousLaunches: [],
+                page: PagedResult(items: [makeLaunch(id: "current")], currentPage: 1),
+                kind: .fresh,
+                errorMessage: nil,
+                generation: 2))
+
+        #expect(currentResult.state.launches.map(\.id) == ["current"])
     }
 }
 

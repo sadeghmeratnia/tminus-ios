@@ -41,13 +41,15 @@ struct ListPagination: Equatable {
     }
 
     func applying(page: PagedResult<some Sendable>) -> ListPagination {
-        self.with(
+        // Built directly rather than via `with(...)`, whose `??` fallbacks treat a passed-in
+        // `nil` as "no update" — that would prevent an explicit end-of-list `nextPage: nil`
+        // from ever clearing a previous page's non-nil value.
+        ListPagination(
             currentPage: page.currentPage,
             nextPage: page.nextPage,
             previousPage: page.previousPage,
             totalCount: page.totalCount,
-            loadMoreError: nil,
-            clearsLoadMoreError: true)
+            loadMoreError: nil)
     }
 
     func failingLoadMore(message: String) -> ListPagination {

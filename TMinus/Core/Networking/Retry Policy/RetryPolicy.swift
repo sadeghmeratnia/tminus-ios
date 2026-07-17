@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol RetryPolicy {
+protocol RetryPolicy: Sendable {
     func shouldRetry(error: Error, attempt: Int) -> Bool
     func delay(for attempt: Int) -> UInt64
 }

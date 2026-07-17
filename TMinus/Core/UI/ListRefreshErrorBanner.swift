@@ -17,7 +17,7 @@ struct ListRefreshErrorBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: UIConstants.Spacing.small) {
             Image(systemName: UIConstants.Icon.networkError)
-                .foregroundStyle(.orange)
+                .foregroundStyle(UIConstants.Color.warning)
 
             Text(message)
                 .font(.caption)
@@ -35,7 +35,7 @@ struct ListRefreshErrorBanner: View {
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
-                .fill(Color.orange.opacity(UIConstants.Opacity.subtleBackground)))
+                .fill(UIConstants.Color.warning.opacity(UIConstants.Opacity.subtleBackground)))
     }
 }
 

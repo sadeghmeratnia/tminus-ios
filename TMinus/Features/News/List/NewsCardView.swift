@@ -71,7 +71,7 @@ struct NewsCardView: View {
     private var metadataRow: some View {
         HStack(spacing: UIConstants.Spacing.small) {
             Label(article.newsSite, systemImage: Constants.Icon.newsSite)
-            Label(article.publishedAt.formatted(Constants.publishedDateStyle), systemImage: Constants.Icon.calendar)
+            Label(article.publishedAt.formatted(Constants.publishedDateStyle), systemImage: UIConstants.Icon.calendar)
         }
         .font(.caption)
         .foregroundStyle(.secondary)
@@ -83,7 +83,7 @@ struct NewsCardView: View {
             Rectangle()
                 .fill(Color.secondary.opacity(UIConstants.Opacity.subtleBackground))
 
-            Image(systemName: Constants.Icon.placeholder)
+            Image(systemName: UIConstants.Icon.photoPlaceholder)
                 .font(.title3)
                 .foregroundStyle(.secondary)
         }
@@ -101,8 +101,6 @@ private enum Constants {
 
     enum Icon {
         static let newsSite = "newspaper"
-        static let calendar = "calendar"
-        static let placeholder = "photo"
     }
 
     static let publishedDateStyle = Date.FormatStyle()

@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - LaunchRemoteDataSource
 
-protocol LaunchRemoteDataSource {
+protocol LaunchRemoteDataSource: Sendable {
     func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO
     func fetchLaunchDetail(id: String, fetchPolicy: FetchPolicy) async throws -> LaunchDTO
@@ -17,7 +17,7 @@ protocol LaunchRemoteDataSource {
 
 // MARK: - NetworkLaunchRemoteDataSource
 
-final class NetworkLaunchRemoteDataSource: LaunchRemoteDataSource {
+final class NetworkLaunchRemoteDataSource: LaunchRemoteDataSource, Sendable {
     private let networkClient: NetworkClientProtocol
 
     init(networkClient: NetworkClientProtocol) {

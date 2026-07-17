@@ -67,7 +67,7 @@ final class NewsListViewModel: ReducingStoreProtocol {
 
     func run(_ effect: NewsListEffect) {
         switch effect {
-        case let .load(searchText, page, previousArticles, fetchPolicy, kind):
+        case let .load(searchText, page, previousArticles, fetchPolicy, kind, generation):
             kind.cancels.forEach { loadTasks[$0]?.cancel() }
             loadTasks[kind] = Task { [weak self] in
                 guard let self else { return }
@@ -94,7 +94,8 @@ final class NewsListViewModel: ReducingStoreProtocol {
                         previousArticles: previousArticles,
                         page: pagedResult,
                         kind: kind,
-                        errorMessage: errorMessage))
+                        errorMessage: errorMessage,
+                        generation: generation))
             }
         }
     }

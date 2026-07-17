@@ -7,11 +7,11 @@
 
 import Foundation
 
-enum NewsError: Error {
+enum NewsError: Error, Sendable {
     case networkUnavailable
     case unauthorized
     case rateLimited
     case serverError
     case decodingFailed
-    case unknown(underlying: Error)
+    case unknown(underlying: any Error & Sendable)
 }

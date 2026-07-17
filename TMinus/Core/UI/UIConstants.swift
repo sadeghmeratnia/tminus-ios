@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreGraphics
+import SwiftUI
 
 enum UIConstants {
     enum Spacing {
@@ -43,5 +44,19 @@ enum UIConstants {
         /// SF Symbol for "no network" — used wherever a screen shows a connectivity failure,
         /// so every feature's error state reads as the same failure rather than a per-feature choice.
         static let networkError = "wifi.exclamationmark"
+        /// Retry affordance, identical everywhere a failed request offers a retry action.
+        static let retry = "arrow.clockwise"
+        /// Date metadata, identical everywhere a card or detail screen shows a timestamp.
+        static let calendar = "calendar"
+        /// Fallback for a thumbnail/hero image that failed to load or hasn't loaded yet.
+        static let photoPlaceholder = "photo"
+    }
+
+    enum Color {
+        /// Non-fatal advisory tint (e.g. "showing saved results after a failed refresh") —
+        /// distinct from `.red`/system error tinting, which this app reserves for fatal states.
+        /// `.secondary`/`.primary` text colors are intentionally NOT tokenized here: they're
+        /// already the correct system-semantic abstraction, used identically across every screen.
+        static let warning = SwiftUI.Color.orange
     }
 }

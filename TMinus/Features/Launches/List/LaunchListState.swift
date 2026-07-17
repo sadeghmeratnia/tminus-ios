@@ -34,6 +34,19 @@ struct LaunchListState: Equatable {
     let launches: [Launch]
     let pagination: ListPagination
     let phase: ListPhase
+    let loadGenerations: ListLoadGenerations
+
+    init(mode: LaunchListMode,
+         launches: [Launch],
+         pagination: ListPagination,
+         phase: ListPhase,
+         loadGenerations: ListLoadGenerations = ListLoadGenerations()) {
+        self.mode = mode
+        self.launches = launches
+        self.pagination = pagination
+        self.phase = phase
+        self.loadGenerations = loadGenerations
+    }
 
     static let initial = LaunchListState(
         mode: .upcoming,
@@ -44,35 +57,53 @@ struct LaunchListState: Equatable {
     func with(mode: LaunchListMode? = nil,
               launches: [Launch]? = nil,
               pagination: ListPagination? = nil,
-              phase: ListPhase? = nil) -> LaunchListState {
+              phase: ListPhase? = nil,
+              loadGenerations: ListLoadGenerations? = nil) -> LaunchListState {
         LaunchListState(
             mode: mode ?? self.mode,
             launches: launches ?? self.launches,
             pagination: pagination ?? self.pagination,
-            phase: phase ?? self.phase)
+            phase: phase ?? self.phase,
+            loadGenerations: loadGenerations ?? self.loadGenerations)
     }
 
-    func startingInitialLoad() -> LaunchListState {
-        with(launches: [], pagination: .initial, phase: .loading(.initial))
+    /// Every start-of-load method advances the generation for the relevant `ListLoadKind` and
+    /// hands back the raw value the caller's effect must tag its in-flight work with — this
+    /// guards against a superseded load clobbering state, even if task cancellation ever fails
+    /// to prevent that response from arriving. Mirrors the `LoadGeneration` pattern already used
+    /// by detail screens, via the per-kind `ListLoadGenerations`.
+    func startingInitialLoad() -> (state: LaunchListState, generation: Int) {
+        let (next, value) = loadGenerations.advancing(for: .fresh)
+        return (with(launches: [], pagination: .initial, phase: .loading(.initial), loadGenerations: next), value)
     }
 
-    func startingRefresh() -> LaunchListState {
-        with(phase: .loading(.refresh))
+    func startingRefresh() -> (state: LaunchListState, generation: Int) {
+        let (next, value) = loadGenerations.advancing(for: .fresh)
+        return (with(phase: .loading(.refresh), loadGenerations: next), value)
     }
 
-    func startingModeChange(_ newMode: LaunchListMode) -> LaunchListState {
-        with(mode: newMode, launches: [], pagination: .initial, phase: .loading(.initial))
+    func startingModeChange(_ newMode: LaunchListMode) -> (state: LaunchListState, generation: Int) {
+        let (next, value) = loadGenerations.advancing(for: .fresh)
+        return (
+            with(mode: newMode, launches: [], pagination: .initial, phase: .loading(.initial), loadGenerations: next),
+            value)
     }
 
-    func startingLoadMore() -> LaunchListState {
-        with(pagination: pagination.clearingLoadMoreError(), phase: .loading(.loadMore))
+    func startingLoadMore() -> (state: LaunchListState, generation: Int) {
+        let (next, value) = loadGenerations.advancing(for: .loadMore)
+        return (
+            with(pagination: pagination.clearingLoadMoreError(), phase: .loading(.loadMore), loadGenerations: next),
+            value)
     }
 
     func applyingLoadResponse(mode: LaunchListMode,
                               previousLaunches: [Launch],
                               page: PagedResult<Launch>,
                               kind: ListLoadKind,
-                              errorMessage: String?) -> LaunchListState {
+                              errorMessage: String?,
+                              generation: Int) -> LaunchListState {
+        guard loadGenerations.matches(generation, for: kind) else { return self }
+
         if let errorMessage {
             if kind == .loadMore {
                 return with(

@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - NewsRepositoryProtocol
 
-protocol NewsRepositoryProtocol {
+protocol NewsRepositoryProtocol: Sendable {
     func fetchArticles(query: NewsListQuery) async throws -> PagedResult<NewsArticle>
     func fetchArticleDetail(id: String) async throws -> NewsArticle
     func fetchRelatedArticles(launchID: String, limit: Int) async throws -> [NewsArticle]

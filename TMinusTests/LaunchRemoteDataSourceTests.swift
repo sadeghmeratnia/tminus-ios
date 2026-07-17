@@ -40,7 +40,7 @@ extension LaunchRemoteDataSourceTests {
               "window_start": "2026-05-12T10:00:00Z",
               "window_end": null,
               "image": null,
-              "vidURLs": [],
+              "vid_urls": [],
               "rocket": null,
               "pad": null,
               "mission": null

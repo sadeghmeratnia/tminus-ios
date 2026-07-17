@@ -9,13 +9,13 @@ import Foundation
 
 // MARK: - NetworkLogger
 
-protocol NetworkLogger {
+protocol NetworkLogger: Sendable {
     func log(_ message: String, level: LogLevel)
 }
 
 // MARK: - LogLevel
 
-enum LogLevel {
+enum LogLevel: Sendable {
     case debug
     case info
     case warning

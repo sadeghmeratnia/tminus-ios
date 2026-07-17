@@ -61,7 +61,7 @@ final class LaunchDetailViewModel: ReducingStoreProtocol {
 
     func run(_ effect: LaunchDetailEffect) {
         switch effect {
-        case let .load(id):
+        case let .load(id, generation):
             loadTask?.cancel()
             loadTask = Task { [weak self] in
                 guard let self else { return }
@@ -81,7 +81,7 @@ final class LaunchDetailViewModel: ReducingStoreProtocol {
                     errorMessage = L10n.Error.Network.unknown
                 }
 
-                self.send(.loadResponse(launch: launch, errorMessage: errorMessage))
+                self.send(.loadResponse(launch: launch, errorMessage: errorMessage, generation: generation))
             }
         }
     }

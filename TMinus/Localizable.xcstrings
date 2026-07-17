@@ -23,28 +23,6 @@
         }
       }
     },
-    "error.network.generic_load": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Something went wrong while loading data."
-          }
-        }
-      }
-    },
-    "error.network.invalid_response": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The server returned an invalid response."
-          }
-        }
-      }
-    },
     "error.network.rate_limited": {
       "extractionState": "stale",
       "localizations": {
@@ -52,17 +30,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Too many requests. Please try again in a moment."
-          }
-        }
-      }
-    },
-    "error.network.request_creation": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "We could not create the request."
           }
         }
       }

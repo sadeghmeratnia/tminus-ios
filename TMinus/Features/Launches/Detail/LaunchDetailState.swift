@@ -14,26 +14,34 @@ struct LaunchDetailState: Equatable {
     let launch: Launch?
     let phase: DetailPhase
     let relatedArticles: [NewsArticle]
+    let loadGeneration: LoadGeneration
 
     static func initial(launchID: String) -> LaunchDetailState {
-        LaunchDetailState(launchID: launchID, launch: nil, phase: .idle, relatedArticles: [])
+        LaunchDetailState(launchID: launchID, launch: nil, phase: .idle, relatedArticles: [], loadGeneration: LoadGeneration())
     }
 
     func with(launch: Launch? = nil,
               phase: DetailPhase? = nil,
-              relatedArticles: [NewsArticle]? = nil) -> LaunchDetailState {
+              relatedArticles: [NewsArticle]? = nil,
+              loadGeneration: LoadGeneration? = nil) -> LaunchDetailState {
         LaunchDetailState(
             launchID: launchID,
             launch: launch ?? self.launch,
             phase: phase ?? self.phase,
-            relatedArticles: relatedArticles ?? self.relatedArticles)
+            relatedArticles: relatedArticles ?? self.relatedArticles,
+            loadGeneration: loadGeneration ?? self.loadGeneration)
     }
 
-    func startingLoad() -> LaunchDetailState {
-        with(phase: .loading)
+    /// Returns the new state alongside the raw generation value the caller's effect should tag
+    /// its in-flight load with.
+    func startingLoad() -> (state: LaunchDetailState, generation: Int) {
+        let (next, value) = loadGeneration.advanced()
+        return (with(phase: .loading, loadGeneration: next), value)
     }
 
-    func applyingLoadResponse(launch: Launch?, errorMessage: String?) -> LaunchDetailState {
+    func applyingLoadResponse(launch: Launch?, errorMessage: String?, generation: Int) -> LaunchDetailState {
+        guard loadGeneration.matches(generation) else { return self }
+
         if let errorMessage {
             return with(phase: .error(message: errorMessage))
         }

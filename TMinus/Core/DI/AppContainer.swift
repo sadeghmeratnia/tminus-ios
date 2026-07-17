@@ -41,7 +41,12 @@ final class AppContainer {
 
             let schema = Schema([LaunchLocalModel.self])
             let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-            let modelContainer = try! ModelContainer(for: schema, configurations: [configuration])
+            let modelContainer: ModelContainer
+            do {
+                modelContainer = try ModelContainer(for: schema, configurations: [configuration])
+            } catch {
+                fatalError("Failed to bootstrap preview container: \(error)")
+            }
 
             return AppContainer(
                 networkClient: networkClient,

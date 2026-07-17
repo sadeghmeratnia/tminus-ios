@@ -11,44 +11,46 @@ import Foundation
 
 @Suite("ListContentPhase")
 enum ListContentPhaseTests {
-    @Test("Initial load with no items is loading")
+    @Test("Initial load with no items is loading, with no banner")
     static func initialLoadIsLoading() {
-        let result = ListContentPhase<Int>.derive(phase: .loading(.initial), items: [])
-        #expect(result == .loading)
+        let result = ListContentPhase<Int>.resolve(phase: .loading(.initial), items: [])
+        #expect(result.phase == .loading)
+        #expect(result.refreshErrorMessage == nil)
     }
 
-    @Test("Error with no items surfaces the error message")
+    @Test("Error with no items surfaces the error as a full-screen phase, with no banner")
     static func errorWithNoItemsIsError() {
-        let result = ListContentPhase<Int>.derive(phase: .error(message: "failed"), items: [])
-        #expect(result == .error(message: "failed"))
+        let result = ListContentPhase<Int>.resolve(phase: .error(message: "failed"), items: [])
+        #expect(result.phase == .error(message: "failed"))
+        #expect(result.refreshErrorMessage == nil)
     }
 
-    @Test("Idle, loaded, refresh, or load-more with no items is empty", arguments: [
-        ListPhase.idle,
-        .loaded,
-        .loading(.refresh),
-        .loading(.loadMore),
-    ])
-    static func noItemsWithoutErrorIsEmpty(phase: ListPhase) {
-        let result = ListContentPhase<Int>.derive(phase: phase, items: [])
-        #expect(result == .empty)
-    }
-
-    @Test("Any phase with items present is content, including error and initial loading")
-    static func itemsAlwaysWinOverPhase() {
-        let items = [1, 2, 3]
-        for phase in [ListPhase.idle, .loading(.initial), .loading(.refresh), .loading(.loadMore), .loaded, .error(message: "failed")] {
-            #expect(ListContentPhase.derive(phase: phase, items: items) == .content(items))
+    @Test("Idle, loaded, refresh, or load-more with no items is empty, with no banner")
+    static func noItemsWithoutErrorIsEmpty() {
+        for phase in [ListPhase.idle, .loaded, .loading(.refresh), .loading(.loadMore)] {
+            let result = ListContentPhase<Int>.resolve(phase: phase, items: [])
+            #expect(result.phase == .empty)
+            #expect(result.refreshErrorMessage == nil)
         }
     }
 
-    @Test("refreshErrorMessage is nil unless the phase is error and items are present")
-    static func refreshErrorMessageOnlyWhenErrorWithItems() {
+    @Test("Any non-error phase with items present is content, with no banner")
+    static func itemsWinOverNonErrorPhase() {
+        let items = [1, 2, 3]
+        for phase in [ListPhase.idle, .loading(.initial), .loading(.refresh), .loading(.loadMore), .loaded] {
+            let result = ListContentPhase.resolve(phase: phase, items: items)
+            #expect(result.phase == .content(items))
+            #expect(result.refreshErrorMessage == nil)
+        }
+    }
+
+    @Test("A failed refresh with stale items keeps showing them, with a banner message")
+    static func errorWithItemsSurfacesBanner() {
         let items = [1, 2, 3]
 
-        #expect(ListContentPhase.refreshErrorMessage(phase: .error(message: "refresh failed"), items: items) == "refresh failed")
-        #expect(ListContentPhase.refreshErrorMessage(phase: .error(message: "refresh failed"), items: []) == nil)
-        #expect(ListContentPhase.refreshErrorMessage(phase: .loaded, items: items) == nil)
-        #expect(ListContentPhase.refreshErrorMessage(phase: .loading(.loadMore), items: items) == nil)
+        let result = ListContentPhase.resolve(phase: .error(message: "refresh failed"), items: items)
+
+        #expect(result.phase == .content(items))
+        #expect(result.refreshErrorMessage == "refresh failed")
     }
 }

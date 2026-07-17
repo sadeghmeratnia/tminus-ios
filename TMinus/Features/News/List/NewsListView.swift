@@ -21,12 +21,8 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
         state.articles
     }
 
-    private var contentPhase: ListContentPhase<NewsArticle> {
-        .derive(phase: state.phase, items: articles)
-    }
-
-    private var refreshBannerMessage: String? {
-        ListContentPhase.refreshErrorMessage(phase: state.phase, items: articles)
+    private var resolvedContent: (phase: ListContentPhase<NewsArticle>, refreshErrorMessage: String?) {
+        ListContentPhase.resolve(phase: state.phase, items: articles)
     }
 
     private var searchBinding: Binding<String> {
@@ -36,48 +32,21 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
     }
 
     var body: some View {
-        contentView
+        let (phase, refreshErrorMessage) = resolvedContent
+        return ListScreenScaffold(
+            phase: phase,
+            loadingTitle: L10n.News.loading,
+            errorTitle: L10n.News.errorTitle,
+            emptyTitle: L10n.News.emptyTitle,
+            emptyDescription: L10n.News.emptyDescription,
+            emptyIcon: Constants.Icon.empty) {
+                articlesListView(bannerMessage: refreshErrorMessage)
+            }
             .background(Color(.systemGroupedBackground))
             .navigationTitle(L10n.News.navigationTitle)
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: searchBinding, prompt: L10n.News.searchPrompt)
             .task { viewModel.onTrigger(.onAppear) }
-    }
-
-    private var contentView: some View {
-        Group {
-            switch contentPhase {
-            case .loading:
-                loadingView
-            case let .error(message):
-                errorView(message: message)
-            case .empty:
-                emptyView
-            case .content:
-                articlesListView(bannerMessage: refreshBannerMessage)
-            }
-        }
-    }
-
-    private var loadingView: some View {
-        ProgressView(L10n.News.loading)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func errorView(message: String) -> some View {
-        ContentUnavailableView(
-            L10n.News.errorTitle,
-            systemImage: UIConstants.Icon.networkError,
-            description: Text(message))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var emptyView: some View {
-        ContentUnavailableView(
-            L10n.News.emptyTitle,
-            systemImage: Constants.Icon.empty,
-            description: Text(L10n.News.emptyDescription))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func articlesListView(bannerMessage: String?) -> some View {
@@ -100,15 +69,11 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
                     .onAppear { viewModel.onTrigger(.articleAppeared(article.id)) }
                 }
 
-                if case .loading(.loadMore) = state.phase {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else if let loadMoreError = state.pagination.loadMoreError {
-                    ListLoadMoreErrorFooter(
-                        message: loadMoreError,
-                        retryTitle: L10n.News.retryAction,
-                        onRetry: { viewModel.onTrigger(.retryLoadMore) })
-                }
+                ListLoadMoreFooter(
+                    isLoadingMore: state.phase.isLoadingMore,
+                    loadMoreError: state.pagination.loadMoreError,
+                    retryTitle: L10n.News.retryAction,
+                    onRetry: { viewModel.onTrigger(.retryLoadMore) })
             }
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)

@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - NetworkSession
 
-protocol NetworkSession {
+protocol NetworkSession: Sendable {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 

@@ -67,7 +67,10 @@ extension LaunchDTO {
         case windowStart
         case windowEnd
         case image
-        case videoURLs = "vidURLs"
+        // The decoder applies `.convertFromSnakeCase` globally, which turns the LL2 API's
+        // "vid_urls" into "vidUrls" before key matching — the raw value here must be that
+        // post-conversion form, not the original snake_case JSON key.
+        case videoURLs = "vidUrls"
         case rocket
         case pad
         case mission

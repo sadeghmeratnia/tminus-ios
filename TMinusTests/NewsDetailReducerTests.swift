@@ -19,16 +19,18 @@ enum NewsDetailReducerTests {
 
         #expect(result.state.phase == .loading)
         #expect(result.state.articleID == "article-1")
-        guard case let .load(id) = result.effect else {
+        #expect(result.state.loadGeneration == LoadGeneration(current: 1))
+        guard case let .load(id, generation) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
         #expect(id == "article-1")
+        #expect(generation == 1)
     }
 
     @Test("Appear is ignored after first load has started")
     static func appearIgnoredWhenNotIdle() {
-        let state = NewsDetailState(articleID: "article-1", article: nil, phase: .loading)
+        let state = NewsDetailState(articleID: "article-1", article: nil, phase: .loading, loadGeneration: LoadGeneration(current: 1))
 
         let result = NewsDetailReducer.reduce(state: state, action: .appear)
 
@@ -39,11 +41,11 @@ enum NewsDetailReducerTests {
     @Test("Successful load response stores article")
     static func loadResponseSuccess() {
         let article = makeArticle(id: "article-1")
-        let state = NewsDetailState(articleID: "article-1", article: nil, phase: .loading)
+        let state = NewsDetailState(articleID: "article-1", article: nil, phase: .loading, loadGeneration: LoadGeneration(current: 1))
 
         let result = NewsDetailReducer.reduce(
             state: state,
-            action: .loadResponse(article: article, errorMessage: nil))
+            action: .loadResponse(article: article, errorMessage: nil, generation: 1))
 
         #expect(result.state.phase == .loaded)
         #expect(result.state.article == article)
@@ -52,12 +54,12 @@ enum NewsDetailReducerTests {
 
     @Test("Failed load response enters error phase")
     static func loadResponseFailure() {
-        let state = NewsDetailState(articleID: "article-1", article: nil, phase: .loading)
+        let state = NewsDetailState(articleID: "article-1", article: nil, phase: .loading, loadGeneration: LoadGeneration(current: 1))
         let errorMessage = "Network failed"
 
         let result = NewsDetailReducer.reduce(
             state: state,
-            action: .loadResponse(article: nil, errorMessage: errorMessage))
+            action: .loadResponse(article: nil, errorMessage: errorMessage, generation: 1))
 
         if case let .error(message) = result.state.phase {
             #expect(message == errorMessage)
@@ -66,18 +68,39 @@ enum NewsDetailReducerTests {
         }
     }
 
+    @Test("A response from a superseded generation is dropped")
+    static func staleGenerationResponseIsDropped() {
+        let article = makeArticle(id: "article-1")
+        // Two loads have started (generation 2 is current); a response tagged for the
+        // first (generation 1) arrives late and must not clobber the newer in-flight load.
+        let state = NewsDetailState(articleID: "article-1", article: nil, phase: .loading, loadGeneration: LoadGeneration(current: 2))
+
+        let result = NewsDetailReducer.reduce(
+            state: state,
+            action: .loadResponse(article: article, errorMessage: nil, generation: 1))
+
+        #expect(result.state == state)
+        #expect(result.state.article == nil)
+    }
+
     @Test("Retry reloads from error state")
     static func retryFromError() {
-        let state = NewsDetailState(articleID: "article-1", article: nil, phase: .error(message: "Network failed"))
+        let state = NewsDetailState(
+            articleID: "article-1",
+            article: nil,
+            phase: .error(message: "Network failed"),
+            loadGeneration: LoadGeneration(current: 1))
 
         let result = NewsDetailReducer.reduce(state: state, action: .retry)
 
         #expect(result.state.phase == .loading)
-        guard case let .load(id) = result.effect else {
+        #expect(result.state.loadGeneration == LoadGeneration(current: 2))
+        guard case let .load(id, generation) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
         #expect(id == "article-1")
+        #expect(generation == 2)
     }
 }
 

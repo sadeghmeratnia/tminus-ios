@@ -29,5 +29,6 @@ enum NewsPreviewFixtures {
     static let detailLoadedState = NewsDetailState(
         articleID: articleID,
         article: article,
-        phase: .loaded)
+        phase: .loaded,
+        loadGeneration: LoadGeneration(current: 1))
 }

@@ -53,7 +53,7 @@ final class NewsDetailViewModel: ReducingStoreProtocol {
 
     func run(_ effect: NewsDetailEffect) {
         switch effect {
-        case let .load(id):
+        case let .load(id, generation):
             loadTask?.cancel()
             loadTask = Task { [weak self] in
                 guard let self else { return }
@@ -73,7 +73,7 @@ final class NewsDetailViewModel: ReducingStoreProtocol {
                     errorMessage = L10n.Error.Network.unknown
                 }
 
-                self.send(.loadResponse(article: article, errorMessage: errorMessage))
+                self.send(.loadResponse(article: article, errorMessage: errorMessage, generation: generation))
             }
         }
     }

@@ -95,7 +95,7 @@ struct LaunchCardView: View {
     }
 
     private var launchDateView: some View {
-        Label(launch.windowStart.formatted(Constants.windowDateStyle), systemImage: Constants.Icon.calendar)
+        Label(launch.windowStart.formatted(Constants.windowDateStyle), systemImage: UIConstants.Icon.calendar)
             .font(.caption)
             .foregroundStyle(.secondary)
     }
@@ -105,7 +105,7 @@ struct LaunchCardView: View {
             Rectangle()
                 .fill(Color.secondary.opacity(UIConstants.Opacity.subtleBackground))
 
-            Image(systemName: Constants.Icon.placeholder)
+            Image(systemName: UIConstants.Icon.photoPlaceholder)
                 .font(.title3)
                 .foregroundStyle(.secondary)
         }
@@ -123,8 +123,6 @@ private enum Constants {
 
     enum Icon {
         static let launchPad = "mappin.and.ellipse"
-        static let calendar = "calendar"
-        static let placeholder = "photo"
     }
 
     static let windowDateStyle = Date.FormatStyle()

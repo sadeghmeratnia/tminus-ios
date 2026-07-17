@@ -14,6 +14,19 @@ struct NewsListState: Equatable {
     let searchText: String
     let pagination: ListPagination
     let phase: ListPhase
+    let loadGenerations: ListLoadGenerations
+
+    init(articles: [NewsArticle],
+         searchText: String,
+         pagination: ListPagination,
+         phase: ListPhase,
+         loadGenerations: ListLoadGenerations = ListLoadGenerations()) {
+        self.articles = articles
+        self.searchText = searchText
+        self.pagination = pagination
+        self.phase = phase
+        self.loadGenerations = loadGenerations
+    }
 
     static let initial = NewsListState(
         articles: [],
@@ -24,40 +37,53 @@ struct NewsListState: Equatable {
     func with(articles: [NewsArticle]? = nil,
               searchText: String? = nil,
               pagination: ListPagination? = nil,
-              phase: ListPhase? = nil) -> NewsListState {
+              phase: ListPhase? = nil,
+              loadGenerations: ListLoadGenerations? = nil) -> NewsListState {
         NewsListState(
             articles: articles ?? self.articles,
             searchText: searchText ?? self.searchText,
             pagination: pagination ?? self.pagination,
-            phase: phase ?? self.phase)
+            phase: phase ?? self.phase,
+            loadGenerations: loadGenerations ?? self.loadGenerations)
     }
 
-    func startingInitialLoad() -> NewsListState {
-        with(articles: [], pagination: .initial, phase: .loading(.initial))
+    /// See `LaunchListState`'s equivalent methods — same generation-guard rationale, shared via
+    /// `ListLoadGenerations` rather than reimplemented per feature.
+    func startingInitialLoad() -> (state: NewsListState, generation: Int) {
+        let (next, value) = loadGenerations.advancing(for: .fresh)
+        return (with(articles: [], pagination: .initial, phase: .loading(.initial), loadGenerations: next), value)
     }
 
-    func startingRefresh() -> NewsListState {
-        with(phase: .loading(.refresh))
+    func startingRefresh() -> (state: NewsListState, generation: Int) {
+        let (next, value) = loadGenerations.advancing(for: .fresh)
+        return (with(phase: .loading(.refresh), loadGenerations: next), value)
     }
 
-    func startingSearch(_ text: String) -> NewsListState {
-        with(articles: [], searchText: text, pagination: .initial, phase: .loading(.initial))
+    func startingSearch(_ text: String) -> (state: NewsListState, generation: Int) {
+        let (next, value) = loadGenerations.advancing(for: .fresh)
+        return (
+            with(articles: [], searchText: text, pagination: .initial, phase: .loading(.initial), loadGenerations: next),
+            value)
     }
 
     func updatingSearchText(_ text: String) -> NewsListState {
         with(searchText: text)
     }
 
-    func startingLoadMore() -> NewsListState {
-        with(pagination: pagination.clearingLoadMoreError(), phase: .loading(.loadMore))
+    func startingLoadMore() -> (state: NewsListState, generation: Int) {
+        let (next, value) = loadGenerations.advancing(for: .loadMore)
+        return (
+            with(pagination: pagination.clearingLoadMoreError(), phase: .loading(.loadMore), loadGenerations: next),
+            value)
     }
 
     func applyingLoadResponse(searchText: String,
                               previousArticles: [NewsArticle],
                               page: PagedResult<NewsArticle>,
                               kind: ListLoadKind,
-                              errorMessage: String?) -> NewsListState {
-        guard searchText == self.searchText else { return self }
+                              errorMessage: String?,
+                              generation: Int) -> NewsListState {
+        guard searchText == self.searchText, loadGenerations.matches(generation, for: kind) else { return self }
 
         if let errorMessage {
             if kind == .loadMore {

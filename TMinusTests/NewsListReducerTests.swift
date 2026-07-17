@@ -18,7 +18,7 @@ enum NewsListReducerTests {
         let result = NewsListReducer.reduce(state: state, action: .appear)
 
         #expect(result.state.phase == .loading(.initial))
-        guard case let .load(searchText, page, previousArticles, fetchPolicy, kind) = result.effect else {
+        guard case let .load(searchText, page, previousArticles, fetchPolicy, kind, _) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
@@ -49,7 +49,7 @@ enum NewsListReducerTests {
 
         #expect(result.state.articles.isEmpty)
         #expect(result.state.phase == .loading(.initial))
-        guard case let .load(searchText, page, previousArticles, fetchPolicy, kind) = result.effect else {
+        guard case let .load(searchText, page, previousArticles, fetchPolicy, kind, _) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
@@ -71,7 +71,8 @@ enum NewsListReducerTests {
                 previousArticles: [],
                 page: PagedResult(items: [makeArticle(id: "stale")], currentPage: 1),
                 kind: .fresh,
-                errorMessage: nil))
+                errorMessage: nil,
+                generation: 0))
 
         #expect(result.state.articles.isEmpty)
         #expect(result.state == state)
@@ -88,7 +89,8 @@ enum NewsListReducerTests {
                 previousArticles: [],
                 page: PagedResult(items: [makeArticle(id: "1")], currentPage: 1),
                 kind: .fresh,
-                errorMessage: nil))
+                errorMessage: nil,
+                generation: 0))
 
         #expect(result.state.articles.map(\.id) == ["1"])
         #expect(result.state.phase == .loaded)
@@ -102,7 +104,7 @@ enum NewsListReducerTests {
 
         let result = NewsListReducer.reduce(state: state, action: .loadMore)
 
-        guard case let .load(searchText, page, previousArticles, fetchPolicy, kind) = result.effect else {
+        guard case let .load(searchText, page, previousArticles, fetchPolicy, kind, _) = result.effect else {
             Issue.record("Expected load-more effect")
             return
         }
@@ -133,7 +135,7 @@ enum NewsListReducerTests {
 
         let result = NewsListReducer.reduce(state: state, action: .retryLoadMore)
 
-        guard case let .load(_, page, previousArticles, fetchPolicy, kind) = result.effect else {
+        guard case let .load(_, page, previousArticles, fetchPolicy, kind, _) = result.effect else {
             Issue.record("Expected load effect from retry")
             return
         }
@@ -142,6 +144,40 @@ enum NewsListReducerTests {
         #expect(fetchPolicy == .networkOnly)
         #expect(kind == .loadMore)
         #expect(result.state.pagination.loadMoreError == nil)
+    }
+
+    @Test("A response for a superseded generation with matching search text is dropped")
+    static func staleGenerationResponseIsDropped() {
+        let appeared = NewsListReducer.reduce(
+            state: NewsListState(articles: [], searchText: "", pagination: .initial, phase: .idle),
+            action: .appear)
+        // Two overlapping refreshes (e.g. rapid pull-to-refresh) share the same search text, so
+        // only the generation guard — not the existing searchText check — can tell them apart.
+        let refreshed = NewsListReducer.reduce(state: appeared.state, action: .refresh)
+
+        let staleResult = NewsListReducer.reduce(
+            state: refreshed.state,
+            action: .loadResponse(
+                searchText: "",
+                previousArticles: [],
+                page: PagedResult(items: [makeArticle(id: "stale")], currentPage: 1),
+                kind: .fresh,
+                errorMessage: nil,
+                generation: 1))
+
+        #expect(staleResult.state == refreshed.state)
+
+        let currentResult = NewsListReducer.reduce(
+            state: refreshed.state,
+            action: .loadResponse(
+                searchText: "",
+                previousArticles: [],
+                page: PagedResult(items: [makeArticle(id: "current")], currentPage: 1),
+                kind: .fresh,
+                errorMessage: nil,
+                generation: 2))
+
+        #expect(currentResult.state.articles.map(\.id) == ["current"])
     }
 }
 

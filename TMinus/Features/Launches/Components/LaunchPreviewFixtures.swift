@@ -42,5 +42,6 @@ enum LaunchPreviewFixtures {
         launchID: launchID,
         launch: launch,
         phase: .loaded,
-        relatedArticles: [NewsPreviewFixtures.article])
+        relatedArticles: [NewsPreviewFixtures.article],
+        loadGeneration: LoadGeneration(current: 1))
 }

@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - HTTPMethod
 
-enum HTTPMethod: String {
+enum HTTPMethod: String, Sendable {
     case get = "GET"
     case post = "POST"
     case put = "PUT"
@@ -17,7 +17,7 @@ enum HTTPMethod: String {
 
 // MARK: - Endpoint
 
-struct Endpoint {
+struct Endpoint: Sendable {
     let baseURL: URL
     let path: String
     let method: HTTPMethod

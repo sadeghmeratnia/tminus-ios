@@ -240,7 +240,8 @@ private enum Constants {
                     launchID: LaunchPreviewFixtures.launchID,
                     launch: nil,
                     phase: .loading,
-                    relatedArticles: [])))
+                    relatedArticles: [],
+                    loadGeneration: LoadGeneration(current: 1))))
     }
 }
 
@@ -252,6 +253,7 @@ private enum Constants {
                     launchID: LaunchPreviewFixtures.launchID,
                     launch: nil,
                     phase: .error(message: "Could not load launch details"),
-                    relatedArticles: [])))
+                    relatedArticles: [],
+                    loadGeneration: LoadGeneration(current: 1))))
     }
 }

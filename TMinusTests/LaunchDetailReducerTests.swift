@@ -19,11 +19,13 @@ enum LaunchDetailReducerTests {
 
         #expect(result.state.phase == .loading)
         #expect(result.state.launchID == "launch-1")
-        guard case let .load(id) = result.effect else {
+        #expect(result.state.loadGeneration == LoadGeneration(current: 1))
+        guard case let .load(id, generation) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
         #expect(id == "launch-1")
+        #expect(generation == 1)
     }
 
     @Test("Appear is ignored after first load has started")
@@ -32,7 +34,8 @@ enum LaunchDetailReducerTests {
             launchID: "launch-1",
             launch: nil,
             phase: .loading,
-            relatedArticles: [])
+            relatedArticles: [],
+            loadGeneration: LoadGeneration(current: 1))
 
         let result = LaunchDetailReducer.reduce(state: state, action: .appear)
 
@@ -43,11 +46,11 @@ enum LaunchDetailReducerTests {
     @Test("Successful load response stores launch")
     static func loadResponseSuccess() {
         let launch = makeLaunch(id: "launch-1")
-        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading, relatedArticles: [])
+        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading, relatedArticles: [], loadGeneration: LoadGeneration(current: 1))
 
         let result = LaunchDetailReducer.reduce(
             state: state,
-            action: .loadResponse(launch: launch, errorMessage: nil))
+            action: .loadResponse(launch: launch, errorMessage: nil, generation: 1))
 
         #expect(result.state.phase == .loaded)
         #expect(result.state.launch == launch)
@@ -56,12 +59,12 @@ enum LaunchDetailReducerTests {
 
     @Test("Failed load response enters error phase")
     static func loadResponseFailure() {
-        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading, relatedArticles: [])
+        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading, relatedArticles: [], loadGeneration: LoadGeneration(current: 1))
         let errorMessage = "Network failed"
 
         let result = LaunchDetailReducer.reduce(
             state: state,
-            action: .loadResponse(launch: nil, errorMessage: errorMessage))
+            action: .loadResponse(launch: nil, errorMessage: errorMessage, generation: 1))
 
         if case let .error(message) = result.state.phase {
             #expect(message == errorMessage)
@@ -71,28 +74,46 @@ enum LaunchDetailReducerTests {
         #expect(result.effect == nil)
     }
 
+    @Test("A response from a superseded generation is dropped")
+    static func staleGenerationResponseIsDropped() {
+        let launch = makeLaunch(id: "launch-1")
+        // Two loads have started (generation 2 is current); a response tagged for the
+        // first (generation 1) arrives late and must not clobber the newer in-flight load.
+        let state = LaunchDetailState(launchID: "launch-1", launch: nil, phase: .loading, relatedArticles: [], loadGeneration: LoadGeneration(current: 2))
+
+        let result = LaunchDetailReducer.reduce(
+            state: state,
+            action: .loadResponse(launch: launch, errorMessage: nil, generation: 1))
+
+        #expect(result.state == state)
+        #expect(result.state.launch == nil)
+    }
+
     @Test("Retry reloads from error state")
     static func retryFromError() {
         let state = LaunchDetailState(
             launchID: "launch-1",
             launch: nil,
             phase: .error(message: "Network failed"),
-            relatedArticles: [])
+            relatedArticles: [],
+            loadGeneration: LoadGeneration(current: 1))
 
         let result = LaunchDetailReducer.reduce(state: state, action: .retry)
 
         #expect(result.state.phase == .loading)
-        guard case let .load(id) = result.effect else {
+        #expect(result.state.loadGeneration == LoadGeneration(current: 2))
+        guard case let .load(id, generation) = result.effect else {
             Issue.record("Expected load effect")
             return
         }
         #expect(id == "launch-1")
+        #expect(generation == 2)
     }
 
     @Test("Related news response populates related articles without affecting phase")
     static func relatedNewsResponseSuccess() {
         let launch = makeLaunch(id: "launch-1")
-        let state = LaunchDetailState(launchID: "launch-1", launch: launch, phase: .loaded, relatedArticles: [])
+        let state = LaunchDetailState(launchID: "launch-1", launch: launch, phase: .loaded, relatedArticles: [], loadGeneration: LoadGeneration(current: 1))
         let article = makeArticle(id: "article-1")
 
         let result = LaunchDetailReducer.reduce(state: state, action: .relatedNewsResponse([article]))
@@ -105,7 +126,7 @@ enum LaunchDetailReducerTests {
     @Test("Empty related news response leaves the section empty without an error")
     static func relatedNewsResponseEmpty() {
         let launch = makeLaunch(id: "launch-1")
-        let state = LaunchDetailState(launchID: "launch-1", launch: launch, phase: .loaded, relatedArticles: [])
+        let state = LaunchDetailState(launchID: "launch-1", launch: launch, phase: .loaded, relatedArticles: [], loadGeneration: LoadGeneration(current: 1))
 
         let result = LaunchDetailReducer.reduce(state: state, action: .relatedNewsResponse([]))
 
