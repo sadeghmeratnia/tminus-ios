@@ -146,10 +146,8 @@ enum DefaultRetryPolicyTests {
             let delay = policy.delay(for: 0)
 
             // base = 1.0, jitter = 0...1.0, range is 1.0...2.0 seconds
-            let minDelay = UInt64(1.0 * 1_000_000_000)
-            let maxDelay = UInt64(2.0 * 1_000_000_000)
-            #expect(delay >= minDelay)
-            #expect(delay <= maxDelay)
+            #expect(delay >= .seconds(1.0))
+            #expect(delay <= .seconds(2.0))
         }
 
         @Test("Delay is within expected range for attempt 1")
@@ -158,10 +156,8 @@ enum DefaultRetryPolicyTests {
             let delay = policy.delay(for: 1)
 
             // base = 2.0, jitter = 0...1.0, range is 2.0...3.0 seconds
-            let minDelay = UInt64(2.0 * 1_000_000_000)
-            let maxDelay = UInt64(3.0 * 1_000_000_000)
-            #expect(delay >= minDelay)
-            #expect(delay <= maxDelay)
+            #expect(delay >= .seconds(2.0))
+            #expect(delay <= .seconds(3.0))
         }
 
         @Test("Delay is within expected range for attempt 2")
@@ -170,10 +166,8 @@ enum DefaultRetryPolicyTests {
             let delay = policy.delay(for: 2)
 
             // base = 4.0, jitter = 0...1.0, range is 4.0...5.0 seconds
-            let minDelay = UInt64(4.0 * 1_000_000_000)
-            let maxDelay = UInt64(5.0 * 1_000_000_000)
-            #expect(delay >= minDelay)
-            #expect(delay <= maxDelay)
+            #expect(delay >= .seconds(4.0))
+            #expect(delay <= .seconds(5.0))
         }
     }
 }

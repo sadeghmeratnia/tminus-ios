@@ -33,7 +33,7 @@ enum DataCacheTests {
         let payload = Data("old".utf8)
 
         await cache.set(payload, for: key, source: .network)
-        try await Task.sleep(nanoseconds: 50_000_000)
+        try await Task.sleep(for: .nanoseconds(50_000_000))
 
         let strictValue = await cache.cachedValue(for: key)
         let staleValue = await cache.cachedValue(for: key, allowingStale: true)
@@ -51,7 +51,7 @@ enum DataCacheTests {
 
         await cache.set(Data("stale".utf8), for: staleKey, ttl: 0.01, source: .network)
         await cache.set(Data("fresh".utf8), for: freshKey, ttl: 60, source: .network)
-        try await Task.sleep(nanoseconds: 50_000_000)
+        try await Task.sleep(for: .nanoseconds(50_000_000))
 
         await cache.removeStaleEntries()
 

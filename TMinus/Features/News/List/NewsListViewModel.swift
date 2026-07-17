@@ -109,13 +109,13 @@ extension NewsListViewModel {
     private func debounceSearch(_ text: String) {
         searchDebounceTask?.cancel()
         searchDebounceTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: Constants.searchDebounceNanoseconds)
+            try? await Task.sleep(for: Constants.searchDebounceDelay)
             guard Task.isCancelled == false else { return }
             self?.send(.search(text))
         }
     }
 
     private enum Constants {
-        static let searchDebounceNanoseconds: UInt64 = 400_000_000
+        static let searchDebounceDelay = Duration.milliseconds(400)
     }
 }

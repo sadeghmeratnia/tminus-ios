@@ -33,11 +33,11 @@ struct DefaultRetryPolicy: RetryPolicy {
         }
     }
 
-    func delay(for attempt: Int) -> UInt64 {
+    func delay(for attempt: Int) -> Duration {
         let base = pow(2.0, Double(attempt))
         let jitter = Double.random(in: 0 ... 1.0)
         let seconds = min(base + jitter, Constants.maxDelaySeconds)
-        return UInt64(seconds * 1_000_000_000)
+        return .seconds(seconds)
     }
 }
 

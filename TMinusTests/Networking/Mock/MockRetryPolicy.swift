@@ -10,13 +10,13 @@ import Foundation
 
 struct MockRetryPolicy: RetryPolicy {
     var shouldRetryHandler: (Error, Int) -> Bool = { _, _ in false }
-    var delayHandler: (Int) -> UInt64 = { _ in 0 }
+    var delayHandler: (Int) -> Duration = { _ in .zero }
 
     func shouldRetry(error: Error, attempt: Int) -> Bool {
         shouldRetryHandler(error, attempt)
     }
 
-    func delay(for attempt: Int) -> UInt64 {
+    func delay(for attempt: Int) -> Duration {
         delayHandler(attempt)
     }
 }

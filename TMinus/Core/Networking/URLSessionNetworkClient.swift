@@ -133,7 +133,7 @@ final class URLSessionNetworkClient: NetworkClientProtocol, Sendable {
     {
         if retryPolicy.shouldRetry(error: error, attempt: attempt) {
             logger.log("⚠️ Retrying attempt \(attempt + 1): \(error)", level: .warning)
-            try await Task.sleep(nanoseconds: retryPolicy.delay(for: attempt))
+            try await Task.sleep(for: retryPolicy.delay(for: attempt))
             return try await execute(request: request, attempt: attempt + 1)
         }
         logger.log("✖ Non-retryable: \(error)", level: .error)

@@ -31,7 +31,7 @@ struct LaunchDetailViewModelTests {
         }
 
         viewModel.onTrigger(.onAppear)
-        try await Task.sleep(nanoseconds: 50_000_000)
+        try await Task.sleep(for: .nanoseconds(50_000_000))
 
         let requestedIDs = await repository.requestedIDs
         #expect(requestedIDs == ["detail-1"])
@@ -169,7 +169,7 @@ struct LaunchDetailViewModelTests {
         try await Self.waitUntil {
             viewModel.state.phase == .loaded
         }
-        try await Task.sleep(nanoseconds: 50_000_000)
+        try await Task.sleep(for: .nanoseconds(50_000_000))
 
         #expect(viewModel.state.relatedArticles.isEmpty)
         #expect(viewModel.state.phase == .loaded)
@@ -199,7 +199,7 @@ private extension LaunchDetailViewModelTests {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
-            try await Task.sleep(nanoseconds: checkEveryNanoseconds)
+            try await Task.sleep(for: .nanoseconds(checkEveryNanoseconds))
         }
         Issue.record("Timed out waiting for expected state")
     }
@@ -211,7 +211,7 @@ private extension LaunchDetailViewModelTests {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
-            try await Task.sleep(nanoseconds: checkEveryNanoseconds)
+            try await Task.sleep(for: .nanoseconds(checkEveryNanoseconds))
         }
         Issue.record("Timed out waiting for expected state")
     }

@@ -30,7 +30,7 @@ struct LaunchListViewModelTests {
         }
 
         viewModel.onTrigger(.onAppear)
-        try await Task.sleep(nanoseconds: 50_000_000)
+        try await Task.sleep(for: .nanoseconds(50_000_000))
 
         let upcomingQueries = await repository.upcomingQueries
         #expect(upcomingQueries.count == 1)
@@ -107,7 +107,7 @@ struct LaunchListViewModelTests {
         let repository = MockLaunchRepository()
         await repository.setUpcomingHandler { query, callIndex in
             if callIndex == 1 {
-                try await Task.sleep(nanoseconds: 500_000_000)
+                try await Task.sleep(for: .nanoseconds(500_000_000))
                 return PagedResult(items: [Self.makeLaunch(id: "stale")])
             }
             if query.fetchPolicy == .networkOnly {
@@ -190,7 +190,7 @@ struct LaunchListViewModelTests {
                 throw LaunchError.networkUnavailable
             case 3:
                 // Slow refresh: still in flight when retry-load-more fires.
-                try await Task.sleep(nanoseconds: 300_000_000)
+                try await Task.sleep(for: .nanoseconds(300_000_000))
                 return PagedResult(
                     items: [Self.makeLaunch(id: "fresh")],
                     currentPage: 1,
@@ -264,7 +264,7 @@ private extension LaunchListViewModelTests {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
-            try await Task.sleep(nanoseconds: checkEveryNanoseconds)
+            try await Task.sleep(for: .nanoseconds(checkEveryNanoseconds))
         }
         Issue.record("Timed out waiting for expected state")
     }

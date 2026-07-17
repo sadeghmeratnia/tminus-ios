@@ -9,5 +9,5 @@ import Foundation
 
 protocol RetryPolicy: Sendable {
     func shouldRetry(error: Error, attempt: Int) -> Bool
-    func delay(for attempt: Int) -> UInt64
+    func delay(for attempt: Int) -> Duration
 }

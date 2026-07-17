@@ -26,7 +26,7 @@ struct NewsListViewModelTests {
         }
 
         viewModel.onTrigger(.onAppear)
-        try await Task.sleep(nanoseconds: 50_000_000)
+        try await Task.sleep(for: .nanoseconds(50_000_000))
 
         let queries = await repository.queries
         #expect(queries.count == 1)
@@ -75,7 +75,7 @@ struct NewsListViewModelTests {
 
         // Immediately after typing, the search text is reflected but no load has fired yet.
         #expect(viewModel.state.searchText == "moon")
-        try await Task.sleep(nanoseconds: 100_000_000)
+        try await Task.sleep(for: .nanoseconds(100_000_000))
         let queriesRightAfterTyping = await repository.queries
         #expect(queriesRightAfterTyping.count == 1, "Only the initial appear load should have fired so far")
 
@@ -152,7 +152,7 @@ private extension NewsListViewModelTests {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
-            try await Task.sleep(nanoseconds: checkEveryNanoseconds)
+            try await Task.sleep(for: .nanoseconds(checkEveryNanoseconds))
         }
         Issue.record("Timed out waiting for expected state")
     }
