@@ -24,20 +24,23 @@ struct ListPagination: Equatable {
         nextPage: nil,
         previousPage: nil,
         totalCount: nil,
-        loadMoreError: nil)
+        loadMoreError: nil
+    )
 
     func with(currentPage: Int? = nil,
               nextPage: Int? = nil,
               previousPage: Int? = nil,
               totalCount: Int? = nil,
               loadMoreError: String? = nil,
-              clearsLoadMoreError: Bool = false) -> ListPagination {
+              clearsLoadMoreError: Bool = false) -> ListPagination
+    {
         ListPagination(
             currentPage: currentPage ?? self.currentPage,
             nextPage: nextPage ?? self.nextPage,
             previousPage: previousPage ?? self.previousPage,
             totalCount: totalCount ?? self.totalCount,
-            loadMoreError: clearsLoadMoreError ? nil : (loadMoreError ?? self.loadMoreError))
+            loadMoreError: clearsLoadMoreError ? nil : (loadMoreError ?? self.loadMoreError)
+        )
     }
 
     func applying(page: PagedResult<some Sendable>) -> ListPagination {
@@ -49,14 +52,15 @@ struct ListPagination: Equatable {
             nextPage: page.nextPage,
             previousPage: page.previousPage,
             totalCount: page.totalCount,
-            loadMoreError: nil)
+            loadMoreError: nil
+        )
     }
 
     func failingLoadMore(message: String) -> ListPagination {
-        self.with(loadMoreError: message)
+        with(loadMoreError: message)
     }
 
     func clearingLoadMoreError() -> ListPagination {
-        self.with(loadMoreError: nil, clearsLoadMoreError: true)
+        with(loadMoreError: nil, clearsLoadMoreError: true)
     }
 }

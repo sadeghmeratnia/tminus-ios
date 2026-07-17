@@ -19,7 +19,8 @@ enum LaunchDTOMapper {
             launchPad: mapPad(dto.pad),
             mission: mapMission(dto.mission),
             imageURL: mapImageURL(dto.imageURL),
-            webcastURL: dto.videoURLs?.sorted(by: { ($0.priority ?? .max) < ($1.priority ?? .max) }).first?.url)
+            webcastURL: dto.videoURLs?.sorted(by: { ($0.priority ?? .max) < ($1.priority ?? .max) }).first?.url
+        )
     }
 
     private static func mapImageURL(_ imageURLString: String?) -> URL? {
@@ -61,7 +62,8 @@ enum LaunchDTOMapper {
             name: pad.name ?? L10n.Common.unknown,
             latitude: pad.latitude ?? 0,
             longitude: pad.longitude ?? 0,
-            locationName: pad.location?.name)
+            locationName: pad.location?.name
+        )
     }
 
     private static func mapMission(_ mission: LaunchMissionDTO?) -> LaunchMission? {
@@ -72,6 +74,7 @@ enum LaunchDTOMapper {
             name: mission.name ?? L10n.Common.unknown,
             description: mission.description,
             type: mission.type,
-            orbit: mission.orbit?.name)
+            orbit: mission.orbit?.name
+        )
     }
 }

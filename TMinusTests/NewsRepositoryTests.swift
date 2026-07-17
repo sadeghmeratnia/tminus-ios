@@ -5,9 +5,9 @@
 //  Created by Sadegh on 09/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("NewsRepository")
 enum NewsRepositoryTests {
@@ -18,7 +18,8 @@ enum NewsRepositoryTests {
             count: 1,
             next: "https://api.spaceflightnewsapi.net/v4/articles/?limit=20&offset=40",
             previous: "https://api.spaceflightnewsapi.net/v4/articles/?limit=20&offset=0",
-            results: [Self.makeArticleDTO(id: 1)])
+            results: [Self.makeArticleDTO(id: 1)]
+        )
         let repository = NewsRepository(remoteDataSource: dataSource)
         let query = NewsListQuery(page: 2, limit: 20, searchText: "starship", fetchPolicy: .networkOnly)
 
@@ -40,7 +41,8 @@ enum NewsRepositoryTests {
             count: 2,
             next: nil,
             previous: nil,
-            results: [Self.makeArticleDTO(id: 1), Self.makeArticleDTO(id: 2, url: "")])
+            results: [Self.makeArticleDTO(id: 1), Self.makeArticleDTO(id: 2, url: "")]
+        )
         let repository = NewsRepository(remoteDataSource: dataSource)
 
         let page = try await repository.fetchArticles(query: NewsListQuery())
@@ -79,7 +81,8 @@ enum NewsRepositoryTests {
             count: 1,
             next: nil,
             previous: nil,
-            results: [Self.makeArticleDTO(id: 9)])
+            results: [Self.makeArticleDTO(id: 9)]
+        )
         let repository = NewsRepository(remoteDataSource: dataSource)
 
         let articles = try await repository.fetchRelatedArticles(launchID: "launch-1", limit: 5)
@@ -101,8 +104,8 @@ enum NewsRepositoryTests {
     }
 }
 
-extension NewsRepositoryTests {
-    fileprivate static func makeArticleDTO(id: Int, url: String? = nil) -> NewsArticleDTO {
+private extension NewsRepositoryTests {
+    static func makeArticleDTO(id: Int, url: String? = nil) -> NewsArticleDTO {
         let json = """
         {
           "id": \(id),

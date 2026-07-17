@@ -33,7 +33,8 @@ enum LaunchLocalModelMapper {
             missionOrbit: launch.mission?.orbit,
             imageURLString: launch.imageURL?.absoluteString,
             webcastURLString: launch.webcastURL?.absoluteString,
-            fetchedAt: fetchedAt)
+            fetchedAt: fetchedAt
+        )
     }
 
     /// Updates an existing persisted model in place from a domain entity,
@@ -73,12 +74,13 @@ enum LaunchLocalModelMapper {
             launchPad: mapLaunchPad(model),
             mission: mapMission(model),
             imageURL: model.imageURLString.flatMap(URL.init(string:)),
-            webcastURL: model.webcastURLString.flatMap(URL.init(string:)))
+            webcastURL: model.webcastURLString.flatMap(URL.init(string:))
+        )
     }
 }
 
-extension LaunchLocalModelMapper {
-    fileprivate static func mapStatus(_ status: LaunchStatus) -> (String, String?) {
+private extension LaunchLocalModelMapper {
+    static func mapStatus(_ status: LaunchStatus) -> (String, String?) {
         switch status {
         case .go:
             return ("go", nil)
@@ -95,7 +97,7 @@ extension LaunchLocalModelMapper {
         }
     }
 
-    fileprivate static func mapStatus(code: String, label: String?) -> LaunchStatus {
+    static func mapStatus(code: String, label: String?) -> LaunchStatus {
         switch code {
         case "go":
             return .go
@@ -112,24 +114,26 @@ extension LaunchLocalModelMapper {
         }
     }
 
-    fileprivate static func mapRocket(_ model: LaunchLocalModel) -> LaunchRocket? {
+    static func mapRocket(_ model: LaunchLocalModel) -> LaunchRocket? {
         guard let id = model.rocketID, let name = model.rocketName else { return nil }
         return LaunchRocket(id: id, name: name)
     }
 
-    fileprivate static func mapLaunchPad(_ model: LaunchLocalModel) -> LaunchPad? {
+    static func mapLaunchPad(_ model: LaunchLocalModel) -> LaunchPad? {
         guard let id = model.padID, let name = model.padName else { return nil }
         return LaunchPad(
             id: id,
             name: name,
             latitude: model.padLatitude ?? 0,
             longitude: model.padLongitude ?? 0,
-            locationName: model.padLocationName)
+            locationName: model.padLocationName
+        )
     }
 
-    fileprivate static func mapMission(_ model: LaunchLocalModel) -> LaunchMission? {
+    static func mapMission(_ model: LaunchLocalModel) -> LaunchMission? {
         guard let missionID = model.missionID,
-              let missionName = model.missionName else {
+              let missionName = model.missionName
+        else {
             return nil
         }
         return LaunchMission(
@@ -137,6 +141,7 @@ extension LaunchLocalModelMapper {
             name: missionName,
             description: model.missionDescriptionText,
             type: model.missionType,
-            orbit: model.missionOrbit)
+            orbit: model.missionOrbit
+        )
     }
 }

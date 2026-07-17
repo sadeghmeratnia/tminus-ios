@@ -23,13 +23,15 @@ struct LaunchDetailState: Equatable {
     func with(launch: Launch? = nil,
               phase: DetailPhase? = nil,
               relatedArticles: [NewsArticle]? = nil,
-              loadGeneration: LoadGeneration? = nil) -> LaunchDetailState {
+              loadGeneration: LoadGeneration? = nil) -> LaunchDetailState
+    {
         LaunchDetailState(
             launchID: launchID,
             launch: launch ?? self.launch,
             phase: phase ?? self.phase,
             relatedArticles: relatedArticles ?? self.relatedArticles,
-            loadGeneration: loadGeneration ?? self.loadGeneration)
+            loadGeneration: loadGeneration ?? self.loadGeneration
+        )
     }
 
     /// Returns the new state alongside the raw generation value the caller's effect should tag

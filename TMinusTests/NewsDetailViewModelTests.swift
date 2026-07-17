@@ -5,9 +5,9 @@
 //  Created by Sadegh on 09/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @MainActor
 @Suite("NewsDetailViewModel")
@@ -20,7 +20,8 @@ struct NewsDetailViewModelTests {
         }
         let viewModel = NewsDetailViewModel(
             articleID: "detail-1",
-            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: repository))
+            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: repository)
+        )
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
@@ -45,7 +46,8 @@ struct NewsDetailViewModelTests {
         }
         let viewModel = NewsDetailViewModel(
             articleID: "detail-1",
-            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: repository))
+            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: repository)
+        )
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
@@ -63,8 +65,8 @@ struct NewsDetailViewModelTests {
     }
 }
 
-extension NewsDetailViewModelTests {
-    fileprivate nonisolated static func makeArticle(id: String) -> NewsArticle {
+private extension NewsDetailViewModelTests {
+    nonisolated static func makeArticle(id: String) -> NewsArticle {
         NewsArticle(
             id: id,
             title: "Article \(id)",
@@ -73,12 +75,14 @@ extension NewsDetailViewModelTests {
             imageURL: nil,
             newsSite: "SpaceNews",
             publishedAt: Date(timeIntervalSince1970: 1000),
-            relatedLaunchIDs: [])
+            relatedLaunchIDs: []
+        )
     }
 
-    fileprivate static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                                      checkEveryNanoseconds: UInt64 = 20_000_000,
-                                      _ condition: @escaping @MainActor () -> Bool) async throws {
+    static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
+                          checkEveryNanoseconds: UInt64 = 20_000_000,
+                          _ condition: @escaping @MainActor () -> Bool) async throws
+    {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
@@ -97,7 +101,7 @@ actor MockNewsDetailRepository: NewsRepositoryProtocol {
         self.handler = handler
     }
 
-    func fetchArticles(query: NewsListQuery) async throws -> PagedResult<NewsArticle> {
+    func fetchArticles(query _: NewsListQuery) async throws -> PagedResult<NewsArticle> {
         PagedResult(items: [])
     }
 
@@ -105,12 +109,12 @@ actor MockNewsDetailRepository: NewsRepositoryProtocol {
         requestedIDs.append(id)
         callCount += 1
         guard let handler else {
-            throw NewsError.unknown(underlying: NSError(domain: "MockNewsDetailRepository", code: 0))
+            throw NewsError.unknown(underlying: ErrorSummary(NSError(domain: "MockNewsDetailRepository", code: 0)))
         }
         return try await handler(id, callCount)
     }
 
-    func fetchRelatedArticles(launchID: String, limit: Int) async throws -> [NewsArticle] {
+    func fetchRelatedArticles(launchID _: String, limit _: Int) async throws -> [NewsArticle] {
         []
     }
 }

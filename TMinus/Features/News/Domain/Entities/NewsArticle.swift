@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - NewsArticle
 
-struct NewsArticle: Equatable, Identifiable, Sendable {
+struct NewsArticle: Equatable, Identifiable {
     let id: String
     let title: String
     let summary: String

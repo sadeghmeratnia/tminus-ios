@@ -39,7 +39,6 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
         .task { viewModel.onTrigger(.onAppear) }
     }
 
-    @ViewBuilder
     private func detailContent(for article: NewsArticle) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: UIConstants.Spacing.large) {
@@ -86,9 +85,10 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
 
             Label(
                 article.publishedAt.formatted(Constants.publishedDateStyle),
-                systemImage: UIConstants.Icon.calendar)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                systemImage: UIConstants.Icon.calendar
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -101,7 +101,8 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
-                    .fill(Color(.secondarySystemGroupedBackground)))
+                    .fill(Color(.secondarySystemGroupedBackground))
+            )
     }
 
     private func errorView(message: String) -> some View {
@@ -135,7 +136,8 @@ private enum Constants {
 
     static let publishedDateStyle = Date.FormatStyle(
         date: .complete,
-        time: .shortened)
+        time: .shortened
+    )
 }
 
 // MARK: - Previews
@@ -143,7 +145,8 @@ private enum Constants {
 #Preview("Loaded") {
     NavigationStack {
         NewsDetailView(
-            viewModel: StaticViewModel(state: NewsPreviewFixtures.detailLoadedState))
+            viewModel: StaticViewModel(state: NewsPreviewFixtures.detailLoadedState)
+        )
     }
 }
 
@@ -155,7 +158,10 @@ private enum Constants {
                     articleID: NewsPreviewFixtures.articleID,
                     article: nil,
                     phase: .loading,
-                    loadGeneration: LoadGeneration(current: 1))))
+                    loadGeneration: LoadGeneration(current: 1)
+                )
+            )
+        )
     }
 }
 
@@ -167,6 +173,9 @@ private enum Constants {
                     articleID: NewsPreviewFixtures.articleID,
                     article: nil,
                     phase: .error(message: "Could not load article"),
-                    loadGeneration: LoadGeneration(current: 1))))
+                    loadGeneration: LoadGeneration(current: 1)
+                )
+            )
+        )
     }
 }

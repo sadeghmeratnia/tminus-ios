@@ -14,7 +14,7 @@ extension Array where Element: Identifiable {
     func merging(_ incoming: [Element]) -> [Element] {
         let incomingByID = Dictionary(incoming.map { ($0.id, $0) }, uniquingKeysWith: { _, latest in latest })
         var seenIDs = Set(map(\.id))
-        var merged = self.map { incomingByID[$0.id] ?? $0 }
+        var merged = map { incomingByID[$0.id] ?? $0 }
         for item in incoming where !seenIDs.contains(item.id) {
             merged.append(item)
             seenIDs.insert(item.id)

@@ -26,8 +26,9 @@ final class LaunchDetailViewModel: ReducingStoreProtocol {
 
     init(launchID: String,
          fetchLaunchDetailUseCase: FetchLaunchDetailUseCase,
-         fetchRelatedNewsUseCase: FetchRelatedNewsUseCase) {
-        self.state = .initial(launchID: launchID)
+         fetchRelatedNewsUseCase: FetchRelatedNewsUseCase)
+    {
+        state = .initial(launchID: launchID)
         self.fetchLaunchDetailUseCase = fetchLaunchDetailUseCase
         self.fetchRelatedNewsUseCase = fetchRelatedNewsUseCase
     }

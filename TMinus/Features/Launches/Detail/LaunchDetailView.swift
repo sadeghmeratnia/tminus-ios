@@ -39,7 +39,6 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
         .task { viewModel.onTrigger(.onAppear) }
     }
 
-    @ViewBuilder
     private func detailContent(for launch: Launch) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: UIConstants.Spacing.large) {
@@ -104,7 +103,8 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
 
             metadataRow(
                 title: L10n.Launches.Detail.windowStart,
-                value: launch.windowStart.formatted(Constants.windowDateStyle))
+                value: launch.windowStart.formatted(Constants.windowDateStyle)
+            )
 
             if let missionName = launch.mission?.name {
                 metadataRow(title: L10n.Launches.Detail.mission, value: missionName)
@@ -122,7 +122,8 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground)))
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     private func missionSection(description: String) -> some View {
@@ -138,7 +139,8 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground)))
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     private var relatedNewsSection: some View {
@@ -175,7 +177,8 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground)))
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     private func metadataRow(title: String, value: String) -> some View {
@@ -220,7 +223,8 @@ private enum Constants {
 
     static let windowDateStyle = Date.FormatStyle(
         date: .complete,
-        time: .shortened)
+        time: .shortened
+    )
 }
 
 // MARK: - Previews
@@ -228,7 +232,8 @@ private enum Constants {
 #Preview("Loaded") {
     NavigationStack {
         LaunchDetailView(
-            viewModel: StaticViewModel(state: LaunchPreviewFixtures.detailLoadedState))
+            viewModel: StaticViewModel(state: LaunchPreviewFixtures.detailLoadedState)
+        )
     }
 }
 
@@ -241,7 +246,10 @@ private enum Constants {
                     launch: nil,
                     phase: .loading,
                     relatedArticles: [],
-                    loadGeneration: LoadGeneration(current: 1))))
+                    loadGeneration: LoadGeneration(current: 1)
+                )
+            )
+        )
     }
 }
 
@@ -254,6 +262,9 @@ private enum Constants {
                     launch: nil,
                     phase: .error(message: "Could not load launch details"),
                     relatedArticles: [],
-                    loadGeneration: LoadGeneration(current: 1))))
+                    loadGeneration: LoadGeneration(current: 1)
+                )
+            )
+        )
     }
 }

@@ -5,10 +5,10 @@
 //  Created by Sadegh on 13/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
 import SwiftData
+import Testing
+@testable import TMinus
 
 @Suite("SwiftDataLaunchLocalDataSource")
 struct SwiftDataLaunchLocalDataSourceTests {
@@ -43,7 +43,8 @@ struct SwiftDataLaunchLocalDataSourceTests {
         // create two rows sharing an id — the second occurrence should update the first.
         try await dataSource.save(
             [Self.makeLaunch(id: "1", name: "First Occurrence"), Self.makeLaunch(id: "1", name: "Second Occurrence")],
-            fetchedAt: .now)
+            fetchedAt: .now
+        )
 
         let fetched = try await dataSource.fetchUpcomingLaunches(query: LaunchListQuery(), maxAge: nil)
         #expect(fetched.count == 1)
@@ -57,7 +58,8 @@ struct SwiftDataLaunchLocalDataSourceTests {
 
         try await dataSource.save(
             [Self.makeLaunch(id: "1", name: "Updated Name"), Self.makeLaunch(id: "2", name: "Brand New")],
-            fetchedAt: .now)
+            fetchedAt: .now
+        )
 
         let fetched = try await dataSource.fetchUpcomingLaunches(query: LaunchListQuery(limit: 20), maxAge: nil)
         #expect(fetched.count == 2)
@@ -66,15 +68,15 @@ struct SwiftDataLaunchLocalDataSourceTests {
     }
 }
 
-extension SwiftDataLaunchLocalDataSourceTests {
-    fileprivate static func makeDataSource() throws -> SwiftDataLaunchLocalDataSource {
+private extension SwiftDataLaunchLocalDataSourceTests {
+    static func makeDataSource() throws -> SwiftDataLaunchLocalDataSource {
         let schema = Schema([LaunchLocalModel.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: [configuration])
         return SwiftDataLaunchLocalDataSource(container: container)
     }
 
-    fileprivate static func makeLaunch(id: String, name: String = "Mission") -> Launch {
+    static func makeLaunch(id: String, name: String = "Mission") -> Launch {
         Launch(
             id: id,
             name: name,
@@ -86,6 +88,7 @@ extension SwiftDataLaunchLocalDataSourceTests {
             launchPad: nil,
             mission: nil,
             imageURL: nil,
-            webcastURL: nil)
+            webcastURL: nil
+        )
     }
 }

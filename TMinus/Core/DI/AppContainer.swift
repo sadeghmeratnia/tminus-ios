@@ -17,7 +17,8 @@ final class AppContainer {
     init(networkClient: NetworkClientProtocol,
          modelContainer: ModelContainer,
          cache: DataCache,
-         logger: NetworkLogger) {
+         logger: NetworkLogger)
+    {
         self.networkClient = networkClient
         self.modelContainer = modelContainer
         self.cache = cache
@@ -37,7 +38,8 @@ final class AppContainer {
                 decoder: decoder,
                 retryPolicy: DefaultRetryPolicy(),
                 logger: logger,
-                cache: cache)
+                cache: cache
+            )
 
             let schema = Schema([LaunchLocalModel.self])
             let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
@@ -52,7 +54,8 @@ final class AppContainer {
                 networkClient: networkClient,
                 modelContainer: modelContainer,
                 cache: cache,
-                logger: logger)
+                logger: logger
+            )
         }
     #endif
 }

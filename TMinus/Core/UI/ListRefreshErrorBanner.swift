@@ -35,7 +35,8 @@ struct ListRefreshErrorBanner: View {
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
-                .fill(UIConstants.Color.warning.opacity(UIConstants.Opacity.subtleBackground)))
+                .fill(UIConstants.Color.warning.opacity(UIConstants.Opacity.subtleBackground))
+        )
     }
 }
 

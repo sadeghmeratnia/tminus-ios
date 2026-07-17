@@ -27,7 +27,8 @@ final class LaunchListViewModel: ReducingStoreProtocol {
     private var loadTasks: [ListLoadKind: Task<Void, Never>] = [:]
 
     init(fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase,
-         fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase) {
+         fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase)
+    {
         self.fetchUpcomingLaunchesUseCase = fetchUpcomingLaunchesUseCase
         self.fetchPreviousLaunchesUseCase = fetchPreviousLaunchesUseCase
     }
@@ -103,7 +104,9 @@ final class LaunchListViewModel: ReducingStoreProtocol {
                         page: pagedResult,
                         kind: kind,
                         errorMessage: errorMessage,
-                        generation: generation))
+                        generation: generation
+                    )
+                )
             }
         }
     }

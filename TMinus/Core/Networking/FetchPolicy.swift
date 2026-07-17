@@ -13,7 +13,7 @@ import Foundation
 /// layer — domain (`*ListQuery.fetchPolicy`), data (repositories), and networking
 /// (`NetworkClientProtocol`) — with no conversion between layers, so any feature's list or
 /// detail flow can express "cache first" vs. "force refresh" the same way.
-enum FetchPolicy: Equatable, Sendable {
+enum FetchPolicy: Equatable {
     /// Return cached data if available and fresh; fall back to the network.
     case useCache
     /// Always go to the network, bypassing any cached response.

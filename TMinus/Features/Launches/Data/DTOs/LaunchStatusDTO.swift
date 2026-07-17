@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LaunchStatusDTO: Decodable, Sendable {
+struct LaunchStatusDTO: Decodable {
     let name: String?
     let abbrev: String?
 }

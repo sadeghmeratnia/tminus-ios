@@ -5,9 +5,9 @@
 //  Created by Sadegh on 12/05/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 // MARK: - LaunchDTOMapperTests
 
@@ -130,8 +130,8 @@ enum LaunchDTOMapperTests {
     }
 }
 
-extension LaunchDTOMapperTests {
-    fileprivate static func decodeLaunchDTO(json: String) throws -> LaunchDTO {
+private extension LaunchDTOMapperTests {
+    static func decodeLaunchDTO(json: String) throws -> LaunchDTO {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601

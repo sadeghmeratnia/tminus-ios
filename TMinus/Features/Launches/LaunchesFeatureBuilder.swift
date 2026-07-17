@@ -29,13 +29,17 @@ final class LaunchesFeatureBuilder {
         let launchListBuilder = LaunchListBuilder(
             viewModel: LaunchListViewModel(
                 fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase(repository: repository),
-                fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: repository)))
+                fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: repository)
+            )
+        )
         let launchDetailBuilder = LaunchDetailBuilder(
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: dependencies.newsRepository))
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: dependencies.newsRepository)
+        )
         return LaunchesCoordinator(
             launchListBuilder: launchListBuilder,
-            launchDetailBuilder: launchDetailBuilder)
+            launchDetailBuilder: launchDetailBuilder
+        )
     }
 
     private func makeRepository() -> LaunchRepositoryProtocol {

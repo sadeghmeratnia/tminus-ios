@@ -5,10 +5,10 @@
 //  Created by Sadegh on 13/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
 import SwiftUI
+import Testing
+@testable import TMinus
 
 @MainActor
 @Suite("LaunchesCoordinator")
@@ -43,7 +43,8 @@ struct LaunchesCoordinatorTests {
         let detailBuilder = RecordingLaunchDetailBuilder()
         let coordinator = LaunchesCoordinator(
             launchListBuilder: Self.makeListBuilder(),
-            launchDetailBuilder: detailBuilder)
+            launchDetailBuilder: detailBuilder
+        )
 
         _ = coordinator.destinationView(for: .launchDetail(id: "launch-42"))
 
@@ -60,22 +61,25 @@ struct LaunchesCoordinatorTests {
     }
 }
 
-extension LaunchesCoordinatorTests {
-    fileprivate static func makeCoordinator() -> LaunchesCoordinator {
+private extension LaunchesCoordinatorTests {
+    static func makeCoordinator() -> LaunchesCoordinator {
         LaunchesCoordinator(launchListBuilder: makeListBuilder(), launchDetailBuilder: makeDetailBuilder())
     }
 
-    fileprivate static func makeListBuilder() -> LaunchListBuilder {
+    static func makeListBuilder() -> LaunchListBuilder {
         LaunchListBuilder(
             viewModel: LaunchListViewModel(
                 fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase(repository: MockLaunchRepository()),
-                fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: MockLaunchRepository())))
+                fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: MockLaunchRepository())
+            )
+        )
     }
 
-    fileprivate static func makeDetailBuilder() -> LaunchDetailBuilder {
+    static func makeDetailBuilder() -> LaunchDetailBuilder {
         LaunchDetailBuilder(
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: MockLaunchDetailRepository()),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository()))
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository())
+        )
     }
 }
 
@@ -89,7 +93,8 @@ private final class RecordingLaunchDetailBuilder: LaunchDetailBuilding {
         requestedLaunchIDs.append(launchID)
         return LaunchDetailBuilder(
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: MockLaunchDetailRepository()),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository()))
-            .makeView(launchID: launchID)
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository())
+        )
+        .makeView(launchID: launchID)
     }
 }

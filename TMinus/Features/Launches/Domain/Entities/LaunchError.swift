@@ -7,11 +7,11 @@
 
 import Foundation
 
-enum LaunchError: Error, Sendable {
+enum LaunchError: Error, Equatable {
     case networkUnavailable
     case unauthorized
     case rateLimited
     case serverError
     case decodingFailed
-    case unknown(underlying: any Error & Sendable)
+    case unknown(underlying: ErrorSummary)
 }

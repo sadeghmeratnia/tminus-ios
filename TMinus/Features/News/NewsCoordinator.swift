@@ -18,7 +18,8 @@ final class NewsCoordinator: ObservableObject, CoordinatorProtocol {
     private let newsDetailBuilder: NewsDetailBuilding
 
     init(newsListBuilder: NewsListBuilding,
-         newsDetailBuilder: NewsDetailBuilding) {
+         newsDetailBuilder: NewsDetailBuilding)
+    {
         self.newsListBuilder = newsListBuilder
         self.newsDetailBuilder = newsDetailBuilder
     }

@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - HTTPMethod
 
-enum HTTPMethod: String, Sendable {
+enum HTTPMethod: String {
     case get = "GET"
     case post = "POST"
     case put = "PUT"
@@ -17,7 +17,7 @@ enum HTTPMethod: String, Sendable {
 
 // MARK: - Endpoint
 
-struct Endpoint: Sendable {
+struct Endpoint {
     let baseURL: URL
     let path: String
     let method: HTTPMethod
@@ -34,7 +34,8 @@ struct Endpoint: Sendable {
          headers: [String: String] = [:],
          timeoutInterval: TimeInterval = 30,
          cacheable: Bool = true,
-         cacheTTL: TimeInterval? = nil) {
+         cacheTTL: TimeInterval? = nil)
+    {
         self.baseURL = baseURL
         self.path = path
         self.method = method

@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - LaunchesResponseDTO
 
-struct LaunchesResponseDTO: Decodable, Sendable {
+struct LaunchesResponseDTO: Decodable {
     let count: Int?
     let next: String?
     let previous: String?
@@ -18,7 +18,7 @@ struct LaunchesResponseDTO: Decodable, Sendable {
 
 // MARK: - LaunchDTO
 
-struct LaunchDTO: Decodable, Sendable {
+struct LaunchDTO: Decodable {
     let id: String
     let name: String
     let status: LaunchStatusDTO?
@@ -32,16 +32,16 @@ struct LaunchDTO: Decodable, Sendable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = try container.decode(String.self, forKey: .id)
-        self.name = try container.decode(String.self, forKey: .name)
-        self.status = try container.decodeIfPresent(LaunchStatusDTO.self, forKey: .status)
-        self.windowStart = try container.decode(Date.self, forKey: .windowStart)
-        self.windowEnd = try container.decodeIfPresent(Date.self, forKey: .windowEnd)
-        self.imageURL = try Self.decodeImageURL(from: container)
-        self.videoURLs = try container.decodeIfPresent([LaunchVideoURLDTO].self, forKey: .videoURLs)
-        self.rocket = try container.decodeIfPresent(LaunchRocketDTO.self, forKey: .rocket)
-        self.pad = try container.decodeIfPresent(LaunchPadDTO.self, forKey: .pad)
-        self.mission = try container.decodeIfPresent(LaunchMissionDTO.self, forKey: .mission)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        status = try container.decodeIfPresent(LaunchStatusDTO.self, forKey: .status)
+        windowStart = try container.decode(Date.self, forKey: .windowStart)
+        windowEnd = try container.decodeIfPresent(Date.self, forKey: .windowEnd)
+        imageURL = try Self.decodeImageURL(from: container)
+        videoURLs = try container.decodeIfPresent([LaunchVideoURLDTO].self, forKey: .videoURLs)
+        rocket = try container.decodeIfPresent(LaunchRocketDTO.self, forKey: .rocket)
+        pad = try container.decodeIfPresent(LaunchPadDTO.self, forKey: .pad)
+        mission = try container.decodeIfPresent(LaunchMissionDTO.self, forKey: .mission)
     }
 
     private static func decodeImageURL(from container: KeyedDecodingContainer<CodingKeys>) throws -> String? {

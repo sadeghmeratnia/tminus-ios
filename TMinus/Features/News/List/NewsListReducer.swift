@@ -22,7 +22,8 @@ enum NewsListAction {
         page: PagedResult<NewsArticle>,
         kind: ListLoadKind,
         errorMessage: String?,
-        generation: Int)
+        generation: Int
+    )
 }
 
 // MARK: - NewsListEffect
@@ -34,14 +35,16 @@ enum NewsListEffect {
         previousArticles: [NewsArticle],
         fetchPolicy: FetchPolicy,
         kind: ListLoadKind,
-        generation: Int)
+        generation: Int
+    )
 }
 
 // MARK: - NewsListReducer
 
 enum NewsListReducer {
     static func reduce(state: NewsListState,
-                       action: NewsListAction) -> (state: NewsListState, effect: NewsListEffect?) {
+                       action: NewsListAction) -> (state: NewsListState, effect: NewsListEffect?)
+    {
         switch action {
         case .appear:
             let (nextState, generation) = state.startingInitialLoad()
@@ -53,7 +56,9 @@ enum NewsListReducer {
                     previousArticles: [],
                     fetchPolicy: .useCache,
                     kind: .fresh,
-                    generation: generation))
+                    generation: generation
+                )
+            )
 
         case .refresh:
             let (nextState, generation) = state.startingRefresh()
@@ -65,7 +70,9 @@ enum NewsListReducer {
                     previousArticles: state.articles,
                     fetchPolicy: .networkOnly,
                     kind: .fresh,
-                    generation: generation))
+                    generation: generation
+                )
+            )
 
         case let .searchTextChanged(text):
             return (state.updatingSearchText(text), nil)
@@ -80,11 +87,14 @@ enum NewsListReducer {
                     previousArticles: [],
                     fetchPolicy: .useCache,
                     kind: .fresh,
-                    generation: generation))
+                    generation: generation
+                )
+            )
 
         case .retryLoadMore:
             guard state.pagination.loadMoreError != nil,
-                  let nextPage = state.pagination.nextPage else {
+                  let nextPage = state.pagination.nextPage
+            else {
                 return (state, nil)
             }
             let (nextState, generation) = state.startingLoadMore()
@@ -96,13 +106,16 @@ enum NewsListReducer {
                     previousArticles: state.articles,
                     fetchPolicy: .networkOnly,
                     kind: .loadMore,
-                    generation: generation))
+                    generation: generation
+                )
+            )
 
         case .loadMore:
             guard case .loaded = state.phase,
                   state.pagination.loadMoreError == nil,
                   let nextPage = state.pagination.nextPage,
-                  state.articles.isEmpty == false else {
+                  state.articles.isEmpty == false
+            else {
                 return (state, nil)
             }
             let (nextState, generation) = state.startingLoadMore()
@@ -114,7 +127,9 @@ enum NewsListReducer {
                     previousArticles: state.articles,
                     fetchPolicy: .networkOnly,
                     kind: .loadMore,
-                    generation: generation))
+                    generation: generation
+                )
+            )
 
         case let .loadResponse(searchText, previousArticles, page, kind, errorMessage, generation):
             return (
@@ -124,8 +139,10 @@ enum NewsListReducer {
                     page: page,
                     kind: kind,
                     errorMessage: errorMessage,
-                    generation: generation),
-                nil)
+                    generation: generation
+                ),
+                nil
+            )
         }
     }
 
@@ -134,17 +151,19 @@ enum NewsListReducer {
                                    previousArticles: [NewsArticle],
                                    fetchPolicy: FetchPolicy,
                                    kind: ListLoadKind,
-                                   generation: Int) -> NewsListEffect {
+                                   generation: Int) -> NewsListEffect
+    {
         .load(
             searchText: searchText,
             page: page,
             previousArticles: previousArticles,
             fetchPolicy: fetchPolicy,
             kind: kind,
-            generation: generation)
+            generation: generation
+        )
     }
 }
 
 // MARK: ReducerProtocol
 
-extension NewsListReducer: ReducerProtocol { }
+extension NewsListReducer: ReducerProtocol {}

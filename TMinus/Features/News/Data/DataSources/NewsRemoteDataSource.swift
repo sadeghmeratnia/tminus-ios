@@ -28,20 +28,23 @@ final class NetworkNewsRemoteDataSource: NewsRemoteDataSource, Sendable {
         try await networkClient.request(
             NewsResponseDTO.self,
             endpoint: NewsEndpoint.list(query: query),
-            cachePolicy: query.fetchPolicy)
+            cachePolicy: query.fetchPolicy
+        )
     }
 
     func fetchArticleDetail(id: String, fetchPolicy: FetchPolicy) async throws -> NewsArticleDTO {
         try await networkClient.request(
             NewsArticleDTO.self,
             endpoint: NewsEndpoint.detail(id: id),
-            cachePolicy: fetchPolicy)
+            cachePolicy: fetchPolicy
+        )
     }
 
     func fetchRelatedArticles(launchID: String, limit: Int, fetchPolicy: FetchPolicy) async throws -> NewsResponseDTO {
         try await networkClient.request(
             NewsResponseDTO.self,
             endpoint: NewsEndpoint.related(launchID: launchID, limit: limit),
-            cachePolicy: fetchPolicy)
+            cachePolicy: fetchPolicy
+        )
     }
 }

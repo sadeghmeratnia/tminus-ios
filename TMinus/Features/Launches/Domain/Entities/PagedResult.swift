@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct PagedResult<Item: Sendable>: Sendable {
+struct PagedResult<Item: Sendable> {
     let items: [Item]
     let currentPage: Int
     let totalCount: Int?
@@ -18,7 +18,8 @@ struct PagedResult<Item: Sendable>: Sendable {
          currentPage: Int = 1,
          totalCount: Int? = nil,
          nextPage: Int? = nil,
-         previousPage: Int? = nil) {
+         previousPage: Int? = nil)
+    {
         self.items = items
         self.currentPage = currentPage
         self.totalCount = totalCount

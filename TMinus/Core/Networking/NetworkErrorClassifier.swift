@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - NetworkErrorClassification
 
-enum NetworkErrorClassification: Sendable {
+enum NetworkErrorClassification {
     case networkUnavailable
     case unauthorized
     case rateLimited
@@ -23,7 +23,7 @@ enum NetworkErrorClassification: Sendable {
 enum NetworkErrorClassifier {
     static func classify(_ error: Error) -> NetworkErrorClassification {
         guard let networkError = error as? NetworkError else {
-            return .unknown(underlying: UncheckedSendableError(error))
+            return .unknown(underlying: ErrorSummary(error))
         }
 
         switch networkError {

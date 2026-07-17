@@ -5,9 +5,9 @@
 //  Created by Sadegh on 12/05/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 // MARK: - LaunchListViewModelTests
 
@@ -140,14 +140,16 @@ struct LaunchListViewModelTests {
                     currentPage: 1,
                     totalCount: 2,
                     nextPage: 2,
-                    previousPage: nil)
+                    previousPage: nil
+                )
             }
             return PagedResult(
                 items: [Self.makeLaunch(id: "page-2-item")],
                 currentPage: 2,
                 totalCount: 2,
                 nextPage: nil,
-                previousPage: 1)
+                previousPage: 1
+            )
         }
         let viewModel = Self.makeViewModel(repository: repository)
 
@@ -174,7 +176,7 @@ struct LaunchListViewModelTests {
     @Test("retrying load-more does not cancel an in-flight refresh")
     func retryLoadMoreDoesNotCancelRefresh() async throws {
         let repository = MockLaunchRepository()
-        await repository.setUpcomingHandler { query, callIndex in
+        await repository.setUpcomingHandler { _, callIndex in
             switch callIndex {
             case 1:
                 return PagedResult(
@@ -182,7 +184,8 @@ struct LaunchListViewModelTests {
                     currentPage: 1,
                     totalCount: 2,
                     nextPage: 2,
-                    previousPage: nil)
+                    previousPage: nil
+                )
             case 2:
                 throw LaunchError.networkUnavailable
             case 3:
@@ -193,14 +196,16 @@ struct LaunchListViewModelTests {
                     currentPage: 1,
                     totalCount: 2,
                     nextPage: 2,
-                    previousPage: nil)
+                    previousPage: nil
+                )
             default:
                 return PagedResult(
                     items: [Self.makeLaunch(id: "page-2-item")],
                     currentPage: 2,
                     totalCount: 2,
                     nextPage: nil,
-                    previousPage: 1)
+                    previousPage: 1
+                )
             }
         }
         let viewModel = Self.makeViewModel(repository: repository)
@@ -229,14 +234,15 @@ struct LaunchListViewModelTests {
     }
 }
 
-extension LaunchListViewModelTests {
-    fileprivate static func makeViewModel(repository: LaunchRepositoryProtocol) -> LaunchListViewModel {
+private extension LaunchListViewModelTests {
+    static func makeViewModel(repository: LaunchRepositoryProtocol) -> LaunchListViewModel {
         LaunchListViewModel(
             fetchUpcomingLaunchesUseCase: FetchUpcomingLaunchesUseCase(repository: repository),
-            fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: repository))
+            fetchPreviousLaunchesUseCase: FetchPreviousLaunchesUseCase(repository: repository)
+        )
     }
 
-    fileprivate nonisolated static func makeLaunch(id: String) -> Launch {
+    nonisolated static func makeLaunch(id: String) -> Launch {
         Launch(
             id: id,
             name: "Launch \(id)",
@@ -247,12 +253,14 @@ extension LaunchListViewModelTests {
             launchPad: LaunchPad(id: "10", name: "LC-39A", latitude: 0, longitude: 0, locationName: "KSC"),
             mission: nil,
             imageURL: nil,
-            webcastURL: nil)
+            webcastURL: nil
+        )
     }
 
-    fileprivate static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                                      checkEveryNanoseconds: UInt64 = 20_000_000,
-                                      _ condition: @escaping @MainActor () -> Bool) async throws {
+    static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
+                          checkEveryNanoseconds: UInt64 = 20_000_000,
+                          _ condition: @escaping @MainActor () -> Bool) async throws
+    {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
@@ -295,7 +303,7 @@ actor MockLaunchRepository: LaunchRepositoryProtocol {
         return try await previousHandler(query, previousCallCount)
     }
 
-    func fetchLaunchDetail(id: String) async throws -> Launch {
+    func fetchLaunchDetail(id _: String) async throws -> Launch {
         throw NSError(domain: "MockLaunchRepository", code: 404)
     }
 }

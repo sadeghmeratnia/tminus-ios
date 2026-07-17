@@ -12,7 +12,15 @@ import Foundation
 enum NewsDetailAction {
     case appear
     case retry
-    case loadResponse(article: NewsArticle?, errorMessage: String?, generation: Int)
+    case loadResponse(NewsDetailLoadOutcome, generation: Int)
+}
+
+/// A load either produced an article or a user-facing failure message, never both and never
+/// neither — matches this codebase's convention of a bespoke enum for closed sets of outcomes
+/// (see `DetailPhase`, `ListPhase`, `ListLoadKind`) rather than reaching for the stdlib `Result`.
+enum NewsDetailLoadOutcome: Equatable {
+    case success(NewsArticle)
+    case failure(String)
 }
 
 // MARK: - NewsDetailEffect
@@ -25,7 +33,8 @@ enum NewsDetailEffect {
 
 enum NewsDetailReducer {
     static func reduce(state: NewsDetailState,
-                       action: NewsDetailAction) -> (state: NewsDetailState, effect: NewsDetailEffect?) {
+                       action: NewsDetailAction) -> (state: NewsDetailState, effect: NewsDetailEffect?)
+    {
         switch action {
         case .appear:
             guard case .idle = state.phase else {
@@ -41,12 +50,12 @@ enum NewsDetailReducer {
             let (newState, generation) = state.startingLoad()
             return (newState, .load(id: newState.articleID, generation: generation))
 
-        case let .loadResponse(article, errorMessage, generation):
-            return (state.applyingLoadResponse(article: article, errorMessage: errorMessage, generation: generation), nil)
+        case let .loadResponse(result, generation):
+            return (state.applyingLoadResponse(result: result, generation: generation), nil)
         }
     }
 }
 
 // MARK: ReducerProtocol
 
-extension NewsDetailReducer: ReducerProtocol { }
+extension NewsDetailReducer: ReducerProtocol {}

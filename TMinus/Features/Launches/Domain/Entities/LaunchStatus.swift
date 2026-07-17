@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum LaunchStatus: Equatable, Sendable {
+enum LaunchStatus: Equatable {
     case go
     case toBeDetermined
     case hold

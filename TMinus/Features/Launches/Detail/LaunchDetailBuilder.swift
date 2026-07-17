@@ -18,7 +18,8 @@ final class LaunchDetailBuilder: LaunchDetailBuilding {
     private let fetchRelatedNewsUseCase: FetchRelatedNewsUseCase
 
     init(fetchLaunchDetailUseCase: FetchLaunchDetailUseCase,
-         fetchRelatedNewsUseCase: FetchRelatedNewsUseCase) {
+         fetchRelatedNewsUseCase: FetchRelatedNewsUseCase)
+    {
         self.fetchLaunchDetailUseCase = fetchLaunchDetailUseCase
         self.fetchRelatedNewsUseCase = fetchRelatedNewsUseCase
     }
@@ -27,7 +28,8 @@ final class LaunchDetailBuilder: LaunchDetailBuilding {
         LaunchDetailViewModel(
             launchID: launchID,
             fetchLaunchDetailUseCase: fetchLaunchDetailUseCase,
-            fetchRelatedNewsUseCase: fetchRelatedNewsUseCase)
+            fetchRelatedNewsUseCase: fetchRelatedNewsUseCase
+        )
     }
 
     func makeView(launchID: String) -> DefaultLaunchDetailView {

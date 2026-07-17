@@ -5,9 +5,9 @@
 //  Created by Sadegh on 28/05/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("LaunchDetailReducer")
 enum LaunchDetailReducerTests {
@@ -35,7 +35,8 @@ enum LaunchDetailReducerTests {
             launch: nil,
             phase: .loading,
             relatedArticles: [],
-            loadGeneration: LoadGeneration(current: 1))
+            loadGeneration: LoadGeneration(current: 1)
+        )
 
         let result = LaunchDetailReducer.reduce(state: state, action: .appear)
 
@@ -50,7 +51,8 @@ enum LaunchDetailReducerTests {
 
         let result = LaunchDetailReducer.reduce(
             state: state,
-            action: .loadResponse(launch: launch, errorMessage: nil, generation: 1))
+            action: .loadResponse(launch: launch, errorMessage: nil, generation: 1)
+        )
 
         #expect(result.state.phase == .loaded)
         #expect(result.state.launch == launch)
@@ -64,7 +66,8 @@ enum LaunchDetailReducerTests {
 
         let result = LaunchDetailReducer.reduce(
             state: state,
-            action: .loadResponse(launch: nil, errorMessage: errorMessage, generation: 1))
+            action: .loadResponse(launch: nil, errorMessage: errorMessage, generation: 1)
+        )
 
         if case let .error(message) = result.state.phase {
             #expect(message == errorMessage)
@@ -83,7 +86,8 @@ enum LaunchDetailReducerTests {
 
         let result = LaunchDetailReducer.reduce(
             state: state,
-            action: .loadResponse(launch: launch, errorMessage: nil, generation: 1))
+            action: .loadResponse(launch: launch, errorMessage: nil, generation: 1)
+        )
 
         #expect(result.state == state)
         #expect(result.state.launch == nil)
@@ -96,7 +100,8 @@ enum LaunchDetailReducerTests {
             launch: nil,
             phase: .error(message: "Network failed"),
             relatedArticles: [],
-            loadGeneration: LoadGeneration(current: 1))
+            loadGeneration: LoadGeneration(current: 1)
+        )
 
         let result = LaunchDetailReducer.reduce(state: state, action: .retry)
 
@@ -135,8 +140,8 @@ enum LaunchDetailReducerTests {
     }
 }
 
-extension LaunchDetailReducerTests {
-    fileprivate static func makeLaunch(id: String) -> Launch {
+private extension LaunchDetailReducerTests {
+    static func makeLaunch(id: String) -> Launch {
         Launch(
             id: id,
             name: "Launch \(id)",
@@ -147,10 +152,11 @@ extension LaunchDetailReducerTests {
             launchPad: LaunchPad(id: "10", name: "LC-39A", latitude: 0, longitude: 0, locationName: "KSC"),
             mission: nil,
             imageURL: nil,
-            webcastURL: nil)
+            webcastURL: nil
+        )
     }
 
-    fileprivate static func makeArticle(id: String) -> NewsArticle {
+    static func makeArticle(id: String) -> NewsArticle {
         NewsArticle(
             id: id,
             title: "Article \(id)",
@@ -159,6 +165,7 @@ extension LaunchDetailReducerTests {
             imageURL: nil,
             newsSite: "SpaceNews",
             publishedAt: Date(timeIntervalSince1970: 1000),
-            relatedLaunchIDs: ["launch-1"])
+            relatedLaunchIDs: ["launch-1"]
+        )
     }
 }

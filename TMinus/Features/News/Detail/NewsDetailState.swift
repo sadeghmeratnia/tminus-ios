@@ -24,7 +24,8 @@ struct NewsDetailState: Equatable {
             articleID: articleID,
             article: article ?? self.article,
             phase: phase ?? self.phase,
-            loadGeneration: loadGeneration ?? self.loadGeneration)
+            loadGeneration: loadGeneration ?? self.loadGeneration
+        )
     }
 
     /// Returns the new state alongside the raw generation value the caller's effect should tag
@@ -34,18 +35,15 @@ struct NewsDetailState: Equatable {
         return (with(phase: .loading, loadGeneration: next), value)
     }
 
-    func applyingLoadResponse(article: NewsArticle?, errorMessage: String?, generation: Int) -> NewsDetailState {
+    func applyingLoadResponse(result: NewsDetailLoadOutcome, generation: Int) -> NewsDetailState {
         guard loadGeneration.matches(generation) else { return self }
 
-        if let errorMessage {
-            return with(phase: .error(message: errorMessage))
+        switch result {
+        case let .success(article):
+            return with(article: article, phase: .loaded)
+        case let .failure(message):
+            return with(phase: .error(message: message))
         }
-
-        guard let article else {
-            return with(phase: .error(message: L10n.Error.Network.unknown))
-        }
-
-        return with(article: article, phase: .loaded)
     }
 }
 

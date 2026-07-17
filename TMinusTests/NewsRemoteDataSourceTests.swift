@@ -5,9 +5,9 @@
 //  Created by Sadegh on 09/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("NetworkNewsRemoteDataSource")
 enum NewsRemoteDataSourceTests {
@@ -38,8 +38,8 @@ enum NewsRemoteDataSourceTests {
     }
 }
 
-extension NewsRemoteDataSourceTests {
-    fileprivate static func makeArticlesPayload(articleID: Int) -> Data {
+private extension NewsRemoteDataSourceTests {
+    static func makeArticlesPayload(articleID: Int) -> Data {
         Data("""
         {
           "count": 1,
@@ -70,14 +70,14 @@ private final class MockRemoteNetworkClient: NetworkClientProtocol {
     var requestCount = 0
     var lastFetchPolicy: FetchPolicy?
 
-    func requestData(endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> Data {
+    func requestData(endpoint _: Endpoint, cachePolicy: FetchPolicy) async throws -> Data {
         requestCount += 1
         lastFetchPolicy = cachePolicy
         if let error { throw error }
         return dataResponse
     }
 
-    func request<T>(_ type: T.Type, endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> T where T: Decodable & Sendable {
+    func request<T: Decodable & Sendable>(_ type: T.Type, endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> T {
         let data = try await requestData(endpoint: endpoint, cachePolicy: cachePolicy)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase

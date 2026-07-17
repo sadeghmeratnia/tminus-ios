@@ -48,7 +48,8 @@ final class NewsRepository: NewsRepositoryProtocol, Sendable {
             let response = try await remoteDataSource.fetchRelatedArticles(
                 launchID: launchID,
                 limit: limit,
-                fetchPolicy: .useCache)
+                fetchPolicy: .useCache
+            )
             return response.results.compactMap(NewsArticleDTOMapper.map(_:))
         } catch is CancellationError {
             throw CancellationError()
@@ -58,13 +59,14 @@ final class NewsRepository: NewsRepositoryProtocol, Sendable {
     }
 }
 
-extension NewsRepository {
-    fileprivate static func mapPage(_ response: NewsResponseDTO, query: NewsListQuery) -> PagedResult<NewsArticle> {
+private extension NewsRepository {
+    static func mapPage(_ response: NewsResponseDTO, query: NewsListQuery) -> PagedResult<NewsArticle> {
         PagedResult(
             items: response.results.compactMap(NewsArticleDTOMapper.map(_:)),
             currentPage: query.page,
             totalCount: response.count,
             nextPage: PaginationURLParser.pageNumber(from: response.next, fallbackLimit: query.limit),
-            previousPage: PaginationURLParser.pageNumber(from: response.previous, fallbackLimit: query.limit))
+            previousPage: PaginationURLParser.pageNumber(from: response.previous, fallbackLimit: query.limit)
+        )
     }
 }

@@ -30,14 +30,17 @@ final class NewsFeatureBuilder {
 
     @MainActor
     func makeCoordinator() -> NewsCoordinator {
-        let repository = self.makeRepository()
+        let repository = makeRepository()
         let newsListBuilder = NewsListBuilder(
-            viewModel: NewsListViewModel(fetchNewsArticlesUseCase: FetchNewsArticlesUseCase(repository: repository)))
+            viewModel: NewsListViewModel(fetchNewsArticlesUseCase: FetchNewsArticlesUseCase(repository: repository))
+        )
         let newsDetailBuilder = NewsDetailBuilder(
-            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: repository))
+            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: repository)
+        )
         return NewsCoordinator(
             newsListBuilder: newsListBuilder,
-            newsDetailBuilder: newsDetailBuilder)
+            newsDetailBuilder: newsDetailBuilder
+        )
     }
 
     func makeRepository() -> NewsRepositoryProtocol {

@@ -5,8 +5,8 @@
 //  Created by Sadegh on 14/07/2026.
 //
 
-@testable import TMinus
 import Testing
+@testable import TMinus
 
 @Suite("ListPhase")
 enum ListPhaseTests {

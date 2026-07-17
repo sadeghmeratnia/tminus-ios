@@ -23,7 +23,7 @@ final class NewsDetailViewModel: ReducingStoreProtocol {
     private var loadTask: Task<Void, Never>?
 
     init(articleID: String, fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase) {
-        self.state = .initial(articleID: articleID)
+        state = .initial(articleID: articleID)
         self.fetchNewsArticleDetailUseCase = fetchNewsArticleDetailUseCase
     }
 
@@ -58,22 +58,18 @@ final class NewsDetailViewModel: ReducingStoreProtocol {
             loadTask = Task { [weak self] in
                 guard let self else { return }
 
-                let article: NewsArticle?
-                let errorMessage: String?
+                let result: NewsDetailLoadOutcome
                 do {
-                    article = try await self.fetchNewsArticleDetailUseCase.execute(id: id)
-                    errorMessage = nil
+                    result = try .success(await self.fetchNewsArticleDetailUseCase.execute(id: id))
                 } catch is CancellationError {
                     return
                 } catch let presentable as UserMessagePresentable {
-                    article = nil
-                    errorMessage = presentable.userMessage
+                    result = .failure(presentable.userMessage)
                 } catch {
-                    article = nil
-                    errorMessage = L10n.Error.Network.unknown
+                    result = .failure(L10n.Error.Network.unknown)
                 }
 
-                self.send(.loadResponse(article: article, errorMessage: errorMessage, generation: generation))
+                self.send(.loadResponse(result, generation: generation))
             }
         }
     }

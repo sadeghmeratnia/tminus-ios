@@ -28,7 +28,8 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
     private var modeBinding: Binding<LaunchListMode> {
         Binding(
             get: { state.mode },
-            set: { viewModel.onTrigger(.modeChanged($0)) })
+            set: { viewModel.onTrigger(.modeChanged($0)) }
+        )
     }
 
     var body: some View {
@@ -41,9 +42,10 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
                 errorTitle: L10n.Launches.errorTitle,
                 emptyTitle: L10n.Launches.emptyTitle,
                 emptyDescription: L10n.Launches.emptyDescription,
-                emptyIcon: Constants.Icon.empty) {
-                    launchesListView(bannerMessage: refreshErrorMessage)
-                }
+                emptyIcon: Constants.Icon.empty
+            ) {
+                launchesListView(bannerMessage: refreshErrorMessage)
+            }
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle(L10n.Launches.navigationTitle)
@@ -69,7 +71,8 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
                     ListRefreshErrorBanner(
                         message: bannerMessage,
                         retryTitle: L10n.Launches.retryAction,
-                        onRetry: { viewModel.onTrigger(.refresh) })
+                        onRetry: { viewModel.onTrigger(.refresh) }
+                    )
                 }
 
                 ForEach(launches) { launch in
@@ -86,7 +89,8 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
                     isLoadingMore: state.phase.isLoadingMore,
                     loadMoreError: state.pagination.loadMoreError,
                     retryTitle: L10n.Launches.retryAction,
-                    onRetry: { viewModel.onTrigger(.retryLoadMore) })
+                    onRetry: { viewModel.onTrigger(.retryLoadMore) }
+                )
             }
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)
@@ -111,7 +115,8 @@ private enum Constants {
     NavigationStack {
         LaunchListView(
             viewModel: StaticViewModel(state: LaunchPreviewFixtures.listLoadedState),
-            onLaunchSelected: { _ in })
+            onLaunchSelected: { _ in }
+        )
     }
 }
 
@@ -123,8 +128,11 @@ private enum Constants {
                     mode: .upcoming,
                     launches: [],
                     pagination: .initial,
-                    phase: .loading(.initial))),
-            onLaunchSelected: { _ in })
+                    phase: .loading(.initial)
+                )
+            ),
+            onLaunchSelected: { _ in }
+        )
     }
 }
 
@@ -136,7 +144,10 @@ private enum Constants {
                     mode: .upcoming,
                     launches: [],
                     pagination: .initial,
-                    phase: .error(message: "Could not load launches"))),
-            onLaunchSelected: { _ in })
+                    phase: .error(message: "Could not load launches")
+                )
+            ),
+            onLaunchSelected: { _ in }
+        )
     }
 }

@@ -5,9 +5,9 @@
 //  Created by Sadegh on 12/05/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("LaunchRepository")
 enum LaunchRepositoryTests {
@@ -67,13 +67,14 @@ enum LaunchRepositoryTests {
                 id: "local-1",
                 name: "Local Launch",
                 status: .go,
-                windowStart: Date(timeIntervalSince1970: 1_000),
+                windowStart: Date(timeIntervalSince1970: 1000),
                 windowEnd: nil,
                 rocket: LaunchRocket(id: 1, name: "Falcon 9"),
                 launchPad: LaunchPad(id: "1", name: "LC-39A", latitude: 0, longitude: 0, locationName: nil),
                 mission: nil,
                 imageURL: nil,
-                webcastURL: nil),
+                webcastURL: nil
+            ),
         ])
         let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
 
@@ -95,13 +96,14 @@ enum LaunchRepositoryTests {
                 id: "stale-1",
                 name: "Stale Launch",
                 status: .go,
-                windowStart: Date(timeIntervalSince1970: 1_000),
+                windowStart: Date(timeIntervalSince1970: 1000),
                 windowEnd: nil,
                 rocket: LaunchRocket(id: 1, name: "Falcon 9"),
                 launchPad: LaunchPad(id: "1", name: "LC-39A", latitude: 0, longitude: 0, locationName: nil),
                 mission: nil,
                 imageURL: nil,
-                webcastURL: nil),
+                webcastURL: nil
+            ),
         ])
         let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
 
@@ -119,7 +121,8 @@ private extension LaunchRepositoryTests {
             count: 1,
             next: "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=20&offset=40",
             previous: "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=20&offset=0",
-            results: [makeLaunchDTO(id: "launch-1")])
+            results: [makeLaunchDTO(id: "launch-1")]
+        )
     }
 
     static func makeLaunchDTO(id: String) -> LaunchDTO {
@@ -191,7 +194,7 @@ private actor MockLaunchLocalDataSource: LaunchLocalDataSource {
         staleUpcoming = launches
     }
 
-    func fetchUpcomingLaunches(query: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {
+    func fetchUpcomingLaunches(query _: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {
         upcomingMaxAges.append(maxAge)
         if maxAge == nil {
             return staleUpcoming
@@ -199,17 +202,17 @@ private actor MockLaunchLocalDataSource: LaunchLocalDataSource {
         return upcoming
     }
 
-    func fetchPreviousLaunches(query: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {
+    func fetchPreviousLaunches(query _: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {
         previousMaxAges.append(maxAge)
         return previous
     }
 
-    func fetchLaunchDetail(id: String, maxAge: TimeInterval?) async throws -> Launch? {
+    func fetchLaunchDetail(id _: String, maxAge: TimeInterval?) async throws -> Launch? {
         detailMaxAges.append(maxAge)
         return detail
     }
 
-    func save(_ launches: [Launch], fetchedAt: Date) async throws {
+    func save(_ launches: [Launch], fetchedAt _: Date) async throws {
         if launches.first?.windowStart ?? .distantFuture >= Date() {
             upcoming = launches
         } else {
@@ -217,7 +220,7 @@ private actor MockLaunchLocalDataSource: LaunchLocalDataSource {
         }
     }
 
-    func save(_ launch: Launch, fetchedAt: Date) async throws {
+    func save(_ launch: Launch, fetchedAt _: Date) async throws {
         detail = launch
     }
 }

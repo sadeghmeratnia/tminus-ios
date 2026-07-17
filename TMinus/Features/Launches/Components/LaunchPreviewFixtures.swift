@@ -22,26 +22,31 @@ enum LaunchPreviewFixtures {
             name: "SLC-40",
             latitude: 28.5,
             longitude: -80.5,
-            locationName: "Cape Canaveral"),
+            locationName: "Cape Canaveral"
+        ),
         mission: LaunchMission(
             id: "1",
             name: "Starlink",
             description: "Dedicated Starlink mission.",
             type: "Communications",
-            orbit: "Low Earth Orbit"),
+            orbit: "Low Earth Orbit"
+        ),
         imageURL: nil,
-        webcastURL: nil)
+        webcastURL: nil
+    )
 
     static let listLoadedState = LaunchListState(
         mode: .upcoming,
         launches: [launch],
         pagination: .initial,
-        phase: .loaded)
+        phase: .loaded
+    )
 
     static let detailLoadedState = LaunchDetailState(
         launchID: launchID,
         launch: launch,
         phase: .loaded,
         relatedArticles: [NewsPreviewFixtures.article],
-        loadGeneration: LoadGeneration(current: 1))
+        loadGeneration: LoadGeneration(current: 1)
+    )
 }

@@ -14,7 +14,8 @@ final class LaunchRepository: LaunchRepositoryProtocol, Sendable {
     private let localDataSource: LaunchLocalDataSource
 
     init(remoteDataSource: LaunchRemoteDataSource,
-         localDataSource: LaunchLocalDataSource) {
+         localDataSource: LaunchLocalDataSource)
+    {
         self.remoteDataSource = remoteDataSource
         self.localDataSource = localDataSource
     }
@@ -27,7 +28,8 @@ final class LaunchRepository: LaunchRepositoryProtocol, Sendable {
             remote: {
                 let response = try await self.remoteDataSource.fetchUpcomingLaunches(query: query)
                 return Self.mapPage(response, query: query)
-            })
+            }
+        )
     }
 
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch> {
@@ -38,7 +40,8 @@ final class LaunchRepository: LaunchRepositoryProtocol, Sendable {
             remote: {
                 let response = try await self.remoteDataSource.fetchPreviousLaunches(query: query)
                 return Self.mapPage(response, query: query)
-            })
+            }
+        )
     }
 
     func fetchLaunchDetail(id: String) async throws -> Launch {
@@ -62,12 +65,13 @@ final class LaunchRepository: LaunchRepositoryProtocol, Sendable {
     }
 }
 
-extension LaunchRepository {
+private extension LaunchRepository {
     private func fetchWithLocalFallback(query: LaunchListQuery,
                                         maxAge: TimeInterval,
                                         local: (LaunchListQuery, TimeInterval?) async throws -> [Launch],
                                         remote: () async throws -> PagedResult<Launch>) async throws
-        -> PagedResult<Launch> {
+        -> PagedResult<Launch>
+    {
         if query.fetchPolicy == .useCache {
             let cached = try await local(query, maxAge)
             if !cached.isEmpty {
@@ -97,20 +101,22 @@ extension LaunchRepository {
     /// there's more to load, while a partial page means the cache (and likely the underlying
     /// list) is exhausted. Without this, cache hits always report `nextPage: nil` and silently
     /// disable "load more" for the rest of the session.
-    fileprivate static func pagedResult(from items: [Launch], query: LaunchListQuery) -> PagedResult<Launch> {
+    static func pagedResult(from items: [Launch], query: LaunchListQuery) -> PagedResult<Launch> {
         PagedResult(
             items: items,
             currentPage: query.page,
             nextPage: items.count == query.limit ? query.page + 1 : nil,
-            previousPage: query.page > 1 ? query.page - 1 : nil)
+            previousPage: query.page > 1 ? query.page - 1 : nil
+        )
     }
 
-    fileprivate static func mapPage(_ response: LaunchesResponseDTO, query: LaunchListQuery) -> PagedResult<Launch> {
+    static func mapPage(_ response: LaunchesResponseDTO, query: LaunchListQuery) -> PagedResult<Launch> {
         PagedResult(
             items: response.results.map(LaunchDTOMapper.map(_:)),
             currentPage: query.page,
             totalCount: response.count,
             nextPage: PaginationURLParser.pageNumber(from: response.next, fallbackLimit: query.limit),
-            previousPage: PaginationURLParser.pageNumber(from: response.previous, fallbackLimit: query.limit))
+            previousPage: PaginationURLParser.pageNumber(from: response.previous, fallbackLimit: query.limit)
+        )
     }
 }

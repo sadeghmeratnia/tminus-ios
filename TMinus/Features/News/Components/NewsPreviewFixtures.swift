@@ -18,17 +18,20 @@ enum NewsPreviewFixtures {
         imageURL: nil,
         newsSite: "SpaceNews",
         publishedAt: Date(timeIntervalSince1970: 1_735_689_600),
-        relatedLaunchIDs: [])
+        relatedLaunchIDs: []
+    )
 
     static let listLoadedState = NewsListState(
         articles: [article],
         searchText: "",
         pagination: .initial,
-        phase: .loaded)
+        phase: .loaded
+    )
 
     static let detailLoadedState = NewsDetailState(
         articleID: articleID,
         article: article,
         phase: .loaded,
-        loadGeneration: LoadGeneration(current: 1))
+        loadGeneration: LoadGeneration(current: 1)
+    )
 }

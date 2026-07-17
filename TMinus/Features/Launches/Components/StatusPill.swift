@@ -23,8 +23,8 @@ struct StatusPill: View {
     }
 }
 
-extension LaunchStatus {
-    fileprivate var label: String {
+private extension LaunchStatus {
+    var label: String {
         switch self {
         case .go:
             return L10n.Launches.Status.go
@@ -41,7 +41,7 @@ extension LaunchStatus {
         }
     }
 
-    fileprivate var color: Color {
+    var color: Color {
         switch self {
         case .go, .success:
             return .green

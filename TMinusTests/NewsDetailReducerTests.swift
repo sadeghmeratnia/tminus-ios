@@ -5,9 +5,9 @@
 //  Created by Sadegh on 09/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("NewsDetailReducer")
 enum NewsDetailReducerTests {
@@ -45,7 +45,8 @@ enum NewsDetailReducerTests {
 
         let result = NewsDetailReducer.reduce(
             state: state,
-            action: .loadResponse(article: article, errorMessage: nil, generation: 1))
+            action: .loadResponse(.success(article), generation: 1)
+        )
 
         #expect(result.state.phase == .loaded)
         #expect(result.state.article == article)
@@ -59,7 +60,8 @@ enum NewsDetailReducerTests {
 
         let result = NewsDetailReducer.reduce(
             state: state,
-            action: .loadResponse(article: nil, errorMessage: errorMessage, generation: 1))
+            action: .loadResponse(.failure(errorMessage), generation: 1)
+        )
 
         if case let .error(message) = result.state.phase {
             #expect(message == errorMessage)
@@ -77,7 +79,8 @@ enum NewsDetailReducerTests {
 
         let result = NewsDetailReducer.reduce(
             state: state,
-            action: .loadResponse(article: article, errorMessage: nil, generation: 1))
+            action: .loadResponse(.success(article), generation: 1)
+        )
 
         #expect(result.state == state)
         #expect(result.state.article == nil)
@@ -89,7 +92,8 @@ enum NewsDetailReducerTests {
             articleID: "article-1",
             article: nil,
             phase: .error(message: "Network failed"),
-            loadGeneration: LoadGeneration(current: 1))
+            loadGeneration: LoadGeneration(current: 1)
+        )
 
         let result = NewsDetailReducer.reduce(state: state, action: .retry)
 
@@ -104,8 +108,8 @@ enum NewsDetailReducerTests {
     }
 }
 
-extension NewsDetailReducerTests {
-    fileprivate static func makeArticle(id: String) -> NewsArticle {
+private extension NewsDetailReducerTests {
+    static func makeArticle(id: String) -> NewsArticle {
         NewsArticle(
             id: id,
             title: "Article \(id)",
@@ -114,6 +118,7 @@ extension NewsDetailReducerTests {
             imageURL: nil,
             newsSite: "SpaceNews",
             publishedAt: Date(timeIntervalSince1970: 1000),
-            relatedLaunchIDs: [])
+            relatedLaunchIDs: []
+        )
     }
 }

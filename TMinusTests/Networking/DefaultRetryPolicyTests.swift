@@ -5,9 +5,9 @@
 //  Created by Sadegh on 30/04/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 // MARK: - DefaultRetryPolicyTests
 
@@ -178,15 +178,16 @@ enum DefaultRetryPolicyTests {
     }
 }
 
-extension DefaultRetryPolicyTests {
-    fileprivate static func makePolicy(maxRetries: Int = 3) -> DefaultRetryPolicy {
+private extension DefaultRetryPolicyTests {
+    static func makePolicy(maxRetries: Int = 3) -> DefaultRetryPolicy {
         DefaultRetryPolicy(maxRetries: maxRetries)
     }
 
-    fileprivate static func assertShouldRetry(_ expected: Bool,
-                                              error: Error,
-                                              attempt: Int,
-                                              maxRetries: Int = 3) {
+    static func assertShouldRetry(_ expected: Bool,
+                                  error: Error,
+                                  attempt: Int,
+                                  maxRetries: Int = 3)
+    {
         let policy = makePolicy(maxRetries: maxRetries)
         #expect(policy.shouldRetry(error: error, attempt: attempt) == expected)
     }

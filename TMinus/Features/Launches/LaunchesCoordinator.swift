@@ -18,7 +18,8 @@ final class LaunchesCoordinator: ObservableObject, CoordinatorProtocol {
     private let launchDetailBuilder: LaunchDetailBuilding
 
     init(launchListBuilder: LaunchListBuilding,
-         launchDetailBuilder: LaunchDetailBuilding) {
+         launchDetailBuilder: LaunchDetailBuilding)
+    {
         self.launchListBuilder = launchListBuilder
         self.launchDetailBuilder = launchDetailBuilder
     }

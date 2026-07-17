@@ -17,7 +17,7 @@ protocol LaunchRepositoryProtocol: Sendable {
 
 // MARK: - LaunchListQuery
 
-struct LaunchListQuery: Equatable, Sendable {
+struct LaunchListQuery: Equatable {
     let page: Int
     let limit: Int
     let searchText: String?
@@ -26,7 +26,8 @@ struct LaunchListQuery: Equatable, Sendable {
     init(page: Int = 1,
          limit: Int = 20,
          searchText: String? = nil,
-         fetchPolicy: FetchPolicy = .useCache) {
+         fetchPolicy: FetchPolicy = .useCache)
+    {
         self.page = page
         self.limit = limit
         self.searchText = searchText?.trimmingCharacters(in: .whitespacesAndNewlines)

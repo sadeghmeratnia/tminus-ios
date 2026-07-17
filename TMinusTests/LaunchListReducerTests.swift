@@ -5,9 +5,9 @@
 //  Created by Sadegh on 12/05/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 // MARK: - LaunchListReducerTests
 
@@ -76,14 +76,17 @@ enum LaunchListReducerTests {
                 mode: .upcoming,
                 launches: previousLaunches,
                 pagination: .initial,
-                phase: .loading(.initial)),
+                phase: .loading(.initial)
+            ),
             action: .loadResponse(
                 mode: .upcoming,
                 previousLaunches: previousLaunches,
                 page: PagedResult(items: [], currentPage: 1),
                 kind: .fresh,
                 errorMessage: errorMessage,
-                generation: 0))
+                generation: 0
+            )
+        )
 
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches == previousLaunches)
@@ -103,7 +106,8 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            loadMoreError: nil)
+            loadMoreError: nil
+        )
         let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loaded)
 
         let result = LaunchListReducer.reduce(state: state, action: .loadMore)
@@ -128,7 +132,8 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            loadMoreError: nil)
+            loadMoreError: nil
+        )
         let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loading(.loadMore))
 
         let result = LaunchListReducer.reduce(
@@ -139,7 +144,9 @@ enum LaunchListReducerTests {
                 page: PagedResult(items: [], currentPage: 2),
                 kind: .loadMore,
                 errorMessage: "Network failed",
-                generation: 0))
+                generation: 0
+            )
+        )
 
         #expect(result.state.mode == .upcoming)
         #expect(result.state.launches == launches)
@@ -157,7 +164,8 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            loadMoreError: "Previous failure")
+            loadMoreError: "Previous failure"
+        )
         let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loaded)
 
         let result = LaunchListReducer.reduce(state: state, action: .loadMore)
@@ -173,7 +181,8 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            loadMoreError: nil)
+            loadMoreError: nil
+        )
         let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loading(.loadMore))
 
         let result = LaunchListReducer.reduce(state: state, action: .loadMore)
@@ -189,7 +198,8 @@ enum LaunchListReducerTests {
             nextPage: 2,
             previousPage: nil,
             totalCount: 100,
-            loadMoreError: "Previous failure")
+            loadMoreError: "Previous failure"
+        )
         let state = LaunchListState(mode: .upcoming, launches: launches, pagination: pagination, phase: .loaded)
 
         let result = LaunchListReducer.reduce(state: state, action: .retryLoadMore)
@@ -211,7 +221,8 @@ enum LaunchListReducerTests {
     static func staleGenerationResponseIsDropped() {
         let appeared = LaunchListReducer.reduce(
             state: LaunchListState(mode: .upcoming, launches: [], pagination: .initial, phase: .idle),
-            action: .appear)
+            action: .appear
+        )
         // A second appear-triggered load never happens in practice (onAppear only fires once),
         // but modelling it here is the simplest way to advance the generation past the first
         // load's, simulating a fresh load starting while the first is still in flight.
@@ -225,7 +236,9 @@ enum LaunchListReducerTests {
                 page: PagedResult(items: [makeLaunch(id: "stale")], currentPage: 1),
                 kind: .fresh,
                 errorMessage: nil,
-                generation: 1))
+                generation: 1
+            )
+        )
 
         #expect(staleResult.state == refreshed.state)
 
@@ -237,14 +250,16 @@ enum LaunchListReducerTests {
                 page: PagedResult(items: [makeLaunch(id: "current")], currentPage: 1),
                 kind: .fresh,
                 errorMessage: nil,
-                generation: 2))
+                generation: 2
+            )
+        )
 
         #expect(currentResult.state.launches.map(\.id) == ["current"])
     }
 }
 
-extension LaunchListReducerTests {
-    fileprivate static func makeLaunch(id: String) -> Launch {
+private extension LaunchListReducerTests {
+    static func makeLaunch(id: String) -> Launch {
         Launch(
             id: id,
             name: "Launch \(id)",
@@ -255,6 +270,7 @@ extension LaunchListReducerTests {
             launchPad: LaunchPad(id: "10", name: "LC-39A", latitude: 0, longitude: 0, locationName: "KSC"),
             mission: nil,
             imageURL: nil,
-            webcastURL: nil)
+            webcastURL: nil
+        )
     }
 }

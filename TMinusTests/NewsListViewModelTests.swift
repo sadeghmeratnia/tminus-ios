@@ -5,9 +5,9 @@
 //  Created by Sadegh on 09/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @MainActor
 @Suite("NewsListViewModel")
@@ -98,14 +98,16 @@ struct NewsListViewModelTests {
                     currentPage: 1,
                     totalCount: 2,
                     nextPage: 2,
-                    previousPage: nil)
+                    previousPage: nil
+                )
             }
             return PagedResult(
                 items: [Self.makeArticle(id: "page-2-item")],
                 currentPage: 2,
                 totalCount: 2,
                 nextPage: nil,
-                previousPage: 1)
+                previousPage: 1
+            )
         }
         let viewModel = Self.makeViewModel(repository: repository)
 
@@ -125,12 +127,12 @@ struct NewsListViewModelTests {
     }
 }
 
-extension NewsListViewModelTests {
-    fileprivate static func makeViewModel(repository: NewsRepositoryProtocol) -> NewsListViewModel {
+private extension NewsListViewModelTests {
+    static func makeViewModel(repository: NewsRepositoryProtocol) -> NewsListViewModel {
         NewsListViewModel(fetchNewsArticlesUseCase: FetchNewsArticlesUseCase(repository: repository))
     }
 
-    fileprivate nonisolated static func makeArticle(id: String) -> NewsArticle {
+    nonisolated static func makeArticle(id: String) -> NewsArticle {
         NewsArticle(
             id: id,
             title: "Article \(id)",
@@ -139,12 +141,14 @@ extension NewsListViewModelTests {
             imageURL: nil,
             newsSite: "SpaceNews",
             publishedAt: Date(timeIntervalSince1970: 1000),
-            relatedLaunchIDs: [])
+            relatedLaunchIDs: []
+        )
     }
 
-    fileprivate static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                                      checkEveryNanoseconds: UInt64 = 20_000_000,
-                                      _ condition: @escaping @MainActor () -> Bool) async throws {
+    static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
+                          checkEveryNanoseconds: UInt64 = 20_000_000,
+                          _ condition: @escaping @MainActor () -> Bool) async throws
+    {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
@@ -172,11 +176,11 @@ actor MockNewsListRepository: NewsRepositoryProtocol {
         return try await handler(query, callCount)
     }
 
-    func fetchArticleDetail(id: String) async throws -> NewsArticle {
+    func fetchArticleDetail(id _: String) async throws -> NewsArticle {
         throw NSError(domain: "MockNewsListRepository", code: 404)
     }
 
-    func fetchRelatedArticles(launchID: String, limit: Int) async throws -> [NewsArticle] {
+    func fetchRelatedArticles(launchID _: String, limit _: Int) async throws -> [NewsArticle] {
         []
     }
 }

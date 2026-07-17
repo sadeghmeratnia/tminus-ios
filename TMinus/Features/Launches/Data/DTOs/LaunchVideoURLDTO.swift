@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LaunchVideoURLDTO: Decodable, Sendable {
+struct LaunchVideoURLDTO: Decodable {
     let url: URL?
     let priority: Int?
 }

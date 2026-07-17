@@ -15,7 +15,7 @@ protocol NetworkLogger: Sendable {
 
 // MARK: - LogLevel
 
-enum LogLevel: Sendable {
+enum LogLevel {
     case debug
     case info
     case warning

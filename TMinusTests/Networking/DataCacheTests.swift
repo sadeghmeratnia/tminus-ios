@@ -5,14 +5,14 @@
 //  Created by Sadegh on 19/05/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("DataCache")
 enum DataCacheTests {
     @Test("Stores metadata for cache entry")
-    static func storesMetadata() async throws {
+    static func storesMetadata() async {
         let cache = DataCache(ttl: 60)
         let key = "launches/upcoming"
         let payload = Data("value".utf8)

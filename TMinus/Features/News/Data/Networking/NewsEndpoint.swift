@@ -15,7 +15,8 @@ enum NewsEndpoint {
             baseURL: baseURL,
             path: "articles/",
             queryItems: makeQueryItems(query: query),
-            cacheTTL: NewsCacheTTL.list)
+            cacheTTL: NewsCacheTTL.list
+        )
     }
 
     static func detail(id: String) -> Endpoint {
@@ -30,7 +31,8 @@ enum NewsEndpoint {
                 URLQueryItem(name: "limit", value: String(max(1, limit))),
                 URLQueryItem(name: "launch", value: launchID),
             ],
-            cacheTTL: NewsCacheTTL.related)
+            cacheTTL: NewsCacheTTL.related
+        )
     }
 
     private static func makeQueryItems(query: NewsListQuery) -> [URLQueryItem] {

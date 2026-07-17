@@ -5,18 +5,18 @@
 //  Created by Sadegh on 13/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
 import SwiftData
 import SwiftUI
+import Testing
+@testable import TMinus
 
 @MainActor
 @Suite("LaunchesFeatureBuilder")
 struct LaunchesFeatureBuilderTests {
     @Test("makeCoordinator wires a working LaunchesCoordinator")
     func makeCoordinatorWiresCoordinator() throws {
-        let builder = LaunchesFeatureBuilder(dependencies: try Self.makeDependencies())
+        let builder = try LaunchesFeatureBuilder(dependencies: Self.makeDependencies())
 
         let coordinator = builder.makeCoordinator()
 
@@ -26,7 +26,7 @@ struct LaunchesFeatureBuilderTests {
 
     @Test("Each call to makeCoordinator produces an independent coordinator")
     func makeCoordinatorProducesIndependentInstances() throws {
-        let builder = LaunchesFeatureBuilder(dependencies: try Self.makeDependencies())
+        let builder = try LaunchesFeatureBuilder(dependencies: Self.makeDependencies())
 
         let first = builder.makeCoordinator()
         let second = builder.makeCoordinator()
@@ -38,8 +38,8 @@ struct LaunchesFeatureBuilderTests {
     }
 }
 
-extension LaunchesFeatureBuilderTests {
-    fileprivate static func makeDependencies() throws -> LaunchesFeatureBuilder.Dependencies {
+private extension LaunchesFeatureBuilderTests {
+    static func makeDependencies() throws -> LaunchesFeatureBuilder.Dependencies {
         let schema = Schema([LaunchLocalModel.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let modelContainer = try ModelContainer(for: schema, configurations: [configuration])
@@ -47,7 +47,8 @@ extension LaunchesFeatureBuilderTests {
         return LaunchesFeatureBuilder.Dependencies(
             networkClient: NoopNetworkClient(),
             modelContainer: modelContainer,
-            newsRepository: MockNewsRepository())
+            newsRepository: MockNewsRepository()
+        )
     }
 }
 
@@ -56,11 +57,11 @@ extension LaunchesFeatureBuilderTests {
 /// A network client that never actually issues a request — sufficient for builder/coordinator
 /// wiring tests, which only need the dependency graph to construct, not to fetch real data.
 final class NoopNetworkClient: NetworkClientProtocol, Sendable {
-    func requestData(endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> Data {
+    func requestData(endpoint _: Endpoint, cachePolicy _: FetchPolicy) async throws -> Data {
         throw NetworkError.invalidResponse
     }
 
-    func request<T>(_ type: T.Type, endpoint: Endpoint, cachePolicy: FetchPolicy) async throws -> T where T: Decodable & Sendable {
+    func request<T: Decodable & Sendable>(_: T.Type, endpoint _: Endpoint, cachePolicy _: FetchPolicy) async throws -> T {
         throw NetworkError.invalidResponse
     }
 }

@@ -5,9 +5,9 @@
 //  Created by Sadegh on 22/04/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 // MARK: - EndpointTests
 
@@ -21,7 +21,8 @@ enum EndpointTests {
         func buildsCorrectURL() throws {
             let request = try makeRequest(
                 path: "launches",
-                baseURL: EndpointTests.launchLibraryBaseURL)
+                baseURL: EndpointTests.launchLibraryBaseURL
+            )
             #expect(request.url?.absoluteString == "https://ll.thespacedevs.com/2.3.0/launches")
         }
 
@@ -29,7 +30,8 @@ enum EndpointTests {
         func stripsLeadingSlash() throws {
             let request = try makeRequest(
                 path: "/launches",
-                baseURL: EndpointTests.launchLibraryBaseURL)
+                baseURL: EndpointTests.launchLibraryBaseURL
+            )
             #expect(request.url?.absoluteString == "https://ll.thespacedevs.com/2.3.0/launches")
         }
 
@@ -37,10 +39,12 @@ enum EndpointTests {
         func leadingSlashIsNormalized() throws {
             let withSlash = try makeRequest(
                 path: "/launches",
-                baseURL: EndpointTests.launchLibraryBaseURL)
+                baseURL: EndpointTests.launchLibraryBaseURL
+            )
             let withoutSlash = try makeRequest(
                 path: "launches",
-                baseURL: EndpointTests.launchLibraryBaseURL)
+                baseURL: EndpointTests.launchLibraryBaseURL
+            )
 
             #expect(withSlash.url == withoutSlash.url)
         }
@@ -80,7 +84,8 @@ enum EndpointTests {
         func appendsQueryItems() throws {
             let request = try makeRequest(
                 path: "launches",
-                queryItems: [URLQueryItem(name: "limit", value: "10")])
+                queryItems: [URLQueryItem(name: "limit", value: "10")]
+            )
             let components = try URLComponents(url: #require(request.url), resolvingAgainstBaseURL: false)
 
             #expect(components?.queryItems?.contains(URLQueryItem(name: "limit", value: "10")) == true)
@@ -93,7 +98,8 @@ enum EndpointTests {
                 queryItems: [
                     URLQueryItem(name: "limit", value: "10"),
                     URLQueryItem(name: "offset", value: "20"),
-                ])
+                ]
+            )
             let components = try URLComponents(url: #require(request.url), resolvingAgainstBaseURL: false)
 
             #expect(components?.queryItems?.count == 2)
@@ -115,7 +121,8 @@ enum EndpointTests {
         func setsHeaders() throws {
             let request = try makeRequest(
                 path: "launches",
-                headers: ["Authorization": "Bearer token123"])
+                headers: ["Authorization": "Bearer token123"]
+            )
 
             #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token123")
         }
@@ -127,7 +134,8 @@ enum EndpointTests {
                 headers: [
                     "Authorization": "Bearer token123",
                     "Accept": "application/json",
-                ])
+                ]
+            )
 
             #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token123")
             #expect(request.value(forHTTPHeaderField: "Accept") == "application/json")
@@ -177,30 +185,33 @@ enum EndpointTests {
                 baseURL: EndpointTests.defaultBaseURL,
                 path: "launches",
                 cacheable: false,
-                cacheTTL: 120)
+                cacheTTL: 120
+            )
             #expect(endpoint.cacheable == false)
             #expect(endpoint.cacheTTL == 120)
         }
     }
 }
 
-extension EndpointTests {
-    fileprivate static let defaultBaseURL = URL(string: "https://example.com/")!
-    fileprivate static let launchLibraryBaseURL = URL(string: "https://ll.thespacedevs.com/2.3.0/")!
+private extension EndpointTests {
+    static let defaultBaseURL = URL(string: "https://example.com/")!
+    static let launchLibraryBaseURL = URL(string: "https://ll.thespacedevs.com/2.3.0/")!
 
-    fileprivate static func makeRequest(path: String,
-                                        method: HTTPMethod = .get,
-                                        queryItems: [URLQueryItem] = [],
-                                        headers: [String: String] = [:],
-                                        timeoutInterval: TimeInterval = 30,
-                                        baseURL: URL = defaultBaseURL) throws -> URLRequest {
+    static func makeRequest(path: String,
+                            method: HTTPMethod = .get,
+                            queryItems: [URLQueryItem] = [],
+                            headers: [String: String] = [:],
+                            timeoutInterval: TimeInterval = 30,
+                            baseURL: URL = defaultBaseURL) throws -> URLRequest
+    {
         try Endpoint(
             baseURL: baseURL,
             path: path,
             method: method,
             queryItems: queryItems,
             headers: headers,
-            timeoutInterval: timeoutInterval)
-            .urlRequest()
+            timeoutInterval: timeoutInterval
+        )
+        .urlRequest()
     }
 }

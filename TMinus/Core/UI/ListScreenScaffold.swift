@@ -29,15 +29,17 @@ struct ListScreenScaffold<Item, Content: View>: View {
             ContentUnavailableView(
                 errorTitle,
                 systemImage: UIConstants.Icon.networkError,
-                description: Text(message))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                description: Text(message)
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         case .empty:
             ContentUnavailableView(
                 emptyTitle,
                 systemImage: emptyIcon,
-                description: Text(emptyDescription))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                description: Text(emptyDescription)
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         case .content:
             content()
@@ -54,7 +56,8 @@ struct ListScreenScaffold<Item, Content: View>: View {
         errorTitle: "Could not load",
         emptyTitle: "Nothing here",
         emptyDescription: "Nothing to show right now.",
-        emptyIcon: "tray") { EmptyView() }
+        emptyIcon: "tray"
+    ) { EmptyView() }
 }
 
 #Preview("Empty") {
@@ -64,7 +67,8 @@ struct ListScreenScaffold<Item, Content: View>: View {
         errorTitle: "Could not load",
         emptyTitle: "Nothing here",
         emptyDescription: "Nothing to show right now.",
-        emptyIcon: "tray") { EmptyView() }
+        emptyIcon: "tray"
+    ) { EmptyView() }
 }
 
 #Preview("Error") {
@@ -74,5 +78,6 @@ struct ListScreenScaffold<Item, Content: View>: View {
         errorTitle: "Could not load",
         emptyTitle: "Nothing here",
         emptyDescription: "Nothing to show right now.",
-        emptyIcon: "tray") { EmptyView() }
+        emptyIcon: "tray"
+    ) { EmptyView() }
 }

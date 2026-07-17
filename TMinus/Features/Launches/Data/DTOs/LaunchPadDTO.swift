@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LaunchPadDTO: Decodable, Sendable {
+struct LaunchPadDTO: Decodable {
     let id: Int?
     let name: String?
     let latitude: Double?

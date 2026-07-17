@@ -5,8 +5,8 @@
 //  Created by Sadegh on 19/05/2026.
 //
 
-import SwiftData
 import Foundation
+import SwiftData
 
 @Model
 final class LaunchLocalModel {
@@ -52,7 +52,8 @@ final class LaunchLocalModel {
          missionOrbit: String?,
          imageURLString: String?,
          webcastURLString: String?,
-         fetchedAt: Date = .now) {
+         fetchedAt: Date = .now)
+    {
         self.id = id
         self.name = name
         self.statusCode = statusCode

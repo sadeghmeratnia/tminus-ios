@@ -23,7 +23,8 @@ final class NewsDetailBuilder: NewsDetailBuilding {
     private func makeViewModel(articleID: String) -> NewsDetailViewModel {
         NewsDetailViewModel(
             articleID: articleID,
-            fetchNewsArticleDetailUseCase: fetchNewsArticleDetailUseCase)
+            fetchNewsArticleDetailUseCase: fetchNewsArticleDetailUseCase
+        )
     }
 
     func makeView(articleID: String) -> DefaultNewsDetailView {

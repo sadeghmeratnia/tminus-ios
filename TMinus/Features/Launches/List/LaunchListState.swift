@@ -40,7 +40,8 @@ struct LaunchListState: Equatable {
          launches: [Launch],
          pagination: ListPagination,
          phase: ListPhase,
-         loadGenerations: ListLoadGenerations = ListLoadGenerations()) {
+         loadGenerations: ListLoadGenerations = ListLoadGenerations())
+    {
         self.mode = mode
         self.launches = launches
         self.pagination = pagination
@@ -52,19 +53,22 @@ struct LaunchListState: Equatable {
         mode: .upcoming,
         launches: [],
         pagination: .initial,
-        phase: .idle)
+        phase: .idle
+    )
 
     func with(mode: LaunchListMode? = nil,
               launches: [Launch]? = nil,
               pagination: ListPagination? = nil,
               phase: ListPhase? = nil,
-              loadGenerations: ListLoadGenerations? = nil) -> LaunchListState {
+              loadGenerations: ListLoadGenerations? = nil) -> LaunchListState
+    {
         LaunchListState(
             mode: mode ?? self.mode,
             launches: launches ?? self.launches,
             pagination: pagination ?? self.pagination,
             phase: phase ?? self.phase,
-            loadGenerations: loadGenerations ?? self.loadGenerations)
+            loadGenerations: loadGenerations ?? self.loadGenerations
+        )
     }
 
     /// Every start-of-load method advances the generation for the relevant `ListLoadKind` and
@@ -86,14 +90,16 @@ struct LaunchListState: Equatable {
         let (next, value) = loadGenerations.advancing(for: .fresh)
         return (
             with(mode: newMode, launches: [], pagination: .initial, phase: .loading(.initial), loadGenerations: next),
-            value)
+            value
+        )
     }
 
     func startingLoadMore() -> (state: LaunchListState, generation: Int) {
         let (next, value) = loadGenerations.advancing(for: .loadMore)
         return (
             with(pagination: pagination.clearingLoadMoreError(), phase: .loading(.loadMore), loadGenerations: next),
-            value)
+            value
+        )
     }
 
     func applyingLoadResponse(mode: LaunchListMode,
@@ -101,7 +107,8 @@ struct LaunchListState: Equatable {
                               page: PagedResult<Launch>,
                               kind: ListLoadKind,
                               errorMessage: String?,
-                              generation: Int) -> LaunchListState {
+                              generation: Int) -> LaunchListState
+    {
         guard loadGenerations.matches(generation, for: kind) else { return self }
 
         if let errorMessage {
@@ -110,14 +117,16 @@ struct LaunchListState: Equatable {
                     mode: mode,
                     launches: previousLaunches,
                     pagination: pagination.failingLoadMore(message: errorMessage),
-                    phase: .loaded)
+                    phase: .loaded
+                )
             }
 
             return with(
                 mode: mode,
                 launches: previousLaunches,
                 pagination: pagination.clearingLoadMoreError(),
-                phase: .error(message: errorMessage))
+                phase: .error(message: errorMessage)
+            )
         }
 
         let launches = kind == .loadMore ? previousLaunches.merging(page.items) : page.items
@@ -125,7 +134,8 @@ struct LaunchListState: Equatable {
             mode: mode,
             launches: launches,
             pagination: pagination.applying(page: page),
-            phase: .loaded)
+            phase: .loaded
+        )
     }
 }
 

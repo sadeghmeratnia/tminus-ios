@@ -15,4 +15,4 @@ protocol NetworkSession: Sendable {
 
 // MARK: - URLSession + NetworkSession
 
-extension URLSession: NetworkSession { }
+extension URLSession: NetworkSession {}

@@ -95,7 +95,9 @@ final class NewsListViewModel: ReducingStoreProtocol {
                         page: pagedResult,
                         kind: kind,
                         errorMessage: errorMessage,
-                        generation: generation))
+                        generation: generation
+                    )
+                )
             }
         }
     }

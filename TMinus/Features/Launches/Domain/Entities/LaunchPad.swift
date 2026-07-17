@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LaunchPad: Equatable, Sendable {
+struct LaunchPad: Equatable {
     let id: String
     let name: String
     let latitude: Double

@@ -7,6 +7,6 @@
 
 import Foundation
 
-struct LaunchRocketDTO: Decodable, Sendable {
+struct LaunchRocketDTO: Decodable {
     let configuration: LaunchRocketConfigurationDTO?
 }

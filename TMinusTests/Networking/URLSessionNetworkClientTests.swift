@@ -5,9 +5,9 @@
 //  Created by Sadegh on 01/05/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 // MARK: - URLSessionNetworkClientTests
 
@@ -188,7 +188,7 @@ enum URLSessionNetworkClientTests {
             let expected = Data("post-response".utf8)
             var requestCount = 0
             let cache = DataCache(ttl: 60)
-            let endpoint = Endpoint(baseURL: URL(string: "https://example.com")!, path: "mock-post", method: .post)
+            let endpoint = try Endpoint(baseURL: #require(URL(string: "https://example.com")), path: "mock-post", method: .post)
 
             let client = make(cache: cache) { _ in
                 requestCount += 1
@@ -228,13 +228,15 @@ extension URLSessionNetworkClientTests {
     static func make(retryPolicy: RetryPolicy = MockRetryPolicy(),
                      logger: NetworkLogger = MockLogger(),
                      cache: DataCache = DataCache(),
-                     handler: @escaping MockNetworkSession.Handler) -> URLSessionNetworkClient {
+                     handler: @escaping MockNetworkSession.Handler) -> URLSessionNetworkClient
+    {
         URLSessionNetworkClient(
             session: MockNetworkSession(handler: handler),
             decoder: JSONDecoder(),
             retryPolicy: retryPolicy,
             logger: logger,
-            cache: cache)
+            cache: cache
+        )
     }
 
     static func response(statusCode: Int, data: Data = Data()) -> (Data, URLResponse) {
@@ -247,7 +249,8 @@ extension URLSessionNetworkClientTests {
             url: url,
             mimeType: nil,
             expectedContentLength: 0,
-            textEncodingName: nil)
+            textEncodingName: nil
+        )
         return (Data(), response)
     }
 
@@ -258,7 +261,8 @@ extension URLSessionNetworkClientTests {
                       case let .statusCode(code) = networkError
                 else { return false }
                 return code == statusCode && attempt < maxAttempts
-            })
+            }
+        )
     }
 
     static func assertThrowsStatusCode(_ expectedStatusCode: Int, operation: AsyncThrowingOperation) async {

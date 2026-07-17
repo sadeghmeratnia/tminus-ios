@@ -28,7 +28,8 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
     private var searchBinding: Binding<String> {
         Binding(
             get: { state.searchText },
-            set: { viewModel.onTrigger(.searchTextChanged($0)) })
+            set: { viewModel.onTrigger(.searchTextChanged($0)) }
+        )
     }
 
     var body: some View {
@@ -39,14 +40,15 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
             errorTitle: L10n.News.errorTitle,
             emptyTitle: L10n.News.emptyTitle,
             emptyDescription: L10n.News.emptyDescription,
-            emptyIcon: Constants.Icon.empty) {
-                articlesListView(bannerMessage: refreshErrorMessage)
-            }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle(L10n.News.navigationTitle)
-            .navigationBarTitleDisplayMode(.large)
-            .searchable(text: searchBinding, prompt: L10n.News.searchPrompt)
-            .task { viewModel.onTrigger(.onAppear) }
+            emptyIcon: Constants.Icon.empty
+        ) {
+            articlesListView(bannerMessage: refreshErrorMessage)
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(L10n.News.navigationTitle)
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(text: searchBinding, prompt: L10n.News.searchPrompt)
+        .task { viewModel.onTrigger(.onAppear) }
     }
 
     private func articlesListView(bannerMessage: String?) -> some View {
@@ -56,7 +58,8 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
                     ListRefreshErrorBanner(
                         message: bannerMessage,
                         retryTitle: L10n.News.retryAction,
-                        onRetry: { viewModel.onTrigger(.refresh) })
+                        onRetry: { viewModel.onTrigger(.refresh) }
+                    )
                 }
 
                 ForEach(articles) { article in
@@ -73,7 +76,8 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
                     isLoadingMore: state.phase.isLoadingMore,
                     loadMoreError: state.pagination.loadMoreError,
                     retryTitle: L10n.News.retryAction,
-                    onRetry: { viewModel.onTrigger(.retryLoadMore) })
+                    onRetry: { viewModel.onTrigger(.retryLoadMore) }
+                )
             }
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)
@@ -98,7 +102,8 @@ private enum Constants {
     NavigationStack {
         NewsListView(
             viewModel: StaticViewModel(state: NewsPreviewFixtures.listLoadedState),
-            onArticleSelected: { _ in })
+            onArticleSelected: { _ in }
+        )
     }
 }
 
@@ -106,8 +111,10 @@ private enum Constants {
     NavigationStack {
         NewsListView(
             viewModel: StaticViewModel(
-                state: NewsListState(articles: [], searchText: "", pagination: .initial, phase: .loading(.initial))),
-            onArticleSelected: { _ in })
+                state: NewsListState(articles: [], searchText: "", pagination: .initial, phase: .loading(.initial))
+            ),
+            onArticleSelected: { _ in }
+        )
     }
 }
 
@@ -119,7 +126,10 @@ private enum Constants {
                     articles: [],
                     searchText: "",
                     pagination: .initial,
-                    phase: .error(message: "Could not load news"))),
-            onArticleSelected: { _ in })
+                    phase: .error(message: "Could not load news")
+                )
+            ),
+            onArticleSelected: { _ in }
+        )
     }
 }

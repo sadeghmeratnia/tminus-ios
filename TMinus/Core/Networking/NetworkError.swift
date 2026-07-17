@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - NetworkError
 
-enum NetworkError: Error, Sendable {
+enum NetworkError: Error {
     case invalidURL
     case requestEncoding
     case invalidResponse

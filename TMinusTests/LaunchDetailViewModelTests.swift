@@ -5,9 +5,9 @@
 //  Created by Sadegh on 28/05/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @MainActor
 @Suite("LaunchDetailViewModel")
@@ -21,7 +21,8 @@ struct LaunchDetailViewModelTests {
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository()))
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository())
+        )
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
@@ -48,7 +49,8 @@ struct LaunchDetailViewModelTests {
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository()))
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository())
+        )
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
@@ -72,22 +74,24 @@ struct LaunchDetailViewModelTests {
         await repository.setHandler { id, _ in
             LaunchDetailViewModelTests.makeLaunch(id: id)
         }
-        let article = NewsArticle(
+        let article = try NewsArticle(
             id: "article-1",
             title: "Related Article",
             summary: "Summary",
-            url: URL(string: "https://example.com/article-1")!,
+            url: #require(URL(string: "https://example.com/article-1")),
             imageURL: nil,
             newsSite: "SpaceNews",
             publishedAt: Date(timeIntervalSince1970: 1000),
-            relatedLaunchIDs: ["detail-1"])
+            relatedLaunchIDs: ["detail-1"]
+        )
         let newsRepository = MockNewsRepository()
         await newsRepository.setRelatedArticles([article])
 
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository))
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository)
+        )
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
@@ -107,22 +111,24 @@ struct LaunchDetailViewModelTests {
             }
             return LaunchDetailViewModelTests.makeLaunch(id: id)
         }
-        let article = NewsArticle(
+        let article = try NewsArticle(
             id: "article-1",
             title: "Related Article",
             summary: "Summary",
-            url: URL(string: "https://example.com/article-1")!,
+            url: #require(URL(string: "https://example.com/article-1")),
             imageURL: nil,
             newsSite: "SpaceNews",
             publishedAt: Date(timeIntervalSince1970: 1000),
-            relatedLaunchIDs: ["detail-1"])
+            relatedLaunchIDs: ["detail-1"]
+        )
         let newsRepository = MockNewsRepository()
         await newsRepository.setShouldThrow(true)
 
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository))
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository)
+        )
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
@@ -156,7 +162,8 @@ struct LaunchDetailViewModelTests {
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository))
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository)
+        )
 
         viewModel.onTrigger(.onAppear)
         try await Self.waitUntil {
@@ -169,8 +176,8 @@ struct LaunchDetailViewModelTests {
     }
 }
 
-extension LaunchDetailViewModelTests {
-    fileprivate nonisolated static func makeLaunch(id: String) -> Launch {
+private extension LaunchDetailViewModelTests {
+    nonisolated static func makeLaunch(id: String) -> Launch {
         Launch(
             id: id,
             name: "Launch \(id)",
@@ -181,12 +188,14 @@ extension LaunchDetailViewModelTests {
             launchPad: LaunchPad(id: "10", name: "LC-39A", latitude: 0, longitude: 0, locationName: "KSC"),
             mission: nil,
             imageURL: nil,
-            webcastURL: nil)
+            webcastURL: nil
+        )
     }
 
-    fileprivate static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                                      checkEveryNanoseconds: UInt64 = 20_000_000,
-                                      _ condition: @escaping @MainActor () -> Bool) async throws {
+    static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
+                          checkEveryNanoseconds: UInt64 = 20_000_000,
+                          _ condition: @escaping @MainActor () -> Bool) async throws
+    {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
@@ -195,9 +204,10 @@ extension LaunchDetailViewModelTests {
         Issue.record("Timed out waiting for expected state")
     }
 
-    fileprivate static func waitUntilActor(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                                           checkEveryNanoseconds: UInt64 = 20_000_000,
-                                           _ condition: @escaping () async -> Bool) async throws {
+    static func waitUntilActor(timeoutNanoseconds: UInt64 = 1_500_000_000,
+                               checkEveryNanoseconds: UInt64 = 20_000_000,
+                               _ condition: @escaping () async -> Bool) async throws
+    {
         let start = DispatchTime.now().uptimeNanoseconds
         while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
             if await condition() { return }
@@ -216,11 +226,11 @@ actor MockLaunchDetailRepository: LaunchRepositoryProtocol {
         self.handler = handler
     }
 
-    func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch> {
+    func fetchUpcomingLaunches(query _: LaunchListQuery) async throws -> PagedResult<Launch> {
         PagedResult(items: [])
     }
 
-    func fetchPreviousLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch> {
+    func fetchPreviousLaunches(query _: LaunchListQuery) async throws -> PagedResult<Launch> {
         PagedResult(items: [])
     }
 
@@ -228,7 +238,7 @@ actor MockLaunchDetailRepository: LaunchRepositoryProtocol {
         requestedIDs.append(id)
         callCount += 1
         guard let handler else {
-            throw LaunchError.unknown(underlying: NSError(domain: "MockLaunchDetailRepository", code: 0))
+            throw LaunchError.unknown(underlying: ErrorSummary(NSError(domain: "MockLaunchDetailRepository", code: 0)))
         }
         return try await handler(id, callCount)
     }
@@ -247,15 +257,15 @@ actor MockNewsRepository: NewsRepositoryProtocol {
         shouldThrow = value
     }
 
-    func fetchArticles(query: NewsListQuery) async throws -> PagedResult<NewsArticle> {
+    func fetchArticles(query _: NewsListQuery) async throws -> PagedResult<NewsArticle> {
         PagedResult(items: [])
     }
 
-    func fetchArticleDetail(id: String) async throws -> NewsArticle {
-        throw NewsError.unknown(underlying: NSError(domain: "MockNewsRepository", code: 0))
+    func fetchArticleDetail(id _: String) async throws -> NewsArticle {
+        throw NewsError.unknown(underlying: ErrorSummary(NSError(domain: "MockNewsRepository", code: 0)))
     }
 
-    func fetchRelatedArticles(launchID: String, limit: Int) async throws -> [NewsArticle] {
+    func fetchRelatedArticles(launchID _: String, limit _: Int) async throws -> [NewsArticle] {
         relatedArticlesRequestCount += 1
         if shouldThrow {
             throw NewsError.networkUnavailable

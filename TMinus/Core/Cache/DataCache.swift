@@ -13,13 +13,13 @@ actor DataCache {
         static let keyCompactionThreshold = 1024
     }
 
-    enum DataSource: Equatable, Sendable {
+    enum DataSource: Equatable {
         case network
         case disk
         case memory
     }
 
-    struct Metadata: Equatable, Sendable {
+    struct Metadata: Equatable {
         let fetchedAt: Date
         let ttl: TimeInterval
         let source: DataSource
@@ -33,7 +33,7 @@ actor DataCache {
         }
     }
 
-    struct CachedValue: Equatable, Sendable {
+    struct CachedValue: Equatable {
         let data: Data
         let metadata: Metadata
     }
@@ -55,7 +55,8 @@ actor DataCache {
 
     init(ttl: TimeInterval = 300,
          countLimit: Int = Defaults.cacheCountLimit,
-         keyCompactionThreshold: Int = Defaults.keyCompactionThreshold) {
+         keyCompactionThreshold: Int = Defaults.keyCompactionThreshold)
+    {
         self.ttl = ttl
         self.keyCompactionThreshold = max(1, keyCompactionThreshold)
         cache.countLimit = max(1, countLimit)
@@ -64,12 +65,14 @@ actor DataCache {
     func set(_ data: Data,
              for key: String,
              ttl: TimeInterval? = nil,
-             source: DataSource = .network) {
+             source: DataSource = .network)
+    {
         let effectiveTTL = ttl ?? self.ttl
         let metadata = Metadata(
             fetchedAt: Date(),
             ttl: effectiveTTL,
-            source: source)
+            source: source
+        )
         cache.setObject(CacheEntry(data: data, metadata: metadata), forKey: key as NSString)
         knownKeys.insert(key)
         compactKnownKeysIfNeeded()

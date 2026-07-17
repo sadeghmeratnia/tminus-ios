@@ -20,7 +20,8 @@ struct NewsListState: Equatable {
          searchText: String,
          pagination: ListPagination,
          phase: ListPhase,
-         loadGenerations: ListLoadGenerations = ListLoadGenerations()) {
+         loadGenerations: ListLoadGenerations = ListLoadGenerations())
+    {
         self.articles = articles
         self.searchText = searchText
         self.pagination = pagination
@@ -32,19 +33,22 @@ struct NewsListState: Equatable {
         articles: [],
         searchText: "",
         pagination: .initial,
-        phase: .idle)
+        phase: .idle
+    )
 
     func with(articles: [NewsArticle]? = nil,
               searchText: String? = nil,
               pagination: ListPagination? = nil,
               phase: ListPhase? = nil,
-              loadGenerations: ListLoadGenerations? = nil) -> NewsListState {
+              loadGenerations: ListLoadGenerations? = nil) -> NewsListState
+    {
         NewsListState(
             articles: articles ?? self.articles,
             searchText: searchText ?? self.searchText,
             pagination: pagination ?? self.pagination,
             phase: phase ?? self.phase,
-            loadGenerations: loadGenerations ?? self.loadGenerations)
+            loadGenerations: loadGenerations ?? self.loadGenerations
+        )
     }
 
     /// See `LaunchListState`'s equivalent methods — same generation-guard rationale, shared via
@@ -63,7 +67,8 @@ struct NewsListState: Equatable {
         let (next, value) = loadGenerations.advancing(for: .fresh)
         return (
             with(articles: [], searchText: text, pagination: .initial, phase: .loading(.initial), loadGenerations: next),
-            value)
+            value
+        )
     }
 
     func updatingSearchText(_ text: String) -> NewsListState {
@@ -74,7 +79,8 @@ struct NewsListState: Equatable {
         let (next, value) = loadGenerations.advancing(for: .loadMore)
         return (
             with(pagination: pagination.clearingLoadMoreError(), phase: .loading(.loadMore), loadGenerations: next),
-            value)
+            value
+        )
     }
 
     func applyingLoadResponse(searchText: String,
@@ -82,7 +88,8 @@ struct NewsListState: Equatable {
                               page: PagedResult<NewsArticle>,
                               kind: ListLoadKind,
                               errorMessage: String?,
-                              generation: Int) -> NewsListState {
+                              generation: Int) -> NewsListState
+    {
         guard searchText == self.searchText, loadGenerations.matches(generation, for: kind) else { return self }
 
         if let errorMessage {
@@ -90,20 +97,23 @@ struct NewsListState: Equatable {
                 return with(
                     articles: previousArticles,
                     pagination: pagination.failingLoadMore(message: errorMessage),
-                    phase: .loaded)
+                    phase: .loaded
+                )
             }
 
             return with(
                 articles: previousArticles,
                 pagination: pagination.clearingLoadMoreError(),
-                phase: .error(message: errorMessage))
+                phase: .error(message: errorMessage)
+            )
         }
 
         let articles = kind == .loadMore ? previousArticles.merging(page.items) : page.items
         return with(
             articles: articles,
             pagination: pagination.applying(page: page),
-            phase: .loaded)
+            phase: .loaded
+        )
     }
 }
 

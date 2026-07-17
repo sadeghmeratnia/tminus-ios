@@ -5,10 +5,10 @@
 //  Created by Sadegh on 13/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
 import SwiftUI
+import Testing
+@testable import TMinus
 
 @MainActor
 @Suite("NewsCoordinator")
@@ -43,7 +43,8 @@ struct NewsCoordinatorTests {
         let detailBuilder = RecordingNewsDetailBuilder()
         let coordinator = NewsCoordinator(
             newsListBuilder: Self.makeListBuilder(),
-            newsDetailBuilder: detailBuilder)
+            newsDetailBuilder: detailBuilder
+        )
 
         _ = coordinator.destinationView(for: .articleDetail(id: "article-42"))
 
@@ -58,19 +59,21 @@ struct NewsCoordinatorTests {
     }
 }
 
-extension NewsCoordinatorTests {
-    fileprivate static func makeCoordinator() -> NewsCoordinator {
+private extension NewsCoordinatorTests {
+    static func makeCoordinator() -> NewsCoordinator {
         NewsCoordinator(newsListBuilder: makeListBuilder(), newsDetailBuilder: makeDetailBuilder())
     }
 
-    fileprivate static func makeListBuilder() -> NewsListBuilder {
+    static func makeListBuilder() -> NewsListBuilder {
         NewsListBuilder(
-            viewModel: NewsListViewModel(fetchNewsArticlesUseCase: FetchNewsArticlesUseCase(repository: MockNewsListRepository())))
+            viewModel: NewsListViewModel(fetchNewsArticlesUseCase: FetchNewsArticlesUseCase(repository: MockNewsListRepository()))
+        )
     }
 
-    fileprivate static func makeDetailBuilder() -> NewsDetailBuilder {
+    static func makeDetailBuilder() -> NewsDetailBuilder {
         NewsDetailBuilder(
-            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: MockNewsDetailRepository()))
+            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: MockNewsDetailRepository())
+        )
     }
 }
 
@@ -83,7 +86,8 @@ private final class RecordingNewsDetailBuilder: NewsDetailBuilding {
     func makeView(articleID: String) -> DefaultNewsDetailView {
         requestedArticleIDs.append(articleID)
         return NewsDetailBuilder(
-            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: MockNewsDetailRepository()))
-            .makeView(articleID: articleID)
+            fetchNewsArticleDetailUseCase: FetchNewsArticleDetailUseCase(repository: MockNewsDetailRepository())
+        )
+        .makeView(articleID: articleID)
     }
 }

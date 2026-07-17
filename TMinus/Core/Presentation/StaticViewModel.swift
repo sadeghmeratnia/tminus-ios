@@ -14,5 +14,5 @@ final class StaticViewModel<State, Trigger>: ViewModelProtocol {
         self.state = state
     }
 
-    func onTrigger(_ trigger: Trigger) { }
+    func onTrigger(_: Trigger) {}
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LaunchMissionDTO: Decodable, Sendable {
+struct LaunchMissionDTO: Decodable {
     let id: Int?
     let name: String?
     let description: String?

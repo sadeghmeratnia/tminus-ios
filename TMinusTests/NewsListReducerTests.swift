@@ -5,9 +5,9 @@
 //  Created by Sadegh on 09/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("NewsListReducer")
 enum NewsListReducerTests {
@@ -72,7 +72,9 @@ enum NewsListReducerTests {
                 page: PagedResult(items: [makeArticle(id: "stale")], currentPage: 1),
                 kind: .fresh,
                 errorMessage: nil,
-                generation: 0))
+                generation: 0
+            )
+        )
 
         #expect(result.state.articles.isEmpty)
         #expect(result.state == state)
@@ -90,7 +92,9 @@ enum NewsListReducerTests {
                 page: PagedResult(items: [makeArticle(id: "1")], currentPage: 1),
                 kind: .fresh,
                 errorMessage: nil,
-                generation: 0))
+                generation: 0
+            )
+        )
 
         #expect(result.state.articles.map(\.id) == ["1"])
         #expect(result.state.phase == .loaded)
@@ -150,7 +154,8 @@ enum NewsListReducerTests {
     static func staleGenerationResponseIsDropped() {
         let appeared = NewsListReducer.reduce(
             state: NewsListState(articles: [], searchText: "", pagination: .initial, phase: .idle),
-            action: .appear)
+            action: .appear
+        )
         // Two overlapping refreshes (e.g. rapid pull-to-refresh) share the same search text, so
         // only the generation guard — not the existing searchText check — can tell them apart.
         let refreshed = NewsListReducer.reduce(state: appeared.state, action: .refresh)
@@ -163,7 +168,9 @@ enum NewsListReducerTests {
                 page: PagedResult(items: [makeArticle(id: "stale")], currentPage: 1),
                 kind: .fresh,
                 errorMessage: nil,
-                generation: 1))
+                generation: 1
+            )
+        )
 
         #expect(staleResult.state == refreshed.state)
 
@@ -175,14 +182,16 @@ enum NewsListReducerTests {
                 page: PagedResult(items: [makeArticle(id: "current")], currentPage: 1),
                 kind: .fresh,
                 errorMessage: nil,
-                generation: 2))
+                generation: 2
+            )
+        )
 
         #expect(currentResult.state.articles.map(\.id) == ["current"])
     }
 }
 
-extension NewsListReducerTests {
-    fileprivate static func makeArticle(id: String) -> NewsArticle {
+private extension NewsListReducerTests {
+    static func makeArticle(id: String) -> NewsArticle {
         NewsArticle(
             id: id,
             title: "Article \(id)",
@@ -191,6 +200,7 @@ extension NewsListReducerTests {
             imageURL: nil,
             newsSite: "SpaceNews",
             publishedAt: Date(timeIntervalSince1970: 1000),
-            relatedLaunchIDs: [])
+            relatedLaunchIDs: []
+        )
     }
 }

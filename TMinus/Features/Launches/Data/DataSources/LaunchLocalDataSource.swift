@@ -5,8 +5,8 @@
 //  Created by Sadegh on 19/05/2026.
 //
 
-import SwiftData
 import Foundation
+import SwiftData
 
 // MARK: - LaunchLocalDataSource
 
@@ -24,7 +24,7 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
     private let context: ModelContext
 
     init(container: ModelContainer) {
-        self.context = ModelContext(container)
+        context = ModelContext(container)
     }
 
     func fetchUpcomingLaunches(query: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {
@@ -49,7 +49,8 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
         return try fetchLaunches(
             query: query,
             predicate: predicate,
-            sortBy: [SortDescriptor(\LaunchLocalModel.windowStart, order: .forward)])
+            sortBy: [SortDescriptor(\LaunchLocalModel.windowStart, order: .forward)]
+        )
     }
 
     func fetchPreviousLaunches(query: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {
@@ -74,7 +75,8 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
         return try fetchLaunches(
             query: query,
             predicate: predicate,
-            sortBy: [SortDescriptor(\LaunchLocalModel.windowStart, order: .reverse)])
+            sortBy: [SortDescriptor(\LaunchLocalModel.windowStart, order: .reverse)]
+        )
     }
 
     func fetchLaunchDetail(id: String, maxAge: TimeInterval?) async throws -> Launch? {
@@ -82,7 +84,8 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
         var descriptor = FetchDescriptor<LaunchLocalModel>(
             predicate: #Predicate<LaunchLocalModel> {
                 $0.id == id && $0.fetchedAt >= cutoff
-            })
+            }
+        )
         descriptor.fetchLimit = 1
         guard let model = try context.fetch(descriptor).first else {
             return nil
@@ -118,7 +121,8 @@ actor SwiftDataLaunchLocalDataSource: LaunchLocalDataSource {
 extension SwiftDataLaunchLocalDataSource {
     private func fetchLaunches(query: LaunchListQuery,
                                predicate: Predicate<LaunchLocalModel>,
-                               sortBy: [SortDescriptor<LaunchLocalModel>]) throws -> [Launch] {
+                               sortBy: [SortDescriptor<LaunchLocalModel>]) throws -> [Launch]
+    {
         var descriptor = FetchDescriptor<LaunchLocalModel>(predicate: predicate, sortBy: sortBy)
         descriptor.fetchOffset = max((query.page - 1) * query.limit, 0)
         descriptor.fetchLimit = max(query.limit, 1)
@@ -143,7 +147,8 @@ extension SwiftDataLaunchLocalDataSource {
 
     private func fetchModel(id: String) throws -> LaunchLocalModel? {
         var descriptor = FetchDescriptor<LaunchLocalModel>(
-            predicate: #Predicate<LaunchLocalModel> { $0.id == id })
+            predicate: #Predicate<LaunchLocalModel> { $0.id == id }
+        )
         descriptor.fetchLimit = 1
         return try context.fetch(descriptor).first
     }
@@ -152,7 +157,8 @@ extension SwiftDataLaunchLocalDataSource {
     private func fetchModels(ids: Set<String>) throws -> [String: LaunchLocalModel] {
         guard ids.isEmpty == false else { return [:] }
         let descriptor = FetchDescriptor<LaunchLocalModel>(
-            predicate: #Predicate<LaunchLocalModel> { ids.contains($0.id) })
+            predicate: #Predicate<LaunchLocalModel> { ids.contains($0.id) }
+        )
         let models = try context.fetch(descriptor)
         // uniquingKeysWith rather than uniqueKeysWithValues: if the store ever already has two
         // rows sharing an id (e.g. from data created before this method existed), this must not

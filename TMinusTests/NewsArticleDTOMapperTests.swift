@@ -5,9 +5,9 @@
 //  Created by Sadegh on 09/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("NewsArticleDTOMapper")
 enum NewsArticleDTOMapperTests {
@@ -93,8 +93,8 @@ enum NewsArticleDTOMapperTests {
     }
 }
 
-extension NewsArticleDTOMapperTests {
-    fileprivate static func decodeArticleDTO(json: String) throws -> NewsArticleDTO {
+private extension NewsArticleDTOMapperTests {
+    static func decodeArticleDTO(json: String) throws -> NewsArticleDTO {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601

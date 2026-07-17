@@ -21,7 +21,8 @@ enum NewsArticleDTOMapper {
             imageURL: dto.imageURL.flatMap(mapURL),
             newsSite: dto.newsSite,
             publishedAt: dto.publishedAt,
-            relatedLaunchIDs: dto.launches.map(\.launchID))
+            relatedLaunchIDs: dto.launches.map(\.launchID)
+        )
     }
 
     private static func mapURL(_ urlString: String) -> URL? {

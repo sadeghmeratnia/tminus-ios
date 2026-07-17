@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct NewsArticleLaunchRefDTO: Decodable, Sendable {
+struct NewsArticleLaunchRefDTO: Decodable {
     let launchID: String
 
     private enum CodingKeys: String, CodingKey {

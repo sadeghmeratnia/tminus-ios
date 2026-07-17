@@ -7,6 +7,6 @@
 
 import Foundation
 
-struct LaunchPadLocationDTO: Decodable, Sendable {
+struct LaunchPadLocationDTO: Decodable {
     let name: String?
 }

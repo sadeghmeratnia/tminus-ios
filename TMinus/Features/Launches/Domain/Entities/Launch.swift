@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Launch
 
-struct Launch: Equatable, Identifiable, Sendable {
+struct Launch: Equatable, Identifiable {
     let id: String
     let name: String
     let status: LaunchStatus

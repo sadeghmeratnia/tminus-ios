@@ -5,9 +5,9 @@
 //  Created by Sadegh on 13/07/2026.
 //
 
-@testable import TMinus
-import Testing
 import Foundation
+import Testing
+@testable import TMinus
 
 @Suite("APIEnvironment")
 enum APIEnvironmentTests {

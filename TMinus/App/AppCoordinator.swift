@@ -13,14 +13,17 @@ final class AppCoordinator: CoordinatorProtocol {
 
     private let container: AppContainer
     private lazy var newsFeatureBuilder = NewsFeatureBuilder(
-        dependencies: NewsFeatureBuilder.Dependencies(networkClient: container.networkClient))
+        dependencies: NewsFeatureBuilder.Dependencies(networkClient: container.networkClient)
+    )
     private lazy var newsCoordinator: NewsCoordinator = newsFeatureBuilder.makeCoordinator()
     private lazy var launchesCoordinator: LaunchesCoordinator = LaunchesFeatureBuilder(
         dependencies: LaunchesFeatureBuilder.Dependencies(
             networkClient: container.networkClient,
             modelContainer: container.modelContainer,
-            newsRepository: newsFeatureBuilder.makeRepository()))
-        .makeCoordinator()
+            newsRepository: newsFeatureBuilder.makeRepository()
+        )
+    )
+    .makeCoordinator()
 
     init(container: AppContainer) {
         self.container = container
@@ -29,6 +32,7 @@ final class AppCoordinator: CoordinatorProtocol {
     func makeRootView() -> AppRootView {
         AppRootView(
             launchesRootView: launchesCoordinator.makeRootView(),
-            newsRootView: newsCoordinator.makeRootView())
+            newsRootView: newsCoordinator.makeRootView()
+        )
     }
 }

@@ -28,20 +28,23 @@ final class NetworkLaunchRemoteDataSource: LaunchRemoteDataSource, Sendable {
         try await networkClient.request(
             LaunchesResponseDTO.self,
             endpoint: LaunchesEndpoint.upcoming(query: query),
-            cachePolicy: query.fetchPolicy)
+            cachePolicy: query.fetchPolicy
+        )
     }
 
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO {
         try await networkClient.request(
             LaunchesResponseDTO.self,
             endpoint: LaunchesEndpoint.previous(query: query),
-            cachePolicy: query.fetchPolicy)
+            cachePolicy: query.fetchPolicy
+        )
     }
 
     func fetchLaunchDetail(id: String, fetchPolicy: FetchPolicy) async throws -> LaunchDTO {
         try await networkClient.request(
             LaunchDTO.self,
             endpoint: LaunchesEndpoint.detail(id: id),
-            cachePolicy: fetchPolicy)
+            cachePolicy: fetchPolicy
+        )
     }
 }

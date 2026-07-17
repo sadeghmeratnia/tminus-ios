@@ -5,17 +5,19 @@
 //  Created by Sadegh on 05/05/2026.
 //
 
-@testable import TMinus
 import Foundation
+@testable import TMinus
 
 extension HTTPURLResponse {
     static func make(url: URL = URL(string: "https://example.com")!,
-                     statusCode: Int) -> HTTPURLResponse {
+                     statusCode: Int) -> HTTPURLResponse
+    {
         HTTPURLResponse(
             url: url,
             statusCode: statusCode,
             httpVersion: nil,
-            headerFields: nil)!
+            headerFields: nil
+        )!
     }
 }
 

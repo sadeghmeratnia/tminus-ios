@@ -5,8 +5,8 @@
 //  Created by Sadegh on 22/04/2026.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 // MARK: - TMinusApp
 
@@ -20,8 +20,8 @@ struct TMinusApp: App {
     init() {
         do {
             let container = try Self.bootstrap()
-            self.appCoordinator = AppCoordinator(container: container)
-            self.cache = container.cache
+            appCoordinator = AppCoordinator(container: container)
+            cache = container.cache
         } catch {
             fatalError("Failed to bootstrap app: \(error)")
         }
@@ -38,8 +38,8 @@ struct TMinusApp: App {
     }
 }
 
-extension TMinusApp {
-    fileprivate static func bootstrap() throws -> AppContainer {
+private extension TMinusApp {
+    static func bootstrap() throws -> AppContainer {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
@@ -52,7 +52,8 @@ extension TMinusApp {
             decoder: decoder,
             retryPolicy: DefaultRetryPolicy(),
             logger: logger,
-            cache: cache)
+            cache: cache
+        )
 
         let schema = Schema([
             LaunchLocalModel.self,
@@ -65,16 +66,18 @@ extension TMinusApp {
             networkClient: networkClient,
             modelContainer: modelContainer,
             cache: cache,
-            logger: logger)
+            logger: logger
+        )
     }
 
     /// The local store is a cache of remote data, not a source of truth, so a corrupted or
     /// unmigratable on-disk store (schema mismatch after an update, disk corruption, etc.) is
     /// recovered from by discarding it and starting fresh, rather than crashing the app on
     /// every subsequent launch.
-    fileprivate static func makeModelContainer(schema: Schema,
-                                                configuration: ModelConfiguration,
-                                                storeURL: URL) throws -> ModelContainer {
+    static func makeModelContainer(schema: Schema,
+                                   configuration: ModelConfiguration,
+                                   storeURL: URL) throws -> ModelContainer
+    {
         do {
             return try ModelContainer(for: schema, configurations: [configuration])
         } catch {

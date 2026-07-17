@@ -26,7 +26,8 @@ enum LaunchDetailEffect {
 
 enum LaunchDetailReducer {
     static func reduce(state: LaunchDetailState,
-                       action: LaunchDetailAction) -> (state: LaunchDetailState, effect: LaunchDetailEffect?) {
+                       action: LaunchDetailAction) -> (state: LaunchDetailState, effect: LaunchDetailEffect?)
+    {
         switch action {
         case .appear:
             guard case .idle = state.phase else {
@@ -53,4 +54,4 @@ enum LaunchDetailReducer {
 
 // MARK: ReducerProtocol
 
-extension LaunchDetailReducer: ReducerProtocol { }
+extension LaunchDetailReducer: ReducerProtocol {}

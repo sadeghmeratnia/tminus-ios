@@ -17,7 +17,7 @@ protocol NewsRepositoryProtocol: Sendable {
 
 // MARK: - NewsListQuery
 
-struct NewsListQuery: Equatable, Sendable {
+struct NewsListQuery: Equatable {
     let page: Int
     let limit: Int
     let searchText: String?
@@ -26,7 +26,8 @@ struct NewsListQuery: Equatable, Sendable {
     init(page: Int = 1,
          limit: Int = 20,
          searchText: String? = nil,
-         fetchPolicy: FetchPolicy = .useCache) {
+         fetchPolicy: FetchPolicy = .useCache)
+    {
         self.page = page
         self.limit = limit
         self.searchText = searchText?.trimmingCharacters(in: .whitespacesAndNewlines)

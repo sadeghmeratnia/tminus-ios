@@ -20,9 +20,10 @@ final class URLSessionNetworkClient: NetworkClientProtocol, Sendable {
          decoder: JSONDecoder,
          retryPolicy: RetryPolicy,
          logger: NetworkLogger,
-         cache: DataCache) {
+         cache: DataCache)
+    {
         self.session = session
-        self.makeDecoder = {
+        makeDecoder = {
             let configuredDecoder = JSONDecoder()
             configuredDecoder.keyDecodingStrategy = decoder.keyDecodingStrategy
             configuredDecoder.dateDecodingStrategy = decoder.dateDecodingStrategy
@@ -48,7 +49,8 @@ final class URLSessionNetworkClient: NetworkClientProtocol, Sendable {
             if let cachedValue = await cache.cachedValue(for: cacheKey) {
                 logger.log(
                     "↻ Cache hit \(cacheKey) source=\(String(describing: cachedValue.metadata.source)) stale=\(cachedValue.metadata.isStale)",
-                    level: .debug)
+                    level: .debug
+                )
                 return cachedValue.data
             }
         }
@@ -66,7 +68,7 @@ final class URLSessionNetworkClient: NetworkClientProtocol, Sendable {
             return try await decode(type, from: data)
         } catch {
             logger.log("✖ Decoding failed for \(T.self): \(error)", level: .error)
-            throw NetworkError.decoding(UncheckedSendableError(error))
+            throw NetworkError.decoding(ErrorSummary(error))
         }
     }
 
@@ -89,7 +91,8 @@ final class URLSessionNetworkClient: NetworkClientProtocol, Sendable {
                 return try await retryOrThrow(
                     NetworkError.statusCode(httpResponse.statusCode),
                     request: request,
-                    attempt: attempt)
+                    attempt: attempt
+                )
             }
 
             logger.log("← \(httpResponse.statusCode)", level: .info)
@@ -110,7 +113,8 @@ final class URLSessionNetworkClient: NetworkClientProtocol, Sendable {
             return try await retryOrThrow(
                 NetworkError.transport(urlError),
                 request: request,
-                attempt: attempt)
+                attempt: attempt
+            )
 
         } catch let networkError as NetworkError {
             // Rethrown as-is to avoid the generic catch below re-wrapping an already-classified
@@ -119,13 +123,14 @@ final class URLSessionNetworkClient: NetworkClientProtocol, Sendable {
 
         } catch {
             logger.log("✖ Unknown error: \(error)", level: .error)
-            throw NetworkError.unknown(underlying: UncheckedSendableError(error))
+            throw NetworkError.unknown(underlying: ErrorSummary(error))
         }
     }
 
     private func retryOrThrow(_ error: NetworkError,
                               request: URLRequest,
-                              attempt: Int) async throws -> Data {
+                              attempt: Int) async throws -> Data
+    {
         if retryPolicy.shouldRetry(error: error, attempt: attempt) {
             logger.log("⚠️ Retrying attempt \(attempt + 1): \(error)", level: .warning)
             try await Task.sleep(nanoseconds: retryPolicy.delay(for: attempt))

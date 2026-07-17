@@ -21,7 +21,7 @@ enum NewsErrorMapper {
         case .decodingFailed:
             return .decodingFailed
         case let .unknown(underlying):
-            return .unknown(underlying: underlying)
+            return .unknown(underlying: ErrorSummary(underlying))
         }
     }
 }

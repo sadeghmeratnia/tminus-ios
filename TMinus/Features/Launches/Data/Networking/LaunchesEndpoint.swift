@@ -15,7 +15,8 @@ enum LaunchesEndpoint {
             baseURL: baseURL,
             path: "launches/upcoming/",
             queryItems: makeQueryItems(query: query, ordering: "window_start"),
-            cacheTTL: LaunchCacheTTL.upcoming)
+            cacheTTL: LaunchCacheTTL.upcoming
+        )
     }
 
     static func previous(query: LaunchListQuery) -> Endpoint {
@@ -23,7 +24,8 @@ enum LaunchesEndpoint {
             baseURL: baseURL,
             path: "launches/previous/",
             queryItems: makeQueryItems(query: query, ordering: "-window_start"),
-            cacheTTL: LaunchCacheTTL.previous)
+            cacheTTL: LaunchCacheTTL.previous
+        )
     }
 
     static func detail(id: String) -> Endpoint {
