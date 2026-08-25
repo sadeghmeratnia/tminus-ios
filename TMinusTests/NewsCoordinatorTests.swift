@@ -38,6 +38,16 @@ struct NewsCoordinatorTests {
         #expect(coordinator.path.count == 2)
     }
 
+    @Test("Repeated navigation to the same destination without an intervening change is deduplicated")
+    func repeatedIdenticalNavigationIsDeduplicated() {
+        let coordinator = Self.makeCoordinator()
+
+        coordinator.showArticleDetail(id: "article-1")
+        coordinator.showArticleDetail(id: "article-1")
+
+        #expect(coordinator.path.count == 1)
+    }
+
     @Test("destinationView resolves an articleDetail destination via the injected builder")
     func destinationViewResolvesArticleDetail() {
         let detailBuilder = RecordingNewsDetailBuilder()

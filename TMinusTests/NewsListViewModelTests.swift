@@ -21,7 +21,7 @@ struct NewsListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded && viewModel.state.articles.map(\.id) == ["1"]
         }
 
@@ -45,7 +45,7 @@ struct NewsListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded && viewModel.state.articles.map(\.id) == ["cached"]
         }
 
@@ -53,7 +53,7 @@ struct NewsListViewModelTests {
         #expect(viewModel.state.phase == .loading(.refresh))
         #expect(viewModel.state.articles.map(\.id) == ["cached"])
 
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded && viewModel.state.articles.map(\.id) == ["fresh"]
         }
     }
@@ -67,7 +67,7 @@ struct NewsListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil { viewModel.state.phase == .loaded }
+        try await waitUntil { viewModel.state.phase == .loaded }
 
         viewModel.onTrigger(.searchTextChanged("m"))
         viewModel.onTrigger(.searchTextChanged("mo"))
@@ -79,13 +79,73 @@ struct NewsListViewModelTests {
         let queriesRightAfterTyping = await repository.queries
         #expect(queriesRightAfterTyping.count == 1, "Only the initial appear load should have fired so far")
 
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded && viewModel.state.articles.map(\.id) == ["moon"]
         }
 
         let queries = await repository.queries
         #expect(queries.map(\.searchText).last == "moon")
         #expect(queries.filter { $0.searchText == "m" || $0.searchText == "mo" }.isEmpty, "Intermediate keystrokes must not trigger loads")
+    }
+
+    @Test("retyping a search that's already loaded does not trigger a redundant load")
+    func searchSkipsRedundantReloadForAlreadyLoadedText() async throws {
+        let repository = MockNewsListRepository()
+        await repository.setHandler { query, _ in
+            PagedResult(items: [Self.makeArticle(id: query.searchText ?? "none")])
+        }
+        let viewModel = Self.makeViewModel(repository: repository)
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.phase == .loaded }
+
+        viewModel.onTrigger(.searchTextChanged("moon"))
+        try await waitUntil {
+            viewModel.state.phase == .loaded && viewModel.state.articles.map(\.id) == ["moon"]
+        }
+        let queriesAfterFirstSearch = await repository.queries
+
+        // Typing away and back to the exact text that's already loaded must not clear the
+        // currently-displayed results or issue another network call for it.
+        viewModel.onTrigger(.searchTextChanged("moons"))
+        viewModel.onTrigger(.searchTextChanged("moon"))
+        try await Task.sleep(for: .milliseconds(600))
+
+        #expect(viewModel.state.phase == .loaded)
+        #expect(viewModel.state.articles.map(\.id) == ["moon"])
+        let queriesAfterRetyping = await repository.queries
+        #expect(queriesAfterRetyping.count == queriesAfterFirstSearch.count, "No new query should have been issued")
+    }
+
+    @Test("retyping a search that previously failed triggers a retry")
+    func searchRetriesAfterPreviousFailure() async throws {
+        let repository = MockNewsListRepository()
+        await repository.setHandler { query, callCount in
+            if query.searchText == "moon", callCount == 2 {
+                throw NSError(domain: "MockNewsListRepository", code: 500)
+            }
+            return PagedResult(items: [Self.makeArticle(id: query.searchText ?? "none")])
+        }
+        let viewModel = Self.makeViewModel(repository: repository)
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.phase == .loaded }
+
+        viewModel.onTrigger(.searchTextChanged("moon"))
+        try await waitUntil {
+            if case .error = viewModel.state.phase { return true }
+            return false
+        }
+
+        // Retyping the exact same text that just failed must re-dispatch the search rather
+        // than being silently swallowed as "already loaded".
+        viewModel.onTrigger(.searchTextChanged("moon"))
+        try await waitUntil {
+            viewModel.state.phase == .loaded && viewModel.state.articles.map(\.id) == ["moon"]
+        }
+
+        let queries = await repository.queries
+        #expect(queries.filter { $0.searchText == "moon" }.count == 2, "The failed search must have been retried")
     }
 
     @Test("last article appearance triggers paginated prefetch")
@@ -112,7 +172,7 @@ struct NewsListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.articles.map(\.id) == ["page-1-last"]
                 && viewModel.state.pagination.nextPage == 2
@@ -120,7 +180,7 @@ struct NewsListViewModelTests {
 
         viewModel.onTrigger(.articleAppeared("page-1-last"))
 
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.articles.map(\.id) == ["page-1-last", "page-2-item"]
         }
@@ -145,17 +205,6 @@ private extension NewsListViewModelTests {
         )
     }
 
-    static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                          checkEveryNanoseconds: UInt64 = 20_000_000,
-                          _ condition: @escaping @MainActor () -> Bool) async throws
-    {
-        let start = DispatchTime.now().uptimeNanoseconds
-        while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
-            if await condition() { return }
-            try await Task.sleep(for: .nanoseconds(checkEveryNanoseconds))
-        }
-        Issue.record("Timed out waiting for expected state")
-    }
 }
 
 // MARK: - MockNewsListRepository
@@ -176,11 +225,11 @@ actor MockNewsListRepository: NewsRepositoryProtocol {
         return try await handler(query, callCount)
     }
 
-    func fetchArticleDetail(id _: String) async throws -> NewsArticle {
+    func fetchArticleDetail(id _: String, fetchPolicy _: FetchPolicy) async throws -> NewsArticle {
         throw NSError(domain: "MockNewsListRepository", code: 404)
     }
 
-    func fetchRelatedArticles(launchID _: String, limit _: Int) async throws -> [NewsArticle] {
+    func fetchRelatedArticles(launchID _: String, limit _: Int, fetchPolicy _: FetchPolicy) async throws -> [NewsArticle] {
         []
     }
 }

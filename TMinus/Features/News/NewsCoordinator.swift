@@ -5,14 +5,10 @@
 //  Created by Sadegh on 09/07/2026.
 //
 
-import Combine
 import SwiftUI
 
-@MainActor
-final class NewsCoordinator: ObservableObject, CoordinatorProtocol {
+final class NewsCoordinator: StackCoordinator<NewsDestination>, CoordinatorProtocol {
     typealias RootView = NewsRootView
-
-    @Published var path = NavigationPath()
 
     private let newsListBuilder: NewsListBuilding
     private let newsDetailBuilder: NewsDetailBuilding
@@ -33,7 +29,7 @@ final class NewsCoordinator: ObservableObject, CoordinatorProtocol {
     }
 
     func showArticleDetail(id: String) {
-        path.append(NewsDestination.articleDetail(id: id))
+        push(.articleDetail(id: id))
     }
 
     @ViewBuilder

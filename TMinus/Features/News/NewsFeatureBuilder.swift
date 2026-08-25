@@ -6,13 +6,20 @@
 //
 
 import Foundation
-import SwiftUI
+import SwiftData
 
 // MARK: - NewsFeatureBuilder
 
+/// `@MainActor`-isolated so `repository`'s lazy initialization, shared, mutable state read from
+/// two independent call sites (`makeCoordinator()` and `makeRepository()`, called directly by
+/// `AppCoordinator` for Launches' related-articles section), can never race. Every current call
+/// site already runs on the main actor; this makes that a compiler-enforced guarantee rather than
+/// a convention.
+@MainActor
 final class NewsFeatureBuilder {
     struct Dependencies {
         let networkClient: NetworkClientProtocol
+        let modelContainer: ModelContainer
     }
 
     private let dependencies: Dependencies
@@ -21,14 +28,14 @@ final class NewsFeatureBuilder {
     /// articles) so they all see the same repository instance rather than independent graphs.
     private lazy var repository: NewsRepositoryProtocol = {
         let remote = NetworkNewsRemoteDataSource(networkClient: dependencies.networkClient)
-        return NewsRepository(remoteDataSource: remote)
+        let local = SwiftDataNewsLocalDataSource(container: dependencies.modelContainer)
+        return NewsRepository(remoteDataSource: remote, localDataSource: local)
     }()
 
     init(dependencies: Dependencies) {
         self.dependencies = dependencies
     }
 
-    @MainActor
     func makeCoordinator() -> NewsCoordinator {
         let repository = makeRepository()
         let newsListBuilder = NewsListBuilder(

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 import SwiftUI
 import Testing
 @testable import TMinus
@@ -14,8 +15,8 @@ import Testing
 @Suite("NewsFeatureBuilder")
 struct NewsFeatureBuilderTests {
     @Test("makeCoordinator wires a working NewsCoordinator")
-    func makeCoordinatorWiresCoordinator() {
-        let builder = NewsFeatureBuilder(dependencies: .init(networkClient: NoopNetworkClient()))
+    func makeCoordinatorWiresCoordinator() throws {
+        let builder = NewsFeatureBuilder(dependencies: try Self.makeDependencies())
 
         let coordinator = builder.makeCoordinator()
 
@@ -24,8 +25,8 @@ struct NewsFeatureBuilderTests {
     }
 
     @Test("Each call to makeCoordinator produces an independent coordinator")
-    func makeCoordinatorProducesIndependentInstances() {
-        let builder = NewsFeatureBuilder(dependencies: .init(networkClient: NoopNetworkClient()))
+    func makeCoordinatorProducesIndependentInstances() throws {
+        let builder = NewsFeatureBuilder(dependencies: try Self.makeDependencies())
 
         let first = builder.makeCoordinator()
         let second = builder.makeCoordinator()
@@ -38,15 +39,29 @@ struct NewsFeatureBuilderTests {
 
     @Test("makeRepository is reusable so other features can share it")
     func makeRepositoryIsUsableIndependently() async throws {
-        let builder = NewsFeatureBuilder(dependencies: .init(networkClient: NoopNetworkClient()))
+        let builder = NewsFeatureBuilder(dependencies: try Self.makeDependencies())
 
         let repository = builder.makeRepository()
 
-        // NoopNetworkClient always throws — this just proves the repository is wired to the
-        // injected network client rather than crashing or silently no-op'ing, mirroring how
-        // LaunchesFeatureBuilder consumes this exact repository for its Related News use case.
-        await #expect(throws: NewsError.self) {
-            try await repository.fetchArticles(query: NewsListQuery())
+        // NoopNetworkClient always throws and the local cache starts empty, this just proves
+        // the repository is wired to the injected network client rather than crashing or
+        // silently no-op'ing, mirroring how LaunchesFeatureBuilder consumes this exact repository
+        // for its Related News use case.
+        await #expect(throws: NetworkFeatureError.self) {
+            try await repository.fetchArticles(query: NewsListQuery(fetchPolicy: .networkOnly))
         }
+    }
+}
+
+private extension NewsFeatureBuilderTests {
+    static func makeDependencies() throws -> NewsFeatureBuilder.Dependencies {
+        let schema = Schema([NewsArticleLocalModel.self])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let modelContainer = try ModelContainer(for: schema, configurations: [configuration])
+
+        return NewsFeatureBuilder.Dependencies(
+            networkClient: NoopNetworkClient(),
+            modelContainer: modelContainer
+        )
     }
 }

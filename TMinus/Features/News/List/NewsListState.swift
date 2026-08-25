@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - NewsListState
 
-struct NewsListState: Equatable {
+struct NewsListState: Equatable, Sendable {
     let articles: [NewsArticle]
     let searchText: String
     let pagination: ListPagination
@@ -51,7 +51,7 @@ struct NewsListState: Equatable {
         )
     }
 
-    /// See `LaunchListState`'s equivalent methods — same generation-guard rationale, shared via
+    /// See `LaunchListState`'s equivalent methods, same generation-guard rationale, shared via
     /// `ListLoadGenerations` rather than reimplemented per feature.
     func startingInitialLoad() -> (state: NewsListState, generation: Int) {
         let (next, value) = loadGenerations.advancing(for: .fresh)
@@ -60,7 +60,10 @@ struct NewsListState: Equatable {
 
     func startingRefresh() -> (state: NewsListState, generation: Int) {
         let (next, value) = loadGenerations.advancing(for: .fresh)
-        return (with(phase: .loading(.refresh), loadGenerations: next), value)
+        return (
+            with(pagination: pagination.clearingLoadMoreError(), phase: .loading(.refresh), loadGenerations: next),
+            value
+        )
     }
 
     func startingSearch(_ text: String) -> (state: NewsListState, generation: Int) {
@@ -71,8 +74,10 @@ struct NewsListState: Equatable {
         )
     }
 
+    /// See `LaunchListState`'s equivalent, also clears a stale `loadMoreError` so the load-more
+    /// footer doesn't keep showing a pre-edit failure for the whole debounce window.
     func updatingSearchText(_ text: String) -> NewsListState {
-        with(searchText: text)
+        with(searchText: text, pagination: pagination.clearingLoadMoreError())
     }
 
     func startingLoadMore() -> (state: NewsListState, generation: Int) {
@@ -87,6 +92,7 @@ struct NewsListState: Equatable {
                               previousArticles: [NewsArticle],
                               page: PagedResult<NewsArticle>,
                               kind: ListLoadKind,
+                              errorPresentation: LoadPresentationKind,
                               errorMessage: String?,
                               generation: Int) -> NewsListState
     {
@@ -101,8 +107,11 @@ struct NewsListState: Equatable {
                 )
             }
 
+            // See `LaunchListState`'s equivalent, enforced here rather than trusted from the
+            // caller's `previousArticles`.
+            let articlesOnError = errorPresentation == .initial ? [] : previousArticles
             return with(
-                articles: previousArticles,
+                articles: articlesOnError,
                 pagination: pagination.clearingLoadMoreError(),
                 phase: .error(message: errorMessage)
             )
@@ -119,9 +128,10 @@ struct NewsListState: Equatable {
 
 // MARK: - NewsListTrigger
 
-enum NewsListTrigger {
+enum NewsListTrigger: Sendable {
     case onAppear
     case refresh
+    case retry
     case searchTextChanged(String)
     case articleAppeared(String)
     case retryLoadMore

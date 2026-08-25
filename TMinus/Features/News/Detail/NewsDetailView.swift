@@ -24,6 +24,10 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             case .loaded:
+                // See `LaunchDetailView`'s equivalent, `NewsDetailReducer`/`NewsDetailState`
+                // only ever set `phase = .loaded` together with a non-nil `article`, so the
+                // `else` below is unreachable today, kept as defense-in-depth rather than a
+                // force-unwrap.
                 if let article = state.article {
                     detailContent(for: article)
                 } else {
@@ -37,11 +41,20 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
         .background(Color(.systemGroupedBackground))
         .navigationBarTitleDisplayMode(.inline)
         .task { viewModel.onTrigger(.onAppear) }
+        .onDisappear { viewModel.cancelInFlightWork() }
     }
 
     private func detailContent(for article: NewsArticle) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: UIConstants.Spacing.large) {
+                if let refreshError = state.refreshError {
+                    ListRefreshErrorBanner(
+                        message: refreshError,
+                        retryTitle: L10n.News.retryAction,
+                        onRetry: { viewModel.onTrigger(.refresh) }
+                    )
+                }
+
                 headerSection(for: article)
                 metadataSection(for: article)
                 summarySection(for: article)
@@ -54,24 +67,13 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)
         }
+        .refreshable { await viewModel.refresh() }
         .navigationTitle(article.newsSite)
+        .accessibilityIdentifier(Constants.AccessibilityID.detailContent)
     }
 
     private func headerSection(for article: NewsArticle) -> some View {
-        AsyncImage(url: article.imageURL) { phase in
-            switch phase {
-            case let .success(image):
-                image
-                    .resizable()
-                    .scaledToFill()
-            default:
-                Rectangle()
-                    .fill(Color.secondary.opacity(UIConstants.Opacity.subtleBackground))
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: Constants.Layout.heroHeight)
-        .clipShape(RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous))
+        HeroImageView(imageURL: article.imageURL)
     }
 
     private func metadataSection(for article: NewsArticle) -> some View {
@@ -91,6 +93,9 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
             .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // Merges title + site + published-date into one VoiceOver stop instead of three separate
+        // swipes, matches `LaunchDetailView`'s equivalent metadata rows.
+        .accessibilityElement(children: .combine)
     }
 
     private func summarySection(for article: NewsArticle) -> some View {
@@ -115,6 +120,7 @@ struct NewsDetailView<VM: NewsDetailViewModelProtocol>: View {
                 viewModel.onTrigger(.retry)
             }
             .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier(Constants.AccessibilityID.retryButton)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -125,13 +131,14 @@ typealias DefaultNewsDetailView = NewsDetailView<NewsDetailViewModel>
 // MARK: - Constants
 
 private enum Constants {
-    enum Layout {
-        static let heroHeight: CGFloat = 220
-    }
-
     enum Icon {
         static let link = "safari"
         static let newsSite = "newspaper"
+    }
+
+    enum AccessibilityID {
+        static let detailContent = "newsDetailContent"
+        static let retryButton = "newsDetailRetryButton"
     }
 
     static let publishedDateStyle = Date.FormatStyle(
@@ -158,7 +165,8 @@ private enum Constants {
                     articleID: NewsPreviewFixtures.articleID,
                     article: nil,
                     phase: .loading,
-                    loadGeneration: LoadGeneration(current: 1)
+                    loadGeneration: LoadGeneration(current: 1),
+                    refreshError: nil
                 )
             )
         )
@@ -173,7 +181,8 @@ private enum Constants {
                     articleID: NewsPreviewFixtures.articleID,
                     article: nil,
                     phase: .error(message: "Could not load article"),
-                    loadGeneration: LoadGeneration(current: 1)
+                    loadGeneration: LoadGeneration(current: 1),
+                    refreshError: nil
                 )
             )
         )

@@ -34,13 +34,15 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
 
     var body: some View {
         let (phase, refreshErrorMessage) = resolvedContent
+        let isSearching = state.searchText.isEmpty == false
         return ListScreenScaffold(
             phase: phase,
             loadingTitle: L10n.News.loading,
             errorTitle: L10n.News.errorTitle,
-            emptyTitle: L10n.News.emptyTitle,
-            emptyDescription: L10n.News.emptyDescription,
-            emptyIcon: Constants.Icon.empty
+            emptyTitle: isSearching ? L10n.News.noResultsTitle : L10n.News.emptyTitle,
+            emptyDescription: isSearching ? L10n.News.noResultsDescription : L10n.News.emptyDescription,
+            emptyIcon: isSearching ? Constants.Icon.noResults : Constants.Icon.empty,
+            retry: (title: L10n.News.retryAction, action: { viewModel.onTrigger(.retry) })
         ) {
             articlesListView(bannerMessage: refreshErrorMessage)
         }
@@ -49,6 +51,7 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: searchBinding, prompt: L10n.News.searchPrompt)
         .task { viewModel.onTrigger(.onAppear) }
+        .onDisappear { viewModel.cancelInFlightWork() }
     }
 
     private func articlesListView(bannerMessage: String?) -> some View {
@@ -69,6 +72,7 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
                         NewsCardView(article: article)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier(Constants.AccessibilityID.articleCard)
                     .onAppear { viewModel.onTrigger(.articleAppeared(article.id)) }
                 }
 
@@ -82,7 +86,7 @@ struct NewsListView<VM: NewsListViewModelProtocol>: View {
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)
         }
-        .refreshable { viewModel.onTrigger(.refresh) }
+        .refreshable { await viewModel.refresh() }
     }
 }
 
@@ -93,6 +97,11 @@ typealias DefaultNewsListView = NewsListView<NewsListViewModel>
 private enum Constants {
     enum Icon {
         static let empty = "newspaper"
+        static let noResults = "magnifyingglass"
+    }
+
+    enum AccessibilityID {
+        static let articleCard = "articleCard"
     }
 }
 
