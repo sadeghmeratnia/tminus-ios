@@ -20,7 +20,7 @@ enum NewsEndpoint {
     }
 
     static func detail(id: String) -> Endpoint {
-        Endpoint(baseURL: baseURL, path: "articles/\(id)/", cacheTTL: NewsCacheTTL.detail)
+        Endpoint(baseURL: baseURL, path: "articles/\(id.urlPathComponentEncoded)/", cacheTTL: NewsCacheTTL.detail)
     }
 
     static func related(launchID: String, limit: Int) -> Endpoint {
@@ -30,25 +30,18 @@ enum NewsEndpoint {
             queryItems: [
                 URLQueryItem(name: "limit", value: String(max(1, limit))),
                 URLQueryItem(name: "launch", value: launchID),
+                // Pinned explicitly rather than left to the API's default, matching every
+                // `LaunchesEndpoint` list query, `SwiftDataNewsLocalDataSource.fetchRelatedArticles`
+                // sorts its own cached results by `publishedAt` descending, so the remote and
+                // cached paths would silently disagree on ordering if the API's default ever
+                // isn't newest-first.
+                URLQueryItem(name: "ordering", value: "-published_at"),
             ],
             cacheTTL: NewsCacheTTL.related
         )
     }
 
     private static func makeQueryItems(query: NewsListQuery) -> [URLQueryItem] {
-        let safePage = max(1, query.page)
-        let safeLimit = max(1, query.limit)
-        let offset = (safePage - 1) * safeLimit
-
-        var items = [
-            URLQueryItem(name: "limit", value: String(safeLimit)),
-            URLQueryItem(name: "offset", value: String(offset)),
-        ]
-
-        if let search = query.searchText, search.isEmpty == false {
-            items.append(URLQueryItem(name: "search", value: search))
-        }
-
-        return items
+        PaginationQueryItemBuilder.makeItems(page: query.page, limit: query.limit, searchText: query.searchText)
     }
 }

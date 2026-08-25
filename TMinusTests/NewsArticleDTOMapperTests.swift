@@ -73,6 +73,25 @@ enum NewsArticleDTOMapperTests {
         #expect(article.url.absoluteString == "https://example.com/path%20with%20spaces.jpg")
     }
 
+    @Test("Escapes non-space invalid characters in a malformed URL string")
+    static func escapesNonSpaceCharactersInURL() throws {
+        let dto = try decodeArticleDTO(json: """
+        {
+          "id": 3,
+          "title": "Piped URL",
+          "summary": "",
+          "url": "https://example.com/path|with|pipes.jpg",
+          "image_url": null,
+          "news_site": "SpaceNews",
+          "published_at": "2026-05-12T10:00:00Z",
+          "launches": []
+        }
+        """)
+
+        let article = try #require(NewsArticleDTOMapper.map(dto))
+        #expect(article.url.absoluteString == "https://example.com/path%7Cwith%7Cpipes.jpg")
+    }
+
     @Test("Ignores image URL when missing without failing the whole mapping")
     static func handlesMissingImageURL() throws {
         let dto = try decodeArticleDTO(json: """

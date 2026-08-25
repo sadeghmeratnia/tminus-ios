@@ -36,6 +36,35 @@ enum NewsRemoteDataSourceTests {
         #expect(response.results.map(\.id) == [2])
         #expect(network.lastFetchPolicy == .useCache)
     }
+
+    @Test("Decodes a published_at timestamp with fractional seconds")
+    static func decodesFractionalSecondTimestamp() async throws {
+        let network = MockRemoteNetworkClient()
+        network.dataResponse = Data("""
+        {
+          "count": 1,
+          "next": null,
+          "previous": null,
+          "results": [
+            {
+              "id": 3,
+              "title": "Mission 3",
+              "summary": "Summary",
+              "url": "https://example.com/3",
+              "image_url": null,
+              "news_site": "SpaceNews",
+              "published_at": "2026-05-12T10:00:00.123456Z",
+              "launches": []
+            }
+          ]
+        }
+        """.utf8)
+        let dataSource = NetworkNewsRemoteDataSource(networkClient: network)
+
+        let response = try await dataSource.fetchArticles(query: NewsListQuery(fetchPolicy: .networkOnly))
+
+        #expect(response.results.map(\.id) == [3])
+    }
 }
 
 private extension NewsRemoteDataSourceTests {
@@ -64,11 +93,16 @@ private extension NewsRemoteDataSourceTests {
 
 // MARK: - MockRemoteNetworkClient
 
+// `nonisolated(unsafe)` on every stored property: this mock is configured synchronously before
+// the test's single sequential `await` call exercises it, never touched from two tasks at once,
+// the same rationale as the local `nonisolated(unsafe) var` counters elsewhere in this test
+// target, just at the property level since `NetworkClientProtocol: Sendable` requires this class
+// to conform too.
 private final class MockRemoteNetworkClient: NetworkClientProtocol {
-    var dataResponse = Data()
-    var error: Error?
-    var requestCount = 0
-    var lastFetchPolicy: FetchPolicy?
+    nonisolated(unsafe) var dataResponse = Data()
+    nonisolated(unsafe) var error: Error?
+    nonisolated(unsafe) var requestCount = 0
+    nonisolated(unsafe) var lastFetchPolicy: FetchPolicy?
 
     func requestData(endpoint _: Endpoint, cachePolicy: FetchPolicy) async throws -> Data {
         requestCount += 1
@@ -81,7 +115,10 @@ private final class MockRemoteNetworkClient: NetworkClientProtocol {
         let data = try await requestData(endpoint: endpoint, cachePolicy: cachePolicy)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
+        // Mirrors the strategy actually configured in `TMinusApp`/`AppContainer`, using plain
+        // `.iso8601` here would let this mock silently accept a fractional-second timestamp
+        // format its production counterpart can't.
+        decoder.dateDecodingStrategy = .flexibleISO8601
         return try decoder.decode(type, from: data)
     }
 }

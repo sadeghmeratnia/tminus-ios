@@ -14,7 +14,7 @@ struct FetchNewsArticleDetailUseCase {
         self.repository = repository
     }
 
-    func execute(id: String) async throws -> NewsArticle {
-        try await repository.fetchArticleDetail(id: id)
+    func execute(id: String, fetchPolicy: FetchPolicy = .useCache) async throws -> NewsArticle {
+        try await repository.fetchArticleDetail(id: id, fetchPolicy: fetchPolicy)
     }
 }
