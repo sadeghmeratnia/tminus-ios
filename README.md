@@ -5,19 +5,19 @@ A native iOS app for tracking rocket launches, space events &amp; astronauts. bu
 
 Each feature (`Launches`, `News`) is organized into three layers:
 
-- **Data** — `DTOs` (wire format, `Decodable`), `DataSources` (remote via `URLSession`, local via
+- **Data**: `DTOs` (wire format, `Decodable`), `DataSources` (remote via `URLSession`, local via
   SwiftData), `Mappers` (DTO ↔ domain, and domain ↔ SwiftData local model), and a `Repository`
   that composes the two data sources: a `.useCache` request is served from the SwiftData cache
   first (falling back to network on a miss), and any read may fall back to a stale cached row if
   the network fails. See the doc comment on `LaunchRepository`/`NewsRepository` for the full
   caching rationale, including how this relates to the separate response-level `DataCache` inside
   `URLSessionNetworkClient`.
-- **Domain** — plain `Entities` (no framework dependencies), a `RepositoryProtocol` each
+- **Domain**: plain `Entities` (no framework dependencies), a `RepositoryProtocol` each
   Repository conforms to, and one `UseCase` per screen-level operation. Use cases are thin
   pass-throughs today; they exist as the seam ViewModels depend on instead of a concrete
   repository, so a feature's business rules have somewhere to live if they grow past "call the
   repository."
-- **Presentation** — a `State`/`Action`/`Effect` reducer (pure, testable in isolation) paired with
+- **Presentation**: a `State`/`Action`/`Effect` reducer (pure, testable in isolation) paired with
   a `@MainActor` ViewModel that translates UI `Trigger`s into `Action`s, runs the `Effect`s a
   reducer step returns, and republishes the resulting `State` for SwiftUI. Shared plumbing all
   features build on lives in `Core/Presentation`: `ListPhase`/`DetailPhase` (the loading/loaded/
@@ -29,10 +29,10 @@ Navigation is MVVM-C: each feature owns a `Coordinator` conforming to `Coordinat
 driving a `StackCoordinator`-managed `NavigationStack` via a feature-specific `Destination` enum.
 `AppCoordinator` composes the per-feature coordinators into the app's root.
 
-`Core/DI/AppContainer.swift` is the composition root — it's where concrete `URLSessionNetworkClient`,
+`Core/DI/AppContainer.swift` is the composition root, it's where concrete `URLSessionNetworkClient`,
 `ModelContainer`, repositories, use cases, and coordinators actually get wired together.
 `TMinusApp.bootstrap()` builds one `AppContainer` at launch (see `TMinusApp.swift` for how a
-failed bootstrap — e.g. an unrecoverable SwiftData store — is surfaced instead of crashing).
+failed bootstrap, e.g. an unrecoverable SwiftData store, is surfaced instead of crashing).
 
 ### Adding a new feature
 
@@ -45,14 +45,14 @@ that feature's own folder.
 ## Setup
 
 - Requires Xcode 16+ (Swift 6 language mode, iOS 17.0 deployment target).
-- Open `TMinus.xcodeproj` and build. Signing is set to Automatic — Xcode will prompt you to select
+- Open `TMinus.xcodeproj` and build. Signing is set to Automatic, Xcode will prompt you to select
   your own team under the target's Signing & Capabilities tab before it can build for a device;
   the project ships pointing at the original author's team, which won't resolve on your machine.
 
 ## Testing
 
 Both `TMinusTests` (unit) and `TMinusUITests` (UI) run via the `TMinus.xctestplan` test plan,
-which is wired as the shared `TMinus` scheme's default plan — `cmd+U` or `xcodebuild test -scheme
+which is wired as the shared `TMinus` scheme's default plan, `cmd+U` or `xcodebuild test -scheme
 TMinus` runs both. Unit tests use Swift Testing (`@Test`/`#expect`); UI tests use XCTest, as
 required for `XCUIApplication` automation.
 
@@ -64,5 +64,5 @@ required for `XCUIApplication` automation.
   around this by fetching first and filtering the search text in plain Swift afterwards, using a
   pre-lowercased field (`nameLowercased`/`titleLowercased`) stored alongside the searchable column
   specifically so that Swift-side filter never needs to re-lowercase per row. Keep new local-search
-  code on the same pattern — a predicate that compiles and passes review can still crash at the
+  code on the same pattern, a predicate that compiles and passes review can still crash at the
   first fetch.
