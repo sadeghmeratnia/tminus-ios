@@ -12,6 +12,14 @@ import SwiftData
 final class LaunchLocalModel {
     @Attribute(.unique) var id: String
     var name: String
+    /// Kept alongside `name` specifically so search can match with `String.contains` (a plain
+    /// substring check, translated to a simple SQL `LIKE`) instead of `.localizedStandardContains`
+    ///, the latter compiles to a `#Predicate` that invokes CoreData/SQLite's ICU-based collation
+    /// search, which has a real, reproducible SIGSEGV (`_NSCoreDataStringSearch`) when two such
+    /// fetches execute concurrently, even across unrelated `ModelContainer`s. Both sides of the
+    /// comparison are lowercased (this field at write time, the search term at query time) so
+    /// case-insensitivity doesn't depend on ICU collation at all.
+    var nameLowercased: String
     var statusCode: String
     var statusLabel: String?
     var windowStart: Date
@@ -56,6 +64,7 @@ final class LaunchLocalModel {
     {
         self.id = id
         self.name = name
+        nameLowercased = name.localizedLowercase
         self.statusCode = statusCode
         self.statusLabel = statusLabel
         self.windowStart = windowStart

@@ -12,19 +12,19 @@ import Foundation
 protocol LaunchRepositoryProtocol: Sendable {
     func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch>
     func fetchPreviousLaunches(query: LaunchListQuery) async throws -> PagedResult<Launch>
-    func fetchLaunchDetail(id: String) async throws -> Launch
+    func fetchLaunchDetail(id: String, fetchPolicy: FetchPolicy) async throws -> Launch
 }
 
 // MARK: - LaunchListQuery
 
-struct LaunchListQuery: Equatable {
+struct LaunchListQuery: Equatable, Sendable {
     let page: Int
     let limit: Int
     let searchText: String?
     let fetchPolicy: FetchPolicy
 
     init(page: Int = 1,
-         limit: Int = 20,
+         limit: Int = ListPageSize.default,
          searchText: String? = nil,
          fetchPolicy: FetchPolicy = .useCache)
     {

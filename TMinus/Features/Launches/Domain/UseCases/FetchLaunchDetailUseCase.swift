@@ -14,7 +14,7 @@ struct FetchLaunchDetailUseCase {
         self.repository = repository
     }
 
-    func execute(id: String) async throws -> Launch {
-        try await repository.fetchLaunchDetail(id: id)
+    func execute(id: String, fetchPolicy: FetchPolicy = .useCache) async throws -> Launch {
+        try await repository.fetchLaunchDetail(id: id, fetchPolicy: fetchPolicy)
     }
 }

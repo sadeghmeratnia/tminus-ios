@@ -10,6 +10,24 @@ import Foundation
 // MARK: - LaunchLocalModelMapper
 
 enum LaunchLocalModelMapper {
+    /// The persisted `statusCode` values meaning a launch is resolved (flown, one way or the
+    /// other) rather than still pending, shared with `SwiftDataLaunchLocalDataSource`'s
+    /// upcoming/previous predicates. Derived from `PersistedStatusCode` (the same source
+    /// `mapStatus(_:)`/`mapStatus(code:label:)` below read and write) rather than duplicated as
+    /// independent string literals, so the two can't drift out of sync with what's actually
+    /// persisted to disk.
+    static let resolvedStatusCodes: Set<String> = [
+        PersistedStatusCode.success.rawValue,
+        PersistedStatusCode.failure.rawValue,
+    ]
+
+    /// The persisted `statusCode` for a `LaunchStatus.unknown`, a status the API returned that
+    /// `mapStatus(_:)` below doesn't recognize (e.g. a real Launch Library value like
+    /// "Partial Failure" or "In Flight" outside the cases it maps). Shared with
+    /// `SwiftDataLaunchLocalDataSource` so its upcoming/previous split can fall back to a
+    /// `windowStart` comparison for exactly this ambiguous case.
+    static let unknownStatusCode = PersistedStatusCode.unknown.rawValue
+
     static func map(_ launch: Launch, fetchedAt: Date = .now) -> LaunchLocalModel {
         let (statusCode, statusLabel) = mapStatus(launch.status)
         return LaunchLocalModel(
@@ -42,6 +60,7 @@ enum LaunchLocalModelMapper {
     static func update(_ model: LaunchLocalModel, from launch: Launch, fetchedAt: Date) {
         let (statusCode, statusLabel) = mapStatus(launch.status)
         model.name = launch.name
+        model.nameLowercased = launch.name.localizedLowercase
         model.statusCode = statusCode
         model.statusLabel = statusLabel
         model.windowStart = launch.windowStart
@@ -79,37 +98,50 @@ enum LaunchLocalModelMapper {
     }
 }
 
+/// The persisted form of `LaunchStatus`, spelled out once so `mapStatus(_:)` (encode) and
+/// `mapStatus(code:label:)` (decode), plus `resolvedStatusCodes`/`unknownStatusCode` above,
+/// all read from the same set of string literals instead of independently duplicating them,
+/// which is what let the two previously drift out of sync silently.
+private enum PersistedStatusCode: String {
+    case go
+    case tbd
+    case hold
+    case success
+    case failure
+    case unknown
+}
+
 private extension LaunchLocalModelMapper {
     static func mapStatus(_ status: LaunchStatus) -> (String, String?) {
         switch status {
         case .go:
-            return ("go", nil)
+            return (PersistedStatusCode.go.rawValue, nil)
         case .toBeDetermined:
-            return ("tbd", nil)
+            return (PersistedStatusCode.tbd.rawValue, nil)
         case .hold:
-            return ("hold", nil)
+            return (PersistedStatusCode.hold.rawValue, nil)
         case .success:
-            return ("success", nil)
+            return (PersistedStatusCode.success.rawValue, nil)
         case .failure:
-            return ("failure", nil)
+            return (PersistedStatusCode.failure.rawValue, nil)
         case let .unknown(label):
-            return ("unknown", label)
+            return (PersistedStatusCode.unknown.rawValue, label)
         }
     }
 
     static func mapStatus(code: String, label: String?) -> LaunchStatus {
-        switch code {
-        case "go":
+        switch PersistedStatusCode(rawValue: code) {
+        case .go:
             return .go
-        case "tbd":
+        case .tbd:
             return .toBeDetermined
-        case "hold":
+        case .hold:
             return .hold
-        case "success":
+        case .success:
             return .success
-        case "failure":
+        case .failure:
             return .failure
-        default:
+        case .unknown, nil:
             return .unknown(label)
         }
     }
@@ -124,8 +156,8 @@ private extension LaunchLocalModelMapper {
         return LaunchPad(
             id: id,
             name: name,
-            latitude: model.padLatitude ?? 0,
-            longitude: model.padLongitude ?? 0,
+            latitude: model.padLatitude,
+            longitude: model.padLongitude,
             locationName: model.padLocationName
         )
     }

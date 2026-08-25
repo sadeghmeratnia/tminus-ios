@@ -52,10 +52,26 @@ enum LaunchRepositoryTests {
         let localDataSource = MockLaunchLocalDataSource()
         let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
 
-        let launch = try await repository.fetchLaunchDetail(id: "detail-1")
+        let launch = try await repository.fetchLaunchDetail(id: "detail-1", fetchPolicy: .useCache)
         #expect(launch.id == "detail-1")
         #expect(dataSource.lastDetailRequest?.id == "detail-1")
         #expect(dataSource.lastDetailRequest?.fetchPolicy == .useCache)
+    }
+
+    @Test("Launch detail with network-only policy bypasses the local cache")
+    static func fetchLaunchDetailBypassesCacheWithNetworkOnlyPolicy() async throws {
+        let dataSource = MockLaunchRemoteDataSource()
+        dataSource.detailResponse = Self.makeLaunchDTO(id: "detail-1")
+        let localDataSource = MockLaunchLocalDataSource()
+        await localDataSource.setDetail(Self.makeStaleLaunch(id: "cached-1"))
+        let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
+
+        let launch = try await repository.fetchLaunchDetail(id: "detail-1", fetchPolicy: .networkOnly)
+
+        #expect(launch.id == "detail-1")
+        #expect(dataSource.lastDetailRequest?.fetchPolicy == .networkOnly)
+        let maxAges = await localDataSource.detailMaxAges
+        #expect(maxAges.isEmpty, "A network-only refresh must not consult the cache first")
     }
 
     @Test("Uses local cache first for upcoming launches")
@@ -113,6 +129,32 @@ enum LaunchRepositoryTests {
         let maxAges = await localDataSource.upcomingMaxAges
         #expect(maxAges == [120.0, nil])
     }
+
+    @Test("Falls back to stale local cache when a use-cache detail fetch fails")
+    static func fallsBackToStaleDetailWhenUseCacheFetchFails() async throws {
+        let dataSource = MockLaunchRemoteDataSource()
+        dataSource.detailError = NetworkError.transport(URLError(.notConnectedToInternet))
+        let localDataSource = MockLaunchLocalDataSource()
+        await localDataSource.setDetail(Self.makeStaleLaunch(id: "cached-1"))
+        let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
+
+        let launch = try await repository.fetchLaunchDetail(id: "cached-1", fetchPolicy: .useCache)
+
+        #expect(launch.id == "cached-1")
+    }
+
+    @Test("Network-only detail refresh does NOT fall back to stale cache on failure")
+    static func networkOnlyDetailRefreshDoesNotFallBackOnFailure() async throws {
+        let dataSource = MockLaunchRemoteDataSource()
+        dataSource.detailError = NetworkError.transport(URLError(.notConnectedToInternet))
+        let localDataSource = MockLaunchLocalDataSource()
+        await localDataSource.setDetail(Self.makeStaleLaunch(id: "cached-1"))
+        let repository = LaunchRepository(remoteDataSource: dataSource, localDataSource: localDataSource)
+
+        await #expect(throws: NetworkFeatureError.self) {
+            try await repository.fetchLaunchDetail(id: "cached-1", fetchPolicy: .networkOnly)
+        }
+    }
 }
 
 private extension LaunchRepositoryTests {
@@ -122,6 +164,21 @@ private extension LaunchRepositoryTests {
             next: "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=20&offset=40",
             previous: "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=20&offset=0",
             results: [makeLaunchDTO(id: "launch-1")]
+        )
+    }
+
+    static func makeStaleLaunch(id: String) -> Launch {
+        Launch(
+            id: id,
+            name: "Cached Launch",
+            status: .go,
+            windowStart: Date(timeIntervalSince1970: 1000),
+            windowEnd: nil,
+            rocket: nil,
+            launchPad: nil,
+            mission: nil,
+            imageURL: nil,
+            webcastURL: nil
         )
     }
 
@@ -147,16 +204,21 @@ private extension LaunchRepositoryTests {
     }
 }
 
+// `nonisolated(unsafe)` on every stored property: this mock is configured synchronously before
+// each test's sequential `await` calls exercise it, never touched from two tasks at once, the
+// same rationale as the local `nonisolated(unsafe) var` counters elsewhere in this test target,
+// just at the property level since `LaunchRemoteDataSource: Sendable` requires this class to
+// conform too.
 private final class MockLaunchRemoteDataSource: LaunchRemoteDataSource {
-    var upcomingResponse = LaunchesResponseDTO(count: nil, next: nil, previous: nil, results: [])
-    var previousResponse = LaunchesResponseDTO(count: nil, next: nil, previous: nil, results: [])
-    var detailResponse = LaunchRepositoryTests.makeLaunchDTO(id: "detail")
-    var lastUpcomingQuery: LaunchListQuery?
-    var lastPreviousQuery: LaunchListQuery?
-    var lastDetailRequest: (id: String, fetchPolicy: FetchPolicy)?
-    var upcomingError: Error?
-    var previousError: Error?
-    var detailError: Error?
+    nonisolated(unsafe) var upcomingResponse = LaunchesResponseDTO(count: nil, next: nil, previous: nil, results: [])
+    nonisolated(unsafe) var previousResponse = LaunchesResponseDTO(count: nil, next: nil, previous: nil, results: [])
+    nonisolated(unsafe) var detailResponse = LaunchRepositoryTests.makeLaunchDTO(id: "detail")
+    nonisolated(unsafe) var lastUpcomingQuery: LaunchListQuery?
+    nonisolated(unsafe) var lastPreviousQuery: LaunchListQuery?
+    nonisolated(unsafe) var lastDetailRequest: (id: String, fetchPolicy: FetchPolicy)?
+    nonisolated(unsafe) var upcomingError: Error?
+    nonisolated(unsafe) var previousError: Error?
+    nonisolated(unsafe) var detailError: Error?
 
     func fetchUpcomingLaunches(query: LaunchListQuery) async throws -> LaunchesResponseDTO {
         if let upcomingError { throw upcomingError }
@@ -192,6 +254,10 @@ private actor MockLaunchLocalDataSource: LaunchLocalDataSource {
 
     func setStaleUpcoming(_ launches: [Launch]) {
         staleUpcoming = launches
+    }
+
+    func setDetail(_ launch: Launch) {
+        detail = launch
     }
 
     func fetchUpcomingLaunches(query _: LaunchListQuery, maxAge: TimeInterval?) async throws -> [Launch] {

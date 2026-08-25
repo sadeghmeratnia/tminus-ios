@@ -29,24 +29,11 @@ enum LaunchesEndpoint {
     }
 
     static func detail(id: String) -> Endpoint {
-        Endpoint(baseURL: baseURL, path: "launches/\(id)/", cacheTTL: LaunchCacheTTL.detail)
+        Endpoint(baseURL: baseURL, path: "launches/\(id.urlPathComponentEncoded)/", cacheTTL: LaunchCacheTTL.detail)
     }
 
     private static func makeQueryItems(query: LaunchListQuery, ordering: String) -> [URLQueryItem] {
-        let safePage = max(1, query.page)
-        let safeLimit = max(1, query.limit)
-        let offset = (safePage - 1) * safeLimit
-
-        var items = [
-            URLQueryItem(name: "limit", value: String(safeLimit)),
-            URLQueryItem(name: "offset", value: String(offset)),
-            URLQueryItem(name: "ordering", value: ordering),
-        ]
-
-        if let search = query.searchText, search.isEmpty == false {
-            items.append(URLQueryItem(name: "search", value: search))
-        }
-
-        return items
+        PaginationQueryItemBuilder.makeItems(page: query.page, limit: query.limit, searchText: query.searchText)
+            + [URLQueryItem(name: "ordering", value: ordering)]
     }
 }
