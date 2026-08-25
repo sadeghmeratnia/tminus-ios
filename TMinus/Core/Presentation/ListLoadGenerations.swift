@@ -14,9 +14,9 @@ import Foundation
 /// to prevent that response from arriving. A single shared counter can't be used here the way
 /// detail screens use `LoadGeneration` directly: `.fresh` and `.loadMore` loads are allowed to
 /// run concurrently without cancelling each other (see `ListLoadKind.cancels`), so each needs
-/// its own counter — starting a `.fresh` load invalidates both (mirroring that it cancels both
+/// its own counter, starting a `.fresh` load invalidates both (mirroring that it cancels both
 /// kinds of task), while starting a `.loadMore` load only invalidates other load-mores.
-struct ListLoadGenerations: Equatable {
+struct ListLoadGenerations: Equatable, Sendable {
     private var fresh: LoadGeneration
     private var loadMore: LoadGeneration
 
@@ -25,7 +25,7 @@ struct ListLoadGenerations: Equatable {
         self.loadMore = loadMore
     }
 
-    /// Returns the next generations, plus the raw value in-flight work should be tagged with —
+    /// Returns the next generations, plus the raw value in-flight work should be tagged with,
     /// callers store the returned `ListLoadGenerations` in their state and pass `value` to the
     /// effect.
     func advancing(for kind: ListLoadKind) -> (next: ListLoadGenerations, value: Int) {

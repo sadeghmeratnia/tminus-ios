@@ -10,9 +10,9 @@ import Foundation
 // MARK: - ListPhase
 
 /// The loading phase for any paginated list screen (e.g. `LaunchListState`, `NewsListState`).
-/// Shared across features so every list screen models idle/loading/loaded/error identically —
+/// Shared across features so every list screen models idle/loading/loaded/error identically,
 /// new features should reuse this rather than defining a feature-specific phase enum.
-enum ListPhase: Equatable {
+enum ListPhase: Equatable, Sendable {
     case idle
     case loading(LoadingKind)
     case loaded
@@ -20,13 +20,13 @@ enum ListPhase: Equatable {
 
     // MARK: - LoadingKind
 
-    enum LoadingKind: Equatable {
+    enum LoadingKind: Equatable, Sendable {
         case initial
         case refresh
         case loadMore
     }
 
-    /// Whether this phase represents an in-flight pagination request — shared so every list
+    /// Whether this phase represents an in-flight pagination request, shared so every list
     /// screen's load-more footer reads this the same way instead of re-deriving it per feature.
     var isLoadingMore: Bool {
         if case .loading(.loadMore) = self { return true }

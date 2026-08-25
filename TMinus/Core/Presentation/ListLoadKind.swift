@@ -14,7 +14,7 @@ import Foundation
 /// which of the two each kind must cancel before starting. Shared so every list ViewModel gets
 /// the same "a fresh load invalidates a pending load-more, but not vice versa" cancellation
 /// behaviour for free instead of re-deriving it per feature.
-enum ListLoadKind: Hashable {
+enum ListLoadKind: Hashable, TaskCancellationKind {
     case fresh
     case loadMore
 

@@ -17,7 +17,7 @@ enum ListContentPhase<Item> {
     case empty
     case content([Item])
 
-    /// Sole entry point — returns both derived values from the same `(phase, items)` inputs in
+    /// Sole entry point, returns both derived values from the same `(phase, items)` inputs in
     /// one call, so a caller can't get `phase` without also picking up `refreshErrorMessage`.
     /// The two half-functions below are `private` specifically so nothing else can call one
     /// without the other; this is enforced by the compiler, not just a naming convention.
@@ -31,16 +31,22 @@ enum ListContentPhase<Item> {
         }
 
         switch phase {
-        case .loading(.initial):
+        // `.idle` (nothing has loaded yet, the first load hasn't started/finished) is treated the
+        // same as an in-flight initial load rather than folded into `.empty`: the two are
+        // visually indistinguishable to a user, but `.empty`'s retry button is a real difference,
+        // every list/detail reducer's `.retry` action only fires from `.error`, so a retry button
+        // shown during `.idle` would be a silent no-op for however long the initial `.task` takes
+        // to schedule and start its load.
+        case .idle, .loading(.initial):
             return .loading
         case let .error(message):
             return .error(message: message)
-        case .idle, .loaded, .loading(.refresh), .loading(.loadMore):
+        case .loaded, .loading(.refresh), .loading(.loadMore):
             return .empty
         }
     }
 
-    /// Non-nil only when a refresh failed but stale items are still on screen — mirrors how
+    /// Non-nil only when a refresh failed but stale items are still on screen, mirrors how
     /// `ListPagination.loadMoreError` sits beside `ListPhase` rather than inside it, so a
     /// transient advisory never needs to be smuggled into a case that's meant to mean one thing.
     private static func refreshErrorMessage(phase: ListPhase, items: [Item]) -> String? {
@@ -50,3 +56,4 @@ enum ListContentPhase<Item> {
 }
 
 extension ListContentPhase: Equatable where Item: Equatable {}
+extension ListContentPhase: Sendable where Item: Sendable {}
