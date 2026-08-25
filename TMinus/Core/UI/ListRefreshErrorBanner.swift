@@ -18,6 +18,8 @@ struct ListRefreshErrorBanner: View {
         HStack(alignment: .top, spacing: UIConstants.Spacing.small) {
             Image(systemName: UIConstants.Icon.networkError)
                 .foregroundStyle(UIConstants.Color.warning)
+                // Decorative, `message` already states the problem in words.
+                .accessibilityHidden(true)
 
             Text(message)
                 .font(.caption)
@@ -30,6 +32,7 @@ struct ListRefreshErrorBanner: View {
                 .font(.caption.weight(.medium))
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .accessibilityIdentifier(Constants.AccessibilityID.retryButton)
         }
         .padding(UIConstants.Padding.card)
         .frame(maxWidth: .infinity)
@@ -37,6 +40,16 @@ struct ListRefreshErrorBanner: View {
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
                 .fill(UIConstants.Color.warning.opacity(UIConstants.Opacity.subtleBackground))
         )
+    }
+}
+
+// MARK: - Constants
+
+private extension ListRefreshErrorBanner {
+    enum Constants {
+        enum AccessibilityID {
+            static let retryButton = "listRefreshErrorBannerRetryButton"
+        }
     }
 }
 
