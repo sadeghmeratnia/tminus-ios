@@ -38,6 +38,27 @@ struct LaunchesCoordinatorTests {
         #expect(coordinator.path.count == 2)
     }
 
+    @Test("Repeated navigation to the same destination without an intervening change is deduplicated")
+    func repeatedIdenticalNavigationIsDeduplicated() {
+        let coordinator = Self.makeCoordinator()
+
+        coordinator.showLaunchDetail(id: "launch-1")
+        coordinator.showLaunchDetail(id: "launch-1")
+
+        #expect(coordinator.path.count == 1)
+    }
+
+    @Test("A repeated destination after an intervening pop is pushed again, not deduplicated")
+    func repeatedDestinationAfterPopIsPushedAgain() {
+        let coordinator = Self.makeCoordinator()
+
+        coordinator.showLaunchDetail(id: "launch-1")
+        coordinator.path.removeLast()
+        coordinator.showLaunchDetail(id: "launch-1")
+
+        #expect(coordinator.path.count == 1)
+    }
+
     @Test("destinationView resolves a launchDetail destination via the injected builder")
     func destinationViewResolvesLaunchDetail() {
         let detailBuilder = RecordingLaunchDetailBuilder()
@@ -78,7 +99,7 @@ private extension LaunchesCoordinatorTests {
     static func makeDetailBuilder() -> LaunchDetailBuilder {
         LaunchDetailBuilder(
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: MockLaunchDetailRepository()),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository())
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: MockNewsRepository())
         )
     }
 }
@@ -93,7 +114,7 @@ private final class RecordingLaunchDetailBuilder: LaunchDetailBuilding {
         requestedLaunchIDs.append(launchID)
         return LaunchDetailBuilder(
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: MockLaunchDetailRepository()),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository())
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: MockNewsRepository())
         )
         .makeView(launchID: launchID)
     }

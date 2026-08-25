@@ -24,6 +24,11 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             case .loaded:
+                // `LaunchDetailReducer`/`LaunchDetailState.applyingLoadResponse` only ever set
+                // `phase = .loaded` together with a non-nil `launch` in the same update, so the
+                // `else` below is unreachable today, kept as defense-in-depth (a view crashing
+                // on a force-unwrap is worse than a view falling back to an error state) rather
+                // than force-unwrapping `state.launch!`.
                 if let launch = state.launch {
                     detailContent(for: launch)
                 } else {
@@ -37,11 +42,20 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
         .background(Color(.systemGroupedBackground))
         .navigationBarTitleDisplayMode(.inline)
         .task { viewModel.onTrigger(.onAppear) }
+        .onDisappear { viewModel.cancelInFlightWork() }
     }
 
     private func detailContent(for launch: Launch) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: UIConstants.Spacing.large) {
+                if let refreshError = state.refreshError {
+                    ListRefreshErrorBanner(
+                        message: refreshError,
+                        retryTitle: L10n.Launches.retryAction,
+                        onRetry: { viewModel.onTrigger(.refresh) }
+                    )
+                }
+
                 headerSection(for: launch)
                 metadataSection(for: launch)
 
@@ -63,25 +77,14 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)
         }
+        .refreshable { await viewModel.refresh() }
         .navigationTitle(launch.name)
+        .accessibilityIdentifier(Constants.AccessibilityID.detailContent)
     }
 
     private func headerSection(for launch: Launch) -> some View {
         VStack(alignment: .leading, spacing: UIConstants.Spacing.medium) {
-            AsyncImage(url: launch.imageURL) { phase in
-                switch phase {
-                case let .success(image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                default:
-                    Rectangle()
-                        .fill(Color.secondary.opacity(UIConstants.Opacity.subtleBackground))
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: Constants.Layout.heroHeight)
-            .clipShape(RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous))
+            HeroImageView(imageURL: launch.imageURL)
 
             StatusPill(status: launch.status)
         }
@@ -105,6 +108,13 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
                 title: L10n.Launches.Detail.windowStart,
                 value: launch.windowStart.formatted(Constants.windowDateStyle)
             )
+
+            if let windowEnd = launch.windowEnd {
+                metadataRow(
+                    title: L10n.Launches.Detail.windowEnd,
+                    value: windowEnd.formatted(Constants.windowDateStyle)
+                )
+            }
 
             if let missionName = launch.mission?.name {
                 metadataRow(title: L10n.Launches.Detail.mission, value: missionName)
@@ -141,6 +151,7 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
                 .fill(Color(.secondarySystemGroupedBackground))
         )
+        .accessibilityElement(children: .combine)
     }
 
     private var relatedNewsSection: some View {
@@ -161,6 +172,8 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
         HStack(alignment: .top, spacing: UIConstants.Spacing.small) {
             Image(systemName: Constants.Icon.relatedNews)
                 .foregroundStyle(.secondary)
+                // Decorative, the row's title/site text already conveys "this is a news item".
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: UIConstants.Spacing.xSmall) {
                 Text(article.title)
@@ -179,6 +192,8 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
                 .fill(Color(.secondarySystemGroupedBackground))
         )
+        // Merges title + site into a single announcement for this `Link` row instead of two.
+        .accessibilityElement(children: .combine)
     }
 
     private func metadataRow(title: String, value: String) -> some View {
@@ -190,6 +205,9 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
             Text(value)
                 .font(.subheadline)
         }
+        // Merges the caption label and value into one announcement (e.g. "Rocket, Falcon 9
+        // Block 5") instead of two separate swipe stops per row.
+        .accessibilityElement(children: .combine)
     }
 
     private func errorView(message: String) -> some View {
@@ -202,6 +220,7 @@ struct LaunchDetailView<VM: LaunchDetailViewModelProtocol>: View {
                 viewModel.onTrigger(.retry)
             }
             .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier(Constants.AccessibilityID.retryButton)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -212,8 +231,9 @@ typealias DefaultLaunchDetailView = LaunchDetailView<LaunchDetailViewModel>
 // MARK: - Constants
 
 private enum Constants {
-    enum Layout {
-        static let heroHeight: CGFloat = 220
+    enum AccessibilityID {
+        static let detailContent = "launchDetailContent"
+        static let retryButton = "launchDetailRetryButton"
     }
 
     enum Icon {
@@ -246,7 +266,10 @@ private enum Constants {
                     launch: nil,
                     phase: .loading,
                     relatedArticles: [],
-                    loadGeneration: LoadGeneration(current: 1)
+                    loadGeneration: LoadGeneration(current: 1),
+                    relatedNewsGeneration: LoadGeneration(current: 1),
+                    relatedNewsHasLoaded: false,
+                    refreshError: nil
                 )
             )
         )
@@ -262,7 +285,10 @@ private enum Constants {
                     launch: nil,
                     phase: .error(message: "Could not load launch details"),
                     relatedArticles: [],
-                    loadGeneration: LoadGeneration(current: 1)
+                    loadGeneration: LoadGeneration(current: 1),
+                    relatedNewsGeneration: LoadGeneration(current: 1),
+                    relatedNewsHasLoaded: false,
+                    refreshError: nil
                 )
             )
         )

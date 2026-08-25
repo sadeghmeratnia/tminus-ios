@@ -23,7 +23,7 @@ struct LaunchListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.mode == .upcoming
                 && viewModel.state.launches.map(\.id) == ["upcoming-1"]
@@ -49,7 +49,7 @@ struct LaunchListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launches.map(\.id) == ["cached"]
         }
@@ -58,7 +58,7 @@ struct LaunchListViewModelTests {
         #expect(viewModel.state.phase == .loading(.refresh))
         #expect(viewModel.state.launches.map(\.id) == ["cached"])
 
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launches.map(\.id) == ["fresh"]
         }
@@ -80,7 +80,7 @@ struct LaunchListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.mode == .upcoming
                 && viewModel.state.launches.map(\.id) == ["upcoming"]
@@ -91,7 +91,7 @@ struct LaunchListViewModelTests {
         #expect(viewModel.state.mode == .previous)
         #expect(viewModel.state.launches.isEmpty)
 
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.mode == .previous
                 && viewModel.state.launches.map(\.id) == ["previous"]
@@ -102,25 +102,63 @@ struct LaunchListViewModelTests {
         #expect(previousQueries.first?.fetchPolicy == .useCache)
     }
 
-    @Test("newest request wins when previous load gets cancelled")
-    func newestRequestWins() async throws {
+    @Test("search text change debounces before triggering a load")
+    func searchDebounces() async throws {
         let repository = MockLaunchRepository()
-        await repository.setUpcomingHandler { query, callIndex in
-            if callIndex == 1 {
-                try await Task.sleep(for: .nanoseconds(500_000_000))
-                return PagedResult(items: [Self.makeLaunch(id: "stale")])
-            }
-            if query.fetchPolicy == .networkOnly {
-                return PagedResult(items: [Self.makeLaunch(id: "fresh")])
-            }
-            return PagedResult(items: [Self.makeLaunch(id: "fallback")])
+        await repository.setUpcomingHandler { query, _ in
+            PagedResult(items: [Self.makeLaunch(id: query.searchText ?? "none")])
         }
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.phase == .loaded }
+
+        viewModel.onTrigger(.searchTextChanged("f"))
+        viewModel.onTrigger(.searchTextChanged("fa"))
+        viewModel.onTrigger(.searchTextChanged("falcon"))
+
+        // Immediately after typing, the search text is reflected but no load has fired yet.
+        #expect(viewModel.state.searchText == "falcon")
+        try await Task.sleep(for: .nanoseconds(100_000_000))
+        let queriesRightAfterTyping = await repository.upcomingQueries
+        #expect(queriesRightAfterTyping.count == 1, "Only the initial appear load should have fired so far")
+
+        try await waitUntil {
+            viewModel.state.phase == .loaded && viewModel.state.launches.map(\.id) == ["falcon"]
+        }
+
+        let queries = await repository.upcomingQueries
+        #expect(queries.map(\.searchText).last == "falcon")
+        #expect(
+            queries.filter { $0.searchText == "f" || $0.searchText == "fa" }.isEmpty,
+            "Intermediate keystrokes must not trigger loads"
+        )
+    }
+
+    @Test("a second refresh trigger while one is already in flight is a no-op")
+    func secondRefreshWhileInFlightIsANoOp() async throws {
+        // `LaunchListReducer.refresh` now guards against firing while `.loading(.refresh)` is
+        // already the phase (see `LaunchListReducerTests.refreshIsANoOpWhileAlreadyRefreshing`),
+        // so two rapid `.refresh` triggers produce exactly one network request rather than a
+        // race between two in-flight loads.
+        let repository = MockLaunchRepository()
+        await repository.setUpcomingHandler { query, callIndex in
+            if callIndex == 1 {
+                return PagedResult(items: [Self.makeLaunch(id: "initial")])
+            }
+            try await Task.sleep(for: .nanoseconds(200_000_000))
+            #expect(query.fetchPolicy == .networkOnly)
+            return PagedResult(items: [Self.makeLaunch(id: "fresh")])
+        }
+        let viewModel = Self.makeViewModel(repository: repository)
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.launches.map(\.id) == ["initial"] }
+
+        viewModel.onTrigger(.refresh)
         viewModel.onTrigger(.refresh)
 
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launches.map(\.id) == ["fresh"]
         }
@@ -128,6 +166,66 @@ struct LaunchListViewModelTests {
         let upcomingQueries = await repository.upcomingQueries
         #expect(upcomingQueries.count == 2)
         #expect(upcomingQueries.map(\.fetchPolicy) == [.useCache, .networkOnly])
+    }
+
+    @Test("retyping a search that's already loaded does not trigger a redundant load")
+    func searchSkipsRedundantReloadForAlreadyLoadedText() async throws {
+        let repository = MockLaunchRepository()
+        await repository.setUpcomingHandler { query, _ in
+            PagedResult(items: [Self.makeLaunch(id: query.searchText ?? "none")])
+        }
+        let viewModel = Self.makeViewModel(repository: repository)
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.phase == .loaded }
+
+        viewModel.onTrigger(.searchTextChanged("falcon"))
+        try await waitUntil {
+            viewModel.state.phase == .loaded && viewModel.state.launches.map(\.id) == ["falcon"]
+        }
+        let queriesAfterFirstSearch = await repository.upcomingQueries
+
+        // Typing away and back to the exact text that's already loaded must not clear the
+        // currently-displayed results or issue another network call for it.
+        viewModel.onTrigger(.searchTextChanged("falcons"))
+        viewModel.onTrigger(.searchTextChanged("falcon"))
+        try await Task.sleep(for: .milliseconds(600))
+
+        #expect(viewModel.state.phase == .loaded)
+        #expect(viewModel.state.launches.map(\.id) == ["falcon"])
+        let queriesAfterRetyping = await repository.upcomingQueries
+        #expect(queriesAfterRetyping.count == queriesAfterFirstSearch.count, "No new query should have been issued")
+    }
+
+    @Test("retyping a search that previously failed triggers a retry")
+    func searchRetriesAfterPreviousFailure() async throws {
+        let repository = MockLaunchRepository()
+        await repository.setUpcomingHandler { query, callIndex in
+            if query.searchText == "falcon", callIndex == 2 {
+                throw NetworkFeatureError.networkUnavailable
+            }
+            return PagedResult(items: [Self.makeLaunch(id: query.searchText ?? "none")])
+        }
+        let viewModel = Self.makeViewModel(repository: repository)
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.phase == .loaded }
+
+        viewModel.onTrigger(.searchTextChanged("falcon"))
+        try await waitUntil {
+            if case .error = viewModel.state.phase { return true }
+            return false
+        }
+
+        // Retyping the exact same text that just failed must re-dispatch the search rather
+        // than being silently swallowed as "already loaded".
+        viewModel.onTrigger(.searchTextChanged("falcon"))
+        try await waitUntil {
+            viewModel.state.phase == .loaded && viewModel.state.launches.map(\.id) == ["falcon"]
+        }
+
+        let queries = await repository.upcomingQueries
+        #expect(queries.filter { $0.searchText == "falcon" }.count == 2, "The failed search must have been retried")
     }
 
     @Test("last launch appearance triggers paginated prefetch")
@@ -154,7 +252,7 @@ struct LaunchListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launches.map(\.id) == ["page-1-last"]
                 && viewModel.state.pagination.nextPage == 2
@@ -162,7 +260,7 @@ struct LaunchListViewModelTests {
 
         viewModel.onTrigger(.launchAppeared("page-1-last"))
 
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launches.map(\.id) == ["page-1-last", "page-2-item"]
                 && viewModel.state.pagination.currentPage == 2
@@ -187,7 +285,7 @@ struct LaunchListViewModelTests {
                     previousPage: nil
                 )
             case 2:
-                throw LaunchError.networkUnavailable
+                throw NetworkFeatureError.networkUnavailable
             case 3:
                 // Slow refresh: still in flight when retry-load-more fires.
                 try await Task.sleep(for: .nanoseconds(300_000_000))
@@ -211,13 +309,13 @@ struct LaunchListViewModelTests {
         let viewModel = Self.makeViewModel(repository: repository)
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launches.map(\.id) == ["page-1-last"]
         }
 
         viewModel.onTrigger(.launchAppeared("page-1-last"))
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.pagination.loadMoreError != nil
         }
 
@@ -227,7 +325,7 @@ struct LaunchListViewModelTests {
         viewModel.onTrigger(.retryLoadMore)
 
         // The refresh response must still land; with a shared task it would be cancelled.
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launches.map(\.id) == ["fresh"]
         }
@@ -257,17 +355,6 @@ private extension LaunchListViewModelTests {
         )
     }
 
-    static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                          checkEveryNanoseconds: UInt64 = 20_000_000,
-                          _ condition: @escaping @MainActor () -> Bool) async throws
-    {
-        let start = DispatchTime.now().uptimeNanoseconds
-        while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
-            if await condition() { return }
-            try await Task.sleep(for: .nanoseconds(checkEveryNanoseconds))
-        }
-        Issue.record("Timed out waiting for expected state")
-    }
 }
 
 // MARK: - MockLaunchRepository
@@ -303,7 +390,7 @@ actor MockLaunchRepository: LaunchRepositoryProtocol {
         return try await previousHandler(query, previousCallCount)
     }
 
-    func fetchLaunchDetail(id _: String) async throws -> Launch {
+    func fetchLaunchDetail(id _: String, fetchPolicy _: FetchPolicy) async throws -> Launch {
         throw NSError(domain: "MockLaunchRepository", code: 404)
     }
 }

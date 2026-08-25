@@ -21,11 +21,11 @@ struct LaunchDetailViewModelTests {
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository())
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: MockNewsRepository())
         )
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launch?.id == "detail-1"
         }
@@ -37,29 +37,54 @@ struct LaunchDetailViewModelTests {
         #expect(requestedIDs == ["detail-1"])
     }
 
+    @Test("retry before any failure is a no-op that doesn't touch related news")
+    func retryBeforeFailureIsANoOp() async throws {
+        let repository = MockLaunchDetailRepository()
+        await repository.setHandler { id, _ in
+            LaunchDetailViewModelTests.makeLaunch(id: id)
+        }
+        let newsRepository = MockNewsRepository()
+        let viewModel = LaunchDetailViewModel(
+            launchID: "detail-1",
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: newsRepository)
+        )
+
+        // No `.onAppear` yet, phase is still `.idle`, not `.error`, so `.retry` must be a
+        // complete no-op: no launch request, and no related-news request either.
+        viewModel.onTrigger(.retry)
+        try await Task.sleep(for: .nanoseconds(50_000_000))
+
+        #expect(viewModel.state.phase == .idle)
+        let requestedIDs = await repository.requestedIDs
+        #expect(requestedIDs.isEmpty)
+        let relatedRequestCount = await newsRepository.relatedArticlesRequestCount
+        #expect(relatedRequestCount == 0)
+    }
+
     @Test("retry reloads after failure")
     func retryReloadsAfterFailure() async throws {
         let repository = MockLaunchDetailRepository()
         await repository.setHandler { id, callIndex in
             if callIndex == 1 {
-                throw LaunchError.networkUnavailable
+                throw NetworkFeatureError.networkUnavailable
             }
             return LaunchDetailViewModelTests.makeLaunch(id: id)
         }
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: MockNewsRepository())
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: MockNewsRepository())
         )
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             if case .error = viewModel.state.phase { return true }
             return false
         }
 
         viewModel.onTrigger(.retry)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
                 && viewModel.state.launch?.id == "detail-1"
         }
@@ -90,11 +115,11 @@ struct LaunchDetailViewModelTests {
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository)
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: newsRepository)
         )
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.relatedArticles.isEmpty == false
         }
 
@@ -107,7 +132,7 @@ struct LaunchDetailViewModelTests {
         let repository = MockLaunchDetailRepository()
         await repository.setHandler { id, callIndex in
             if callIndex == 1 {
-                throw LaunchError.networkUnavailable
+                throw NetworkFeatureError.networkUnavailable
             }
             return LaunchDetailViewModelTests.makeLaunch(id: id)
         }
@@ -127,27 +152,175 @@ struct LaunchDetailViewModelTests {
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository)
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: newsRepository)
         )
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             if case .error = viewModel.state.phase { return true }
             return false
         }
-        try await Self.waitUntilActor { await newsRepository.relatedArticlesRequestCount == 1 }
+        try await waitUntilActor { await newsRepository.relatedArticlesRequestCount == 1 }
 
         await newsRepository.setShouldThrow(false)
         await newsRepository.setRelatedArticles([article])
 
         viewModel.onTrigger(.retry)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.relatedArticles.isEmpty == false
         }
 
         #expect(viewModel.state.relatedArticles == [article])
         let requestCount = await newsRepository.relatedArticlesRequestCount
         #expect(requestCount == 2)
+    }
+
+    @Test("Refresh uses network-only policy and updates the launch while staying loaded")
+    func refreshUpdatesLaunch() async throws {
+        let repository = MockLaunchDetailRepository()
+        await repository.setHandler { id, callIndex in
+            callIndex == 1
+                ? LaunchDetailViewModelTests.makeLaunch(id: id)
+                : Launch(
+                    id: id,
+                    name: "Updated \(id)",
+                    status: .hold,
+                    windowStart: Date(timeIntervalSince1970: 1000),
+                    windowEnd: nil,
+                    rocket: nil,
+                    launchPad: nil,
+                    mission: nil,
+                    imageURL: nil,
+                    webcastURL: nil
+                )
+        }
+        let viewModel = LaunchDetailViewModel(
+            launchID: "detail-1",
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: MockNewsRepository())
+        )
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.phase == .loaded }
+
+        viewModel.onTrigger(.refresh)
+        try await waitUntil { viewModel.state.launch?.name == "Updated detail-1" }
+
+        #expect(viewModel.state.phase == .loaded)
+        #expect(viewModel.state.refreshError == nil)
+        let fetchPolicies = await repository.requestedFetchPolicies
+        #expect(fetchPolicies == [.useCache, .networkOnly])
+    }
+
+    @Test("A failed refresh keeps the existing launch on screen with a refresh error")
+    func failedRefreshKeepsExistingLaunch() async throws {
+        let repository = MockLaunchDetailRepository()
+        await repository.setHandler { id, callIndex in
+            if callIndex == 2 {
+                throw NetworkFeatureError.networkUnavailable
+            }
+            return LaunchDetailViewModelTests.makeLaunch(id: id)
+        }
+        let viewModel = LaunchDetailViewModel(
+            launchID: "detail-1",
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: MockNewsRepository())
+        )
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.phase == .loaded }
+
+        viewModel.onTrigger(.refresh)
+        try await waitUntil { viewModel.state.refreshError != nil }
+
+        #expect(viewModel.state.phase == .loaded)
+        #expect(viewModel.state.launch?.id == "detail-1")
+    }
+
+    @Test("refresh before the launch has loaded is a no-op that doesn't touch related news")
+    func refreshBeforeLoadedIsANoOp() async throws {
+        let repository = MockLaunchDetailRepository()
+        await repository.setHandler { id, _ in
+            LaunchDetailViewModelTests.makeLaunch(id: id)
+        }
+        let newsRepository = MockNewsRepository()
+        let viewModel = LaunchDetailViewModel(
+            launchID: "detail-1",
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: newsRepository)
+        )
+
+        // No `.onAppear` yet, phase is still `.idle`, so `.refresh` must be a complete no-op:
+        // no launch request, and no related-news request either (rather than a refresh reloading
+        // related news while the main content never even started loading).
+        viewModel.onTrigger(.refresh)
+        try await Task.sleep(for: .nanoseconds(50_000_000))
+
+        #expect(viewModel.state.phase == .idle)
+        let requestedIDs = await repository.requestedIDs
+        #expect(requestedIDs.isEmpty)
+        let relatedRequestCount = await newsRepository.relatedArticlesRequestCount
+        #expect(relatedRequestCount == 0)
+    }
+
+    @Test("refresh re-fetches related news with a network-only policy")
+    func refreshRefetchesRelatedNewsNetworkOnly() async throws {
+        let repository = MockLaunchDetailRepository()
+        await repository.setHandler { id, _ in
+            LaunchDetailViewModelTests.makeLaunch(id: id)
+        }
+        let newsRepository = MockNewsRepository()
+        let viewModel = LaunchDetailViewModel(
+            launchID: "detail-1",
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: newsRepository)
+        )
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.phase == .loaded }
+        try await waitUntilActor { await newsRepository.relatedArticlesRequestCount == 1 }
+
+        viewModel.onTrigger(.refresh)
+        try await waitUntilActor { await newsRepository.relatedArticlesRequestCount == 2 }
+
+        let fetchPolicies = await newsRepository.requestedFetchPolicies
+        #expect(fetchPolicies == [.useCache, .networkOnly])
+    }
+
+    @Test("a failed related-news refresh keeps existing related articles on screen")
+    func failedRelatedNewsRefreshKeepsExistingArticles() async throws {
+        let repository = MockLaunchDetailRepository()
+        await repository.setHandler { id, _ in
+            LaunchDetailViewModelTests.makeLaunch(id: id)
+        }
+        let article = try NewsArticle(
+            id: "article-1",
+            title: "Related Article",
+            summary: "Summary",
+            url: #require(URL(string: "https://example.com/article-1")),
+            imageURL: nil,
+            newsSite: "SpaceNews",
+            publishedAt: Date(timeIntervalSince1970: 1000),
+            relatedLaunchIDs: ["detail-1"]
+        )
+        let newsRepository = MockNewsRepository()
+        await newsRepository.setRelatedArticles([article])
+
+        let viewModel = LaunchDetailViewModel(
+            launchID: "detail-1",
+            fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: newsRepository)
+        )
+
+        viewModel.onTrigger(.onAppear)
+        try await waitUntil { viewModel.state.relatedArticles.isEmpty == false }
+
+        await newsRepository.setShouldThrow(true)
+        viewModel.onTrigger(.refresh)
+        try await waitUntilActor { await newsRepository.relatedArticlesRequestCount == 2 }
+        try await Task.sleep(for: .nanoseconds(50_000_000))
+
+        #expect(viewModel.state.relatedArticles == [article])
     }
 
     @Test("Related news failure is swallowed and never surfaces an error")
@@ -162,11 +335,11 @@ struct LaunchDetailViewModelTests {
         let viewModel = LaunchDetailViewModel(
             launchID: "detail-1",
             fetchLaunchDetailUseCase: FetchLaunchDetailUseCase(repository: repository),
-            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(repository: newsRepository)
+            fetchRelatedNewsUseCase: FetchRelatedNewsUseCase(relatedNewsProvider: newsRepository)
         )
 
         viewModel.onTrigger(.onAppear)
-        try await Self.waitUntil {
+        try await waitUntil {
             viewModel.state.phase == .loaded
         }
         try await Task.sleep(for: .nanoseconds(50_000_000))
@@ -192,33 +365,11 @@ private extension LaunchDetailViewModelTests {
         )
     }
 
-    static func waitUntil(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                          checkEveryNanoseconds: UInt64 = 20_000_000,
-                          _ condition: @escaping @MainActor () -> Bool) async throws
-    {
-        let start = DispatchTime.now().uptimeNanoseconds
-        while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
-            if await condition() { return }
-            try await Task.sleep(for: .nanoseconds(checkEveryNanoseconds))
-        }
-        Issue.record("Timed out waiting for expected state")
-    }
-
-    static func waitUntilActor(timeoutNanoseconds: UInt64 = 1_500_000_000,
-                               checkEveryNanoseconds: UInt64 = 20_000_000,
-                               _ condition: @escaping () async -> Bool) async throws
-    {
-        let start = DispatchTime.now().uptimeNanoseconds
-        while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
-            if await condition() { return }
-            try await Task.sleep(for: .nanoseconds(checkEveryNanoseconds))
-        }
-        Issue.record("Timed out waiting for expected state")
-    }
 }
 
 actor MockLaunchDetailRepository: LaunchRepositoryProtocol {
     private(set) var requestedIDs: [String] = []
+    private(set) var requestedFetchPolicies: [FetchPolicy] = []
     private var callCount = 0
     private var handler: (@Sendable (String, Int) async throws -> Launch)?
 
@@ -234,11 +385,12 @@ actor MockLaunchDetailRepository: LaunchRepositoryProtocol {
         PagedResult(items: [])
     }
 
-    func fetchLaunchDetail(id: String) async throws -> Launch {
+    func fetchLaunchDetail(id: String, fetchPolicy: FetchPolicy) async throws -> Launch {
         requestedIDs.append(id)
+        requestedFetchPolicies.append(fetchPolicy)
         callCount += 1
         guard let handler else {
-            throw LaunchError.unknown(underlying: ErrorSummary(NSError(domain: "MockLaunchDetailRepository", code: 0)))
+            throw NetworkFeatureError.unknown(underlying: ErrorSummary(NSError(domain: "MockLaunchDetailRepository", code: 0)))
         }
         return try await handler(id, callCount)
     }
@@ -246,8 +398,10 @@ actor MockLaunchDetailRepository: LaunchRepositoryProtocol {
 
 actor MockNewsRepository: NewsRepositoryProtocol {
     private(set) var relatedArticlesRequestCount = 0
+    private(set) var requestedFetchPolicies: [FetchPolicy] = []
     private var relatedArticles: [NewsArticle] = []
     private var shouldThrow = false
+    private var handler: (@Sendable (Int) async throws -> [NewsArticle])?
 
     func setRelatedArticles(_ articles: [NewsArticle]) {
         relatedArticles = articles
@@ -257,18 +411,29 @@ actor MockNewsRepository: NewsRepositoryProtocol {
         shouldThrow = value
     }
 
+    /// Overrides the plain `relatedArticles`/`shouldThrow` behavior with a per-call-count async
+    /// closure, so a test can make an earlier call resolve *after* a later one, e.g. to prove a
+    /// stale related-news response can't clobber a newer one once it's applied.
+    func setHandler(_ handler: @escaping @Sendable (Int) async throws -> [NewsArticle]) {
+        self.handler = handler
+    }
+
     func fetchArticles(query _: NewsListQuery) async throws -> PagedResult<NewsArticle> {
         PagedResult(items: [])
     }
 
-    func fetchArticleDetail(id _: String) async throws -> NewsArticle {
-        throw NewsError.unknown(underlying: ErrorSummary(NSError(domain: "MockNewsRepository", code: 0)))
+    func fetchArticleDetail(id _: String, fetchPolicy _: FetchPolicy) async throws -> NewsArticle {
+        throw NetworkFeatureError.unknown(underlying: ErrorSummary(NSError(domain: "MockNewsRepository", code: 0)))
     }
 
-    func fetchRelatedArticles(launchID _: String, limit _: Int) async throws -> [NewsArticle] {
+    func fetchRelatedArticles(launchID _: String, limit _: Int, fetchPolicy: FetchPolicy) async throws -> [NewsArticle] {
         relatedArticlesRequestCount += 1
+        requestedFetchPolicies.append(fetchPolicy)
+        if let handler {
+            return try await handler(relatedArticlesRequestCount)
+        }
         if shouldThrow {
-            throw NewsError.networkUnavailable
+            throw NetworkFeatureError.networkUnavailable
         }
         return relatedArticles
     }

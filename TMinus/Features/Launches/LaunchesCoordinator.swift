@@ -5,14 +5,10 @@
 //  Created by Sadegh on 07/05/2026.
 //
 
-import Combine
 import SwiftUI
 
-@MainActor
-final class LaunchesCoordinator: ObservableObject, CoordinatorProtocol {
+final class LaunchesCoordinator: StackCoordinator<LaunchesDestination>, CoordinatorProtocol {
     typealias RootView = LaunchesRootView
-
-    @Published var path = NavigationPath()
 
     private let launchListBuilder: LaunchListBuilding
     private let launchDetailBuilder: LaunchDetailBuilding
@@ -33,7 +29,7 @@ final class LaunchesCoordinator: ObservableObject, CoordinatorProtocol {
     }
 
     func showLaunchDetail(id: String) {
-        path.append(LaunchesDestination.launchDetail(id: id))
+        push(.launchDetail(id: id))
     }
 
     @ViewBuilder

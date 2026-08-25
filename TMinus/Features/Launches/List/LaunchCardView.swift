@@ -13,44 +13,9 @@ struct LaunchCardView: View {
     let launch: Launch
 
     var body: some View {
-        HStack(alignment: .top, spacing: UIConstants.Spacing.medium) {
-            thumbnailView
+        MediaCardView(imageURL: launch.imageURL) {
             infoView
         }
-        .padding(UIConstants.Padding.card)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(backgroundView)
-        .overlay(overlayView)
-    }
-
-    private var backgroundView: some View {
-        RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
-            .fill(Color(.secondarySystemGroupedBackground))
-    }
-
-    private var overlayView: some View {
-        RoundedRectangle(cornerRadius: UIConstants.CornerRadius.card, style: .continuous)
-            .stroke(Color.primary.opacity(UIConstants.Border.opacity), lineWidth: UIConstants.Border.lineWidth)
-    }
-
-    private var thumbnailView: some View {
-        AsyncImage(url: launch.imageURL) { phase in
-            switch phase {
-            case let .success(image):
-                image
-                    .resizable()
-                    .scaledToFill()
-            case .failure:
-                placeholderImage
-            case .empty:
-                Rectangle()
-                    .fill(Color.secondary.opacity(UIConstants.Opacity.subtleBackground))
-            @unknown default:
-                placeholderImage
-            }
-        }
-        .frame(width: Constants.Layout.thumbnailSize, height: Constants.Layout.thumbnailSize)
-        .clipShape(RoundedRectangle(cornerRadius: UIConstants.CornerRadius.image, style: .continuous))
     }
 
     private var infoView: some View {
@@ -66,7 +31,7 @@ struct LaunchCardView: View {
         HStack(alignment: .top, spacing: UIConstants.Spacing.small) {
             Text(launch.name)
                 .font(.headline)
-                .lineLimit(Constants.Layout.titleLineLimit)
+                .lineLimit(UIConstants.Layout.titleLineLimit)
 
             Spacer(minLength: UIConstants.Spacing.small)
 
@@ -80,7 +45,7 @@ struct LaunchCardView: View {
             Text(rocketName)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .lineLimit(Constants.Layout.metadataLineLimit)
+                .lineLimit(Constants.metadataLineLimit)
         }
     }
 
@@ -90,7 +55,7 @@ struct LaunchCardView: View {
             Label(padName, systemImage: Constants.Icon.launchPad)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .lineLimit(Constants.Layout.metadataLineLimit)
+                .lineLimit(Constants.metadataLineLimit)
         }
     }
 
@@ -99,27 +64,12 @@ struct LaunchCardView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
     }
-
-    private var placeholderImage: some View {
-        ZStack {
-            Rectangle()
-                .fill(Color.secondary.opacity(UIConstants.Opacity.subtleBackground))
-
-            Image(systemName: UIConstants.Icon.photoPlaceholder)
-                .font(.title3)
-                .foregroundStyle(.secondary)
-        }
-    }
 }
 
 // MARK: - Constants
 
 private enum Constants {
-    enum Layout {
-        static let thumbnailSize: CGFloat = 84
-        static let titleLineLimit = 2
-        static let metadataLineLimit = 1
-    }
+    static let metadataLineLimit = 1
 
     enum Icon {
         static let launchPad = "mappin.and.ellipse"
@@ -127,4 +77,11 @@ private enum Constants {
 
     static let windowDateStyle = Date.FormatStyle()
         .month().day().year().hour().minute()
+}
+
+// MARK: - Previews
+
+#Preview("Loaded") {
+    LaunchCardView(launch: LaunchPreviewFixtures.launch)
+        .padding()
 }

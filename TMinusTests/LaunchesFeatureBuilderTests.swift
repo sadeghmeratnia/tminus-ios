@@ -47,14 +47,14 @@ private extension LaunchesFeatureBuilderTests {
         return LaunchesFeatureBuilder.Dependencies(
             networkClient: NoopNetworkClient(),
             modelContainer: modelContainer,
-            newsRepository: MockNewsRepository()
+            relatedNewsProvider: MockNewsRepository()
         )
     }
 }
 
 // MARK: - NoopNetworkClient
 
-/// A network client that never actually issues a request — sufficient for builder/coordinator
+/// A network client that never actually issues a request, sufficient for builder/coordinator
 /// wiring tests, which only need the dependency graph to construct, not to fetch real data.
 final class NoopNetworkClient: NetworkClientProtocol, Sendable {
     func requestData(endpoint _: Endpoint, cachePolicy _: FetchPolicy) async throws -> Data {

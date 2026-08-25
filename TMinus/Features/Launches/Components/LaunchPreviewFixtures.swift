@@ -47,6 +47,9 @@ enum LaunchPreviewFixtures {
         launch: launch,
         phase: .loaded,
         relatedArticles: [NewsPreviewFixtures.article],
-        loadGeneration: LoadGeneration(current: 1)
+        loadGeneration: LoadGeneration(current: 1),
+        relatedNewsGeneration: LoadGeneration(current: 1),
+        relatedNewsHasLoaded: true,
+        refreshError: nil
     )
 }

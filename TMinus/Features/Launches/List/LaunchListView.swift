@@ -32,17 +32,26 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
         )
     }
 
+    private var searchBinding: Binding<String> {
+        Binding(
+            get: { state.searchText },
+            set: { viewModel.onTrigger(.searchTextChanged($0)) }
+        )
+    }
+
     var body: some View {
         let (phase, refreshErrorMessage) = resolvedContent
+        let isSearching = state.searchText.isEmpty == false
         return VStack(spacing: 0) {
             modePicker
             ListScreenScaffold(
                 phase: phase,
                 loadingTitle: L10n.Launches.loading,
                 errorTitle: L10n.Launches.errorTitle,
-                emptyTitle: L10n.Launches.emptyTitle,
-                emptyDescription: L10n.Launches.emptyDescription,
-                emptyIcon: Constants.Icon.empty
+                emptyTitle: isSearching ? L10n.Launches.noResultsTitle : L10n.Launches.emptyTitle,
+                emptyDescription: isSearching ? L10n.Launches.noResultsDescription : L10n.Launches.emptyDescription,
+                emptyIcon: isSearching ? Constants.Icon.noResults : Constants.Icon.empty,
+                retry: (title: L10n.Launches.retryAction, action: { viewModel.onTrigger(.retry) })
             ) {
                 launchesListView(bannerMessage: refreshErrorMessage)
             }
@@ -50,13 +59,23 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle(L10n.Launches.navigationTitle)
         .navigationBarTitleDisplayMode(.large)
+        .searchable(text: searchBinding, prompt: L10n.Launches.searchPrompt)
         .task { viewModel.onTrigger(.onAppear) }
+        .onDisappear { viewModel.cancelInFlightWork() }
     }
 
     private var modePicker: some View {
         Picker(L10n.Launches.modePicker, selection: modeBinding) {
             ForEach(LaunchListMode.allCases) { mode in
-                Text(mode.title).tag(mode)
+                // `.segmented` is a fixed-height UIKit control that doesn't grow with Dynamic
+                // Type, at large accessibility text sizes it clips/truncates a label instead of
+                // wrapping. `.minimumScaleFactor` lets the segment shrink the text down rather
+                // than clip it; that's a real tradeoff (very large settings do make the label
+                // smaller than the user's chosen size), but a shrunk-but-fully-legible label beats
+                // a clipped one.
+                Text(mode.title)
+                    .minimumScaleFactor(Constants.modeTitleMinimumScaleFactor)
+                    .tag(mode)
             }
         }
         .pickerStyle(.segmented)
@@ -82,6 +101,7 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
                         LaunchCardView(launch: launch)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier(Constants.AccessibilityID.launchCard)
                     .onAppear { viewModel.onTrigger(.launchAppeared(launch.id)) }
                 }
 
@@ -95,7 +115,7 @@ struct LaunchListView<VM: LaunchListViewModelProtocol>: View {
             .padding(.horizontal, UIConstants.Padding.horizontal)
             .padding(.vertical, UIConstants.Padding.vertical)
         }
-        .refreshable { viewModel.onTrigger(.refresh) }
+        .refreshable { await viewModel.refresh() }
     }
 }
 
@@ -104,8 +124,15 @@ typealias DefaultLaunchListView = LaunchListView<LaunchListViewModel>
 // MARK: - Constants
 
 private enum Constants {
+    static let modeTitleMinimumScaleFactor: CGFloat = 0.6
+
     enum Icon {
         static let empty = "moon.stars.fill"
+        static let noResults = "magnifyingglass"
+    }
+
+    enum AccessibilityID {
+        static let launchCard = "launchCard"
     }
 }
 
