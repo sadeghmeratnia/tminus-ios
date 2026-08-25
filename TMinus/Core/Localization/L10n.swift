@@ -7,245 +7,253 @@
 
 import Foundation
 
+/// Every accessor resolves through `Localizable.xcstrings`' Xcode-generated `LocalizedStringResource`
+/// symbols (`STRING_CATALOG_GENERATE_SYMBOLS = YES` on the app target) rather than a hand-maintained
+/// string-keyed lookup, a catalog key that's renamed or removed fails the *build*, not a DEBUG-only
+/// runtime assert, since each `.foo` below is a compiler-checked member of that generated extension.
 enum L10n {
     enum Common {
         static var unknown: String {
-            tr(.commonUnknown)
+            String(localized: .commonUnknown)
+        }
+
+        static var loadingMore: String {
+            String(localized: .commonLoadingMore)
+        }
+    }
+
+    enum AppLaunch {
+        static var title: String {
+            String(localized: .appLaunchTitle)
+        }
+
+        static var description: String {
+            String(localized: .appLaunchDescription)
+        }
+
+        static var retryAction: String {
+            String(localized: .appLaunchRetryAction)
         }
     }
 
     enum Error {
         enum Network {
             static var unauthorized: String {
-                tr(.errorNetworkUnauthorized)
+                String(localized: .errorNetworkUnauthorized)
             }
 
             static var rateLimited: String {
-                tr(.errorNetworkRateLimited)
+                String(localized: .errorNetworkRateLimited)
             }
 
             static var serverUnavailable: String {
-                tr(.errorNetworkServerUnavailable)
+                String(localized: .errorNetworkServerUnavailable)
             }
 
             static var transport: String {
-                tr(.errorNetworkTransport)
+                String(localized: .errorNetworkTransport)
+            }
+
+            static var timeout: String {
+                String(localized: .errorNetworkTimeout)
             }
 
             static var decoding: String {
-                tr(.errorNetworkDecoding)
+                String(localized: .errorNetworkDecoding)
+            }
+
+            static var clientError: String {
+                String(localized: .errorNetworkClientError)
             }
 
             static var unknown: String {
-                tr(.errorNetworkUnknown)
+                String(localized: .errorNetworkUnknown)
             }
         }
     }
 
     enum Launches {
         static var navigationTitle: String {
-            tr(.launchesNavigationTitle)
+            String(localized: .launchesNavigationTitle)
         }
 
         static var loading: String {
-            tr(.launchesLoading)
+            String(localized: .launchesLoading)
         }
 
         static var errorTitle: String {
-            tr(.launchesErrorTitle)
+            String(localized: .launchesErrorTitle)
         }
 
         static var emptyTitle: String {
-            tr(.launchesEmptyTitle)
+            String(localized: .launchesEmptyTitle)
         }
 
         static var emptyDescription: String {
-            tr(.launchesEmptyDescription)
+            String(localized: .launchesEmptyDescription)
+        }
+
+        static var noResultsTitle: String {
+            String(localized: .launchesNoResultsTitle)
+        }
+
+        static var noResultsDescription: String {
+            String(localized: .launchesNoResultsDescription)
         }
 
         static var modePicker: String {
-            tr(.launchesModePicker)
+            String(localized: .launchesModePicker)
         }
 
         static var retryAction: String {
-            tr(.launchesRetryAction)
+            String(localized: .launchesRetryAction)
+        }
+
+        static var searchPrompt: String {
+            String(localized: .launchesSearchPrompt)
         }
 
         enum Mode {
             static var upcoming: String {
-                tr(.launchesModeUpcoming)
+                String(localized: .launchesModeUpcoming)
             }
 
             static var previous: String {
-                tr(.launchesModePrevious)
+                String(localized: .launchesModePrevious)
             }
         }
 
         enum Status {
             static var go: String {
-                tr(.launchesStatusGo)
+                String(localized: .launchesStatusGo)
             }
 
             static var tbd: String {
-                tr(.launchesStatusTBD)
+                String(localized: .launchesStatusTbd)
             }
 
             static var hold: String {
-                tr(.launchesStatusHold)
+                String(localized: .launchesStatusHold)
             }
 
             static var success: String {
-                tr(.launchesStatusSuccess)
+                String(localized: .launchesStatusSuccess)
             }
 
             static var failure: String {
-                tr(.launchesStatusFailure)
+                String(localized: .launchesStatusFailure)
             }
 
             static var unknown: String {
-                tr(.launchesStatusUnknown)
+                String(localized: .launchesStatusUnknown)
+            }
+
+            /// Prefix for `StatusPill`'s accessibility label, the pill's plain visible text
+            /// (e.g. "Go", "Hold") reads as a bare, context-free word to VoiceOver wherever
+            /// nothing nearby already establishes it's a launch status.
+            static var accessibilityLabelPrefix: String {
+                String(localized: .launchesStatusAccessibilityLabelPrefix)
             }
         }
 
         enum Detail {
             static var rocket: String {
-                tr(.launchesDetailRocket)
+                String(localized: .launchesDetailRocket)
             }
 
             static var launchPad: String {
-                tr(.launchesDetailLaunchPad)
+                String(localized: .launchesDetailLaunchPad)
             }
 
             static var location: String {
-                tr(.launchesDetailLocation)
+                String(localized: .launchesDetailLocation)
             }
 
             static var windowStart: String {
-                tr(.launchesDetailWindowStart)
+                String(localized: .launchesDetailWindowStart)
+            }
+
+            static var windowEnd: String {
+                String(localized: .launchesDetailWindowEnd)
             }
 
             static var mission: String {
-                tr(.launchesDetailMission)
+                String(localized: .launchesDetailMission)
             }
 
             static var missionType: String {
-                tr(.launchesDetailMissionType)
+                String(localized: .launchesDetailMissionType)
             }
 
             static var missionDescription: String {
-                tr(.launchesDetailMissionDescription)
+                String(localized: .launchesDetailMissionDescription)
             }
 
             static var orbit: String {
-                tr(.launchesDetailOrbit)
+                String(localized: .launchesDetailOrbit)
             }
 
             static var watchWebcast: String {
-                tr(.launchesDetailWatchWebcast)
+                String(localized: .launchesDetailWatchWebcast)
             }
 
             static var relatedNewsTitle: String {
-                tr(.launchesDetailRelatedNewsTitle)
+                String(localized: .launchesDetailRelatedNewsTitle)
             }
         }
     }
 
     enum News {
         static var navigationTitle: String {
-            tr(.newsNavigationTitle)
+            String(localized: .newsNavigationTitle)
         }
 
         static var loading: String {
-            tr(.newsLoading)
+            String(localized: .newsLoading)
         }
 
         static var errorTitle: String {
-            tr(.newsErrorTitle)
+            String(localized: .newsErrorTitle)
         }
 
         static var emptyTitle: String {
-            tr(.newsEmptyTitle)
+            String(localized: .newsEmptyTitle)
         }
 
         static var emptyDescription: String {
-            tr(.newsEmptyDescription)
+            String(localized: .newsEmptyDescription)
+        }
+
+        static var noResultsTitle: String {
+            String(localized: .newsNoResultsTitle)
+        }
+
+        static var noResultsDescription: String {
+            String(localized: .newsNoResultsDescription)
         }
 
         static var retryAction: String {
-            tr(.newsRetryAction)
+            String(localized: .newsRetryAction)
         }
 
         static var searchPrompt: String {
-            tr(.newsSearchPrompt)
+            String(localized: .newsSearchPrompt)
         }
 
         enum Detail {
             static var readFullArticle: String {
-                tr(.newsDetailReadFullArticle)
+                String(localized: .newsDetailReadFullArticle)
             }
         }
     }
 
     enum Tabs {
         static var launches: String {
-            tr(.tabsLaunches)
+            String(localized: .tabsLaunches)
         }
 
         static var news: String {
-            tr(.tabsNews)
+            String(localized: .tabsNews)
         }
-    }
-
-    private enum Key: String {
-        case commonUnknown = "common.unknown"
-        case errorNetworkUnauthorized = "error.network.unauthorized"
-        case errorNetworkRateLimited = "error.network.rate_limited"
-        case errorNetworkServerUnavailable = "error.network.server_unavailable"
-        case errorNetworkTransport = "error.network.transport"
-        case errorNetworkDecoding = "error.network.decoding"
-        case errorNetworkUnknown = "error.network.unknown"
-        case launchesNavigationTitle = "launches.navigation.title"
-        case launchesLoading = "launches.loading"
-        case launchesErrorTitle = "launches.error.title"
-        case launchesEmptyTitle = "launches.empty.title"
-        case launchesEmptyDescription = "launches.empty.description"
-        case launchesModePicker = "launches.mode.picker"
-        case launchesRetryAction = "launches.retry_action"
-        case launchesModeUpcoming = "launches.mode.upcoming"
-        case launchesModePrevious = "launches.mode.previous"
-        case launchesStatusGo = "launches.status.go"
-        case launchesStatusTBD = "launches.status.tbd"
-        case launchesStatusHold = "launches.status.hold"
-        case launchesStatusSuccess = "launches.status.success"
-        case launchesStatusFailure = "launches.status.failure"
-        case launchesStatusUnknown = "launches.status.unknown"
-        case launchesDetailRocket = "launches.detail.rocket"
-        case launchesDetailLaunchPad = "launches.detail.launch_pad"
-        case launchesDetailLocation = "launches.detail.location"
-        case launchesDetailWindowStart = "launches.detail.window_start"
-        case launchesDetailMission = "launches.detail.mission"
-        case launchesDetailMissionType = "launches.detail.mission_type"
-        case launchesDetailMissionDescription = "launches.detail.mission_description"
-        case launchesDetailOrbit = "launches.detail.orbit"
-        case launchesDetailWatchWebcast = "launches.detail.watch_webcast"
-        case launchesDetailRelatedNewsTitle = "launches.detail.related_news_title"
-        case newsNavigationTitle = "news.navigation.title"
-        case newsLoading = "news.loading"
-        case newsErrorTitle = "news.error.title"
-        case newsEmptyTitle = "news.empty.title"
-        case newsEmptyDescription = "news.empty.description"
-        case newsRetryAction = "news.retry_action"
-        case newsSearchPrompt = "news.search.prompt"
-        case newsDetailReadFullArticle = "news.detail.read_full_article"
-        case tabsLaunches = "tabs.launches"
-        case tabsNews = "tabs.news"
-    }
-
-    private static func tr(_ key: Key) -> String {
-        let localized = NSLocalizedString(key.rawValue, tableName: nil, bundle: .main, value: "", comment: "")
-        #if DEBUG
-            assert(localized.isEmpty == false, "Missing localization key: \(key.rawValue)")
-        #endif
-        return localized.isEmpty ? key.rawValue : localized
     }
 }

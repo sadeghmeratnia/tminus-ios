@@ -1,8 +1,52 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "app_launch.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TMinus couldn't set up local storage. Please try again."
+          }
+        }
+      }
+    },
+    "app_launch.retry_action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try Again"
+          }
+        }
+      }
+    },
+    "app_launch.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to Start"
+          }
+        }
+      }
+    },
+    "common.loadingMore": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading more…"
+          }
+        }
+      }
+    },
     "common.unknown": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -12,8 +56,19 @@
         }
       }
     },
+    "error.network.client_error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request couldn't be completed. Please try again."
+          }
+        }
+      }
+    },
     "error.network.decoding": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -24,7 +79,7 @@
       }
     },
     "error.network.rate_limited": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -35,7 +90,7 @@
       }
     },
     "error.network.server_unavailable": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -45,8 +100,19 @@
         }
       }
     },
+    "error.network.timeout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request timed out. Please try again."
+          }
+        }
+      }
+    },
     "error.network.transport": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -57,7 +123,7 @@
       }
     },
     "error.network.unauthorized": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -68,7 +134,7 @@
       }
     },
     "error.network.unknown": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -79,7 +145,7 @@
       }
     },
     "launches.detail.launch_pad": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -90,7 +156,7 @@
       }
     },
     "launches.detail.location": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -101,7 +167,7 @@
       }
     },
     "launches.detail.mission": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -112,7 +178,7 @@
       }
     },
     "launches.detail.mission_description": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -123,7 +189,7 @@
       }
     },
     "launches.detail.mission_type": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -134,7 +200,7 @@
       }
     },
     "launches.detail.orbit": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -145,7 +211,7 @@
       }
     },
     "launches.detail.related_news_title": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -156,7 +222,7 @@
       }
     },
     "launches.detail.rocket": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -167,7 +233,7 @@
       }
     },
     "launches.detail.watch_webcast": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -177,8 +243,19 @@
         }
       }
     },
+    "launches.detail.window_end": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window closes"
+          }
+        }
+      }
+    },
     "launches.detail.window_start": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -189,7 +266,7 @@
       }
     },
     "launches.empty.description": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -200,7 +277,7 @@
       }
     },
     "launches.empty.title": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -211,7 +288,7 @@
       }
     },
     "launches.error.title": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -222,7 +299,7 @@
       }
     },
     "launches.loading": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -233,7 +310,7 @@
       }
     },
     "launches.mode.picker": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -244,7 +321,7 @@
       }
     },
     "launches.mode.previous": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -255,7 +332,7 @@
       }
     },
     "launches.mode.upcoming": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -266,7 +343,7 @@
       }
     },
     "launches.navigation.title": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -276,8 +353,30 @@
         }
       }
     },
+    "launches.no_results.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different search term."
+          }
+        }
+      }
+    },
+    "launches.no_results.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Matching Launches"
+          }
+        }
+      }
+    },
     "launches.retry_action": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -287,8 +386,30 @@
         }
       }
     },
+    "launches.search_prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search launches"
+          }
+        }
+      }
+    },
+    "launches.status.accessibilityLabelPrefix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
+        }
+      }
+    },
     "launches.status.failure": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -299,7 +420,7 @@
       }
     },
     "launches.status.go": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -310,7 +431,7 @@
       }
     },
     "launches.status.hold": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -321,7 +442,7 @@
       }
     },
     "launches.status.success": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -332,7 +453,7 @@
       }
     },
     "launches.status.tbd": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -343,7 +464,7 @@
       }
     },
     "launches.status.unknown": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -354,7 +475,7 @@
       }
     },
     "news.detail.read_full_article": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -365,7 +486,7 @@
       }
     },
     "news.empty.description": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -376,7 +497,7 @@
       }
     },
     "news.empty.title": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -387,7 +508,7 @@
       }
     },
     "news.error.title": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -398,7 +519,7 @@
       }
     },
     "news.loading": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -409,7 +530,7 @@
       }
     },
     "news.navigation.title": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -419,8 +540,30 @@
         }
       }
     },
+    "news.no_results.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different search term."
+          }
+        }
+      }
+    },
+    "news.no_results.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Matching Articles"
+          }
+        }
+      }
+    },
     "news.retry_action": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -431,7 +574,7 @@
       }
     },
     "news.search.prompt": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -442,7 +585,7 @@
       }
     },
     "tabs.launches": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -453,7 +596,7 @@
       }
     },
     "tabs.news": {
-      "extractionState": "stale",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
