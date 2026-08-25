@@ -9,6 +9,15 @@
     }
   ],
   "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:TMinus.xcodeproj",
+          "identifier" : "7263B1DA2F98B4A900726F7E",
+          "name" : "TMinus"
+        }
+      ]
+    },
     "testTimeoutsEnabled" : true
   },
   "testTargets" : [
@@ -20,7 +29,6 @@
       }
     },
     {
-      "enabled" : false,
       "target" : {
         "containerPath" : "container:TMinus.xcodeproj",
         "identifier" : "7263B1F12F98B4AB00726F7E",
