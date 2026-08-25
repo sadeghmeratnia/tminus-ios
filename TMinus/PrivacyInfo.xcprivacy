@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<!--
+	  No collected data types: the app only issues anonymous GET requests to two public,
+	  unauthenticated APIs (Launch Library, Spaceflight News) to fetch content — it never sends
+	  any user-identifying or user-linked data, and has no accounts, analytics, or ad SDKs.
+	-->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<!--
+	  No required-reason APIs are used: no UserDefaults, no file-timestamp/disk-space/system-boot-
+	  time/active-keyboard APIs anywhere in the app target. Re-check this array if any of those are
+	  ever introduced — each requires a matching NSPrivacyAccessedAPITypeReason entry.
+	-->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>

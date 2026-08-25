@@ -15,24 +15,13 @@ struct AppRootView: View {
         TabView {
             launchesRootView
                 .tabItem {
-                    Label(L10n.Tabs.launches, systemImage: Constants.Icon.launches)
+                    Label(L10n.Tabs.launches, systemImage: UIConstants.Icon.launchesTab)
                 }
 
             newsRootView
                 .tabItem {
-                    Label(L10n.Tabs.news, systemImage: Constants.Icon.news)
+                    Label(L10n.Tabs.news, systemImage: UIConstants.Icon.newsTab)
                 }
-        }
-    }
-}
-
-// MARK: - Constants
-
-extension AppRootView {
-    private enum Constants {
-        enum Icon {
-            static let launches = "airplane.departure"
-            static let news = "newspaper"
         }
     }
 }
