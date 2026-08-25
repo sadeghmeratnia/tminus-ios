@@ -111,6 +111,32 @@ enum EndpointTests {
 
             #expect(request.url?.query == nil)
         }
+
+        // `ImageDataLoader` relies on exactly this: a signed/CDN media URL used as its own
+        // `baseURL` with an empty `path`, carrying its own query string (e.g. `?token=...`).
+        // `Endpoint.urlRequest()` deliberately leaves the URL untouched in that case rather than
+        // running it through `appending(path:)`, see its doc comment, so this locks that
+        // behavior down against a regression.
+        @Test("Empty path preserves a query string already present on baseURL")
+        func emptyPathPreservesBaseURLQueryString() throws {
+            let signedMediaURL = URL(string: "https://cdn.example.com/photo.jpg?token=abc&expires=123")!
+            let request = try makeRequest(path: "", queryItems: [], baseURL: signedMediaURL)
+
+            #expect(request.url == signedMediaURL)
+        }
+
+        @Test("Empty path with endpoint-supplied query items replaces baseURL's own query string")
+        func emptyPathWithQueryItemsReplacesBaseURLQuery() throws {
+            let signedMediaURL = URL(string: "https://cdn.example.com/photo.jpg?token=abc")!
+            let request = try makeRequest(
+                path: "",
+                queryItems: [URLQueryItem(name: "size", value: "large")],
+                baseURL: signedMediaURL
+            )
+            let components = try URLComponents(url: #require(request.url), resolvingAgainstBaseURL: false)
+
+            #expect(components?.queryItems == [URLQueryItem(name: "size", value: "large")])
+        }
     }
 
     // MARK: - Headers

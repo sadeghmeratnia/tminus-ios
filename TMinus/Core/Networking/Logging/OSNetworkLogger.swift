@@ -16,13 +16,26 @@ struct OSNetworkLogger: NetworkLogger {
     func log(_ message: String, level: LogLevel) {
         switch level {
         case .debug:
-            logger.debug("\(message)")
+            logger.debug("\(message, privacy: .public)")
         case .info:
-            logger.info("\(message)")
+            logger.info("\(message, privacy: .public)")
         case .warning:
-            logger.warning("\(message)")
+            logger.warning("\(message, privacy: .public)")
         case .error:
-            logger.error("\(message)")
+            logger.error("\(message, privacy: .public)")
+        }
+    }
+
+    func log(_ message: String, sensitiveDetail: String, level: LogLevel) {
+        switch level {
+        case .debug:
+            logger.debug("\(message, privacy: .public)\(sensitiveDetail, privacy: .private)")
+        case .info:
+            logger.info("\(message, privacy: .public)\(sensitiveDetail, privacy: .private)")
+        case .warning:
+            logger.warning("\(message, privacy: .public)\(sensitiveDetail, privacy: .private)")
+        case .error:
+            logger.error("\(message, privacy: .public)\(sensitiveDetail, privacy: .private)")
         }
     }
 }

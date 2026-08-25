@@ -35,7 +35,7 @@ extension APIEnvironment {
         #endif
     }()
 
-    /// Hardcoded API base URLs can only ever fail to parse due to an authoring typo — this
+    /// Hardcoded API base URLs can only ever fail to parse due to an authoring typo, this
     /// fails fast with a clear message instead of the generic trap a bare `!` would produce.
     /// `APIEnvironmentTests` also asserts every literal here parses, so a typo is caught by
     /// the test suite before it would ever reach this fatalError at runtime.

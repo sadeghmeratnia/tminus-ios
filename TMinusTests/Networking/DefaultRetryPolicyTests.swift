@@ -47,13 +47,13 @@ enum DefaultRetryPolicyTests {
             assertShouldRetry(true, error: NetworkError.statusCode(429), attempt: attempt)
         }
 
-        @Test("Retries on 503", arguments: [0, 1, 2])
-        func retriesOn503(attempt: Int) {
-            assertShouldRetry(true, error: NetworkError.statusCode(503), attempt: attempt)
+        @Test("Retries on any 5xx server error", arguments: [500, 502, 503, 504, 599])
+        func retriesOn5xx(statusCode: Int) {
+            assertShouldRetry(true, error: NetworkError.statusCode(statusCode), attempt: 0)
         }
 
         @Test("Does not retry on non-retryable status codes", arguments: [
-            400, 401, 403, 404, 500, 502
+            400, 401, 403, 404
         ])
         func doesNotRetryOnNonRetryableStatusCodes(statusCode: Int) {
             assertShouldRetry(false, error: NetworkError.statusCode(statusCode), attempt: 0)
@@ -61,6 +61,7 @@ enum DefaultRetryPolicyTests {
 
         @Test("Does not retry when attempts exhausted on retryable status codes", arguments: [
             NetworkError.statusCode(429),
+            NetworkError.statusCode(500),
             NetworkError.statusCode(503)
         ])
         func doesNotRetryWhenAttemptsExhausted(error: NetworkError) {
@@ -125,6 +126,31 @@ enum DefaultRetryPolicyTests {
         }
     }
 
+    // MARK: - Idempotency
+
+    @Suite("Idempotency")
+    struct Idempotency {
+        @Test("Never retries a POST even on an otherwise-retryable error")
+        func doesNotRetryNonIdempotentMethod() {
+            DefaultRetryPolicyTests.assertShouldRetry(
+                false,
+                error: NetworkError.statusCode(503),
+                attempt: 0,
+                method: .post
+            )
+        }
+
+        @Test("Retries a PUT on an otherwise-retryable error")
+        func retriesIdempotentPut() {
+            DefaultRetryPolicyTests.assertShouldRetry(
+                true,
+                error: NetworkError.statusCode(503),
+                attempt: 0,
+                method: .put
+            )
+        }
+    }
+
     // MARK: - Delay
 
     @Suite("Delay")
@@ -132,9 +158,9 @@ enum DefaultRetryPolicyTests {
         @Test("Delay increases with attempt number")
         func delayIncreasesWithAttempt() {
             let policy = DefaultRetryPolicyTests.makePolicy()
-            let delay0 = policy.delay(for: 0)
-            let delay1 = policy.delay(for: 1)
-            let delay2 = policy.delay(for: 2)
+            let delay0 = policy.delay(for: 0, retryAfter: nil)
+            let delay1 = policy.delay(for: 1, retryAfter: nil)
+            let delay2 = policy.delay(for: 2, retryAfter: nil)
 
             #expect(delay1 > delay0)
             #expect(delay2 > delay1)
@@ -143,9 +169,9 @@ enum DefaultRetryPolicyTests {
         @Test("Delay is within expected range for attempt 0")
         func delayRangeForAttempt0() {
             let policy = DefaultRetryPolicyTests.makePolicy()
-            let delay = policy.delay(for: 0)
+            let delay = policy.delay(for: 0, retryAfter: nil)
 
-            // base = 1.0, jitter = 0...1.0, range is 1.0...2.0 seconds
+            // base = 1.0, jitter = 0...base, range is 1.0...2.0 seconds
             #expect(delay >= .seconds(1.0))
             #expect(delay <= .seconds(2.0))
         }
@@ -153,21 +179,40 @@ enum DefaultRetryPolicyTests {
         @Test("Delay is within expected range for attempt 1")
         func delayRangeForAttempt1() {
             let policy = DefaultRetryPolicyTests.makePolicy()
-            let delay = policy.delay(for: 1)
+            let delay = policy.delay(for: 1, retryAfter: nil)
 
-            // base = 2.0, jitter = 0...1.0, range is 2.0...3.0 seconds
+            // base = 2.0, jitter = 0...base, range is 2.0...4.0 seconds
             #expect(delay >= .seconds(2.0))
-            #expect(delay <= .seconds(3.0))
+            #expect(delay <= .seconds(4.0))
         }
 
         @Test("Delay is within expected range for attempt 2")
         func delayRangeForAttempt2() {
             let policy = DefaultRetryPolicyTests.makePolicy()
-            let delay = policy.delay(for: 2)
+            let delay = policy.delay(for: 2, retryAfter: nil)
 
-            // base = 4.0, jitter = 0...1.0, range is 4.0...5.0 seconds
+            // base = 4.0, jitter = 0...base, range is 4.0...8.0 seconds
             #expect(delay >= .seconds(4.0))
-            #expect(delay <= .seconds(5.0))
+            #expect(delay <= .seconds(8.0))
+        }
+
+        @Test("Retry-After header takes precedence over computed backoff")
+        func retryAfterTakesPrecedence() {
+            let policy = DefaultRetryPolicyTests.makePolicy()
+            let delay = policy.delay(for: 0, retryAfter: 12)
+
+            #expect(delay == .seconds(12))
+        }
+
+        @Test("Retry-After is honored even when it exceeds the exponential-backoff max delay")
+        func retryAfterIsNotCappedByBackoffMaxDelay() {
+            // The server's explicit instruction is respected as-is here; bounding the overall
+            // wait against the request's own retry deadline is `URLSessionNetworkClient`'s job,
+            // not this policy's, see the doc comment on `delay(for:retryAfter:)`.
+            let policy = DefaultRetryPolicyTests.makePolicy()
+            let delay = policy.delay(for: 0, retryAfter: 9999)
+
+            #expect(delay == .seconds(9999))
         }
     }
 }
@@ -180,9 +225,10 @@ private extension DefaultRetryPolicyTests {
     static func assertShouldRetry(_ expected: Bool,
                                   error: Error,
                                   attempt: Int,
-                                  maxRetries: Int = 3)
+                                  maxRetries: Int = 3,
+                                  method: HTTPMethod = .get)
     {
         let policy = makePolicy(maxRetries: maxRetries)
-        #expect(policy.shouldRetry(error: error, attempt: attempt) == expected)
+        #expect(policy.shouldRetry(error: error, attempt: attempt, method: method) == expected)
     }
 }

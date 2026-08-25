@@ -9,14 +9,14 @@ import Foundation
 @testable import TMinus
 
 struct MockRetryPolicy: RetryPolicy {
-    var shouldRetryHandler: (Error, Int) -> Bool = { _, _ in false }
-    var delayHandler: (Int) -> Duration = { _ in .zero }
+    var shouldRetryHandler: @Sendable (Error, Int, HTTPMethod) -> Bool = { _, _, _ in false }
+    var delayHandler: @Sendable (Int, TimeInterval?) -> Duration = { _, _ in .zero }
 
-    func shouldRetry(error: Error, attempt: Int) -> Bool {
-        shouldRetryHandler(error, attempt)
+    func shouldRetry(error: Error, attempt: Int, method: HTTPMethod) -> Bool {
+        shouldRetryHandler(error, attempt, method)
     }
 
-    func delay(for attempt: Int) -> Duration {
-        delayHandler(attempt)
+    func delay(for attempt: Int, retryAfter: TimeInterval?) -> Duration {
+        delayHandler(attempt, retryAfter)
     }
 }

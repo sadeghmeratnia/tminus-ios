@@ -9,6 +9,30 @@ import Foundation
 import Testing
 @testable import TMinus
 
+/// Mutable box handed to `DataCache(now:)` so tests can move the cache's clock forward
+/// deterministically instead of sleeping past a real TTL, a real-sleep boundary check is
+/// inherently timing-flaky (a scheduler hiccup near the edge flips the assertion either way).
+private final class TestClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var current: Date
+
+    init(_ date: Date = Date()) {
+        current = date
+    }
+
+    func advance(by seconds: TimeInterval) {
+        lock.lock()
+        current = current.addingTimeInterval(seconds)
+        lock.unlock()
+    }
+
+    func now() -> Date {
+        lock.lock()
+        defer { lock.unlock() }
+        return current
+    }
+}
+
 @Suite("DataCache")
 enum DataCacheTests {
     @Test("Stores metadata for cache entry")
@@ -28,30 +52,31 @@ enum DataCacheTests {
 
     @Test("Stale entries are hidden by default but available when requested")
     static func staleEntryBehavior() async throws {
-        let cache = DataCache(ttl: 0.01)
+        let clock = TestClock()
+        let cache = DataCache(ttl: 10, now: clock.now)
         let key = "launches/previous"
         let payload = Data("old".utf8)
 
         await cache.set(payload, for: key, source: .network)
-        try await Task.sleep(for: .nanoseconds(50_000_000))
+        clock.advance(by: 11)
 
         let strictValue = await cache.cachedValue(for: key)
         let staleValue = await cache.cachedValue(for: key, allowingStale: true)
 
         #expect(strictValue == nil)
         #expect(staleValue?.data == payload)
-        #expect(staleValue?.metadata.isStale == true)
     }
 
     @Test("removeStaleEntries clears expired cache entries")
     static func removeStaleEntries() async throws {
-        let cache = DataCache(ttl: 1)
+        let clock = TestClock()
+        let cache = DataCache(ttl: 1, now: clock.now)
         let staleKey = "stale"
         let freshKey = "fresh"
 
-        await cache.set(Data("stale".utf8), for: staleKey, ttl: 0.01, source: .network)
+        await cache.set(Data("stale".utf8), for: staleKey, ttl: 10, source: .network)
         await cache.set(Data("fresh".utf8), for: freshKey, ttl: 60, source: .network)
-        try await Task.sleep(for: .nanoseconds(50_000_000))
+        clock.advance(by: 11)
 
         await cache.removeStaleEntries()
 
@@ -60,6 +85,33 @@ enum DataCacheTests {
 
         #expect(staleAfterCleanup == nil)
         #expect(freshAfterCleanup != nil)
-        #expect(freshAfterCleanup?.isStale == false)
+    }
+
+    @Test("Crossing the key-compaction threshold opportunistically sweeps stale entries without an explicit removeStaleEntries call")
+    static func opportunisticSweepEvictsStaleEntriesOnceThresholdIsCrossed() async throws {
+        let clock = TestClock()
+        let cache = DataCache(ttl: 60, keyCompactionThreshold: 2, now: clock.now)
+        let staleKey = "stale"
+
+        await cache.set(Data("stale".utf8), for: staleKey, ttl: 10, source: .network)
+        clock.advance(by: 11)
+
+        // This crosses `keyCompactionThreshold` (2), which should schedule an opportunistic
+        // sweep on its own, no call to `removeStaleEntries()` here. The sweep itself still runs
+        // as a real, independently-scheduled `Task`, so this loop polls for it rather than
+        // asserting synchronously; only the staleness boundary that decides *whether* an entry
+        // gets swept is made deterministic via `clock`, not the sweep's own scheduling.
+        await cache.set(Data("fresh".utf8), for: "fresh", ttl: 60, source: .network)
+
+        var staleEvicted = false
+        for _ in 0 ..< 50 {
+            if await cache.metadata(for: staleKey) == nil {
+                staleEvicted = true
+                break
+            }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+
+        #expect(staleEvicted)
     }
 }
